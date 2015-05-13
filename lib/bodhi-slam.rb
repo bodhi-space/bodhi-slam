@@ -178,17 +178,24 @@ module BodhiResource
     :sys_namespace, :sys_created_by, :sys_type_version, :sys_id]
   attr_accessor *SYSTEM_ATTRIBUTES
   
-  # - Returns a Hash of the objects attributes
+  # - Returns a Hash of the Objects form attributes
   def attributes
     attributes = Hash.new
     self.instance_variables.each do |variable|
-      #Convert :@variable to :variable
       attribute_name = variable.to_s.delete('@').to_sym
-      #Get the value of :attribute_name and add it to the Hash
-      #Unless the attribute is one of the BASE_ATTRIBUTES
       attributes[attribute_name] = send(attribute_name) unless SYSTEM_ATTRIBUTES.include?(attribute_name)
     end
     attributes
+  end
+  
+  # - Converts all the Objects attributes to JSON
+  def to_json
+    attributes = Hash.new
+    self.instance_variables.each do |variable|
+      attribute_name = variable.to_s.delete('@').to_sym
+      attributes[attribute_name] = send(attribute_name)
+    end
+    attributes.to_json
   end
 
   def save!
