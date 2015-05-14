@@ -22,8 +22,10 @@ describe BodhiContext do
   describe "#attributes" do
     let(:context){ BodhiContext.new({ server: "http://google.com", namespace: "test", username: "foo", password: "bar" }) }
     
-    it "should return a Hash" do
+    it "should return a Hash of the context's attributes" do
       expect(context.attributes).to be_a Hash
+      expect(context.attributes[:server]).to eq "http://google.com"
+      expect(context.attributes[:namespace]).to eq "test"
     end
   end
   

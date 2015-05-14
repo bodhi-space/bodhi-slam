@@ -14,8 +14,7 @@ describe BodhiSlam do
     context "with invalid params" do
       it "should return an empty BodhiContext" do
         BodhiSlam.context({ server: nil, namespace: nil }) do |context|
-          expect(context).to be_a BodhiContext
-          expect(context).to be_valid
+          expect(context).to_not be_valid
         end
       end
     end

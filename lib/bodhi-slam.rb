@@ -9,10 +9,9 @@ require 'bodhi-slam/resource'
 class BodhiSlam
   def self.context(params, &block)
     bodhi_context = BodhiContext.new params
+
     #puts "Switching context to: #{bodhi_context.attributes}"
-    
-    yield bodhi_context if bodhi_context.valid?
-    
+    yield bodhi_context
     #puts "Exiting context: #{bodhi_context.attributes}"
   end
   
