@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'bodhi-slam'
-  s.version     = '0.0.3'
+  s.version     = '0.0.4'
   s.date        = '2015-05-11'
   s.summary     = "Generate data and push to the Bodhi API"
   s.description = "Generate data and push to the Bodhi API"
