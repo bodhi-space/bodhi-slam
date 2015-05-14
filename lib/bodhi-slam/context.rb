@@ -28,13 +28,12 @@ class BodhiContext
     attributes = Hash.new
     self.instance_variables.each do |variable|
       attribute_name = variable.to_s.delete('@').to_sym
-      attributes[attribute_name] = send(attribute_name) unless [:connection, :credentials_header].include?(attribute_name)
+      attributes[attribute_name] = send(attribute_name)
     end
     attributes
   end
   
-  def validate!
-    raise ArgumentError, "Server URL must be a String" unless server.is_a?(String)
-    raise ArgumentError, "Namespace name must be a String" unless namespace.is_a?(String)
+  def valid?
+    return server.is_a?(String) && namespace.is_a?(String)
   end
 end

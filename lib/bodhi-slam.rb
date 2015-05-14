@@ -9,17 +9,15 @@ require 'bodhi-slam/resource'
 class BodhiSlam
   def self.context(params, &block)
     bodhi_context = BodhiContext.new params
-    bodhi_context.validate!
+    #puts "Switching context to: #{bodhi_context.attributes}"
     
-    puts "Switching context to: #{bodhi_context.attributes}"
+    yield bodhi_context if bodhi_context.valid?
     
-    yield bodhi_context
-    
-    puts "Exiting context: #{bodhi_context.attributes}"
+    #puts "Exiting context: #{bodhi_context.attributes}"
   end
   
   def self.analyze(context)
-    context.validate!
+    raise "Invalid BodhiContext" unless context.valid?
 
     #Get the types for this namespace
     result = context.connection.get do |request|
