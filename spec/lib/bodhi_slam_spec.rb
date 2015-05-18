@@ -5,7 +5,7 @@ describe BodhiSlam do
     context "with valid params" do
       it "should yield a BodhiContext" do
         BodhiSlam.context({ server: "test", namespace: "test" }) do |context|
-          expect(context).to be_a BodhiContext
+          expect(context).to be_a Bodhi::Context
           expect(context).to be_valid
         end
       end
@@ -24,7 +24,7 @@ describe BodhiSlam do
     end
     
     context "with invalid context" do
-      let(:context){ BodhiContext.new({ server: nil, namespace: nil }) }
+      let(:context){ Bodhi::Context.new({ server: nil, namespace: nil }) }
       
       it "should raise a Bodhi::Errors" do
         expect{ BodhiSlam.analyze(context) }.to raise_error(Bodhi::Errors)

@@ -9,7 +9,7 @@ require 'bodhi-slam/resource'
 
 class BodhiSlam
   def self.context(params, &block)
-    bodhi_context = BodhiContext.new params
+    bodhi_context = Bodhi::Context.new params
     raise bodhi_context.errors unless bodhi_context.valid?
 
     #puts "Switching context to: #{bodhi_context.attributes}"

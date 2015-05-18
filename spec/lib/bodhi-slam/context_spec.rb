@@ -1,9 +1,9 @@
 require 'spec_helper'
 
-describe BodhiContext do
+describe Bodhi::Context do
   describe "#valid?" do    
     context "with invalid 'server' attribute" do
-      let(:context){ BodhiContext.new({ server: nil, namespace: "test", username: "foo", password: "bar" }) }
+      let(:context){ Bodhi::Context.new({ server: nil, namespace: "test", username: "foo", password: "bar" }) }
       
       it "should return false" do
         expect(context).to_not be_valid
@@ -18,7 +18,7 @@ describe BodhiContext do
     end
 
     context "with invalid 'namespace' attribute" do
-      let(:context){ BodhiContext.new({ server: "http://google.com", namespace: nil, username: "foo", password: "bar" }) }
+      let(:context){ Bodhi::Context.new({ server: "http://google.com", namespace: nil, username: "foo", password: "bar" }) }
       
       it "should return false" do
         expect(context).to_not be_valid
@@ -34,7 +34,7 @@ describe BodhiContext do
     
     context "with valid params" do
       it "should return true" do
-        expect(BodhiContext.new({ server: "http://google.com", namespace: "test" })).to be_valid
+        expect(Bodhi::Context.new({ server: "http://google.com", namespace: "test" })).to be_valid
       end
     end
   end
@@ -42,20 +42,20 @@ describe BodhiContext do
   describe "#invalid?" do
     context "with valid attributes" do
       it "should return false" do
-        expect(BodhiContext.new({ server: "http://google.com", namespace: "test" })).to_not be_invalid
+        expect(Bodhi::Context.new({ server: "http://google.com", namespace: "test" })).to_not be_invalid
       end
     end
     
     context "with invalid attributes" do
       it "should return true" do
-        expect(BodhiContext.new({ server: nil, namespace: nil })).to be_invalid
+        expect(Bodhi::Context.new({ server: nil, namespace: nil })).to be_invalid
       end
     end
   end
   
   
   describe "#errors" do
-    let(:context){ BodhiContext.new({ server: "http://google.com", namespace: "test", username: "foo", password: "bar" }) }
+    let(:context){ Bodhi::Context.new({ server: "http://google.com", namespace: "test", username: "foo", password: "bar" }) }
     
     it "should return a Bodhi::Errors object" do
       expect(context.errors).to be_a Bodhi::Errors
@@ -63,7 +63,7 @@ describe BodhiContext do
   end
   
   describe "#attributes" do
-    let(:context){ BodhiContext.new({ server: "http://google.com", namespace: "test", username: "foo", password: "bar" }) }
+    let(:context){ Bodhi::Context.new({ server: "http://google.com", namespace: "test", username: "foo", password: "bar" }) }
     
     it "should return a Hash of the context's attributes" do
       expect(context.attributes).to be_a Hash
@@ -73,7 +73,7 @@ describe BodhiContext do
   end
   
   describe "#server" do
-    let(:context){ BodhiContext.new({ server: "http://google.com", namespace: "test", username: "foo", password: "bar" }) }
+    let(:context){ Bodhi::Context.new({ server: "http://google.com", namespace: "test", username: "foo", password: "bar" }) }
 
     it "should return the server url" do
       expect(context.server).to be_a String
@@ -82,7 +82,7 @@ describe BodhiContext do
   end
   
   describe "#namespace" do
-    let(:context){ BodhiContext.new({ server: "http://google.com", namespace: "test", username: "foo", password: "bar" }) }
+    let(:context){ Bodhi::Context.new({ server: "http://google.com", namespace: "test", username: "foo", password: "bar" }) }
 
     it "should return the namespace name" do
       expect(context.namespace).to be_a String
@@ -91,8 +91,8 @@ describe BodhiContext do
   end
   
   describe "#credentials" do
-    let(:basic_auth){ BodhiContext.new({ server: "http://google.com", namespace: "test", username: "foo", password: "bar" }) }
-    let(:cookie_auth){ BodhiContext.new({ server: "http://google.com", namespace: "test", cookie: "12345" }) }
+    let(:basic_auth){ Bodhi::Context.new({ server: "http://google.com", namespace: "test", username: "foo", password: "bar" }) }
+    let(:cookie_auth){ Bodhi::Context.new({ server: "http://google.com", namespace: "test", cookie: "12345" }) }
     
     context "with basic authorization" do
       it "should return the basic auth credentials" do
@@ -110,8 +110,8 @@ describe BodhiContext do
   end
   
   describe "#credentials_header" do
-    let(:basic_auth){ BodhiContext.new({ server: "http://google.com", namespace: "test", username: "foo", password: "bar" }) }
-    let(:cookie_auth){ BodhiContext.new({ server: "http://google.com", namespace: "test", cookie: "12345" }) }
+    let(:basic_auth){ Bodhi::Context.new({ server: "http://google.com", namespace: "test", username: "foo", password: "bar" }) }
+    let(:cookie_auth){ Bodhi::Context.new({ server: "http://google.com", namespace: "test", cookie: "12345" }) }
     
     context "with basic auth" do
       it "should return the 'Authorization' header" do
@@ -129,8 +129,8 @@ describe BodhiContext do
   end
   
   describe "#credentials_type" do
-    let(:basic_auth){ BodhiContext.new({ server: "http://google.com", namespace: "test", username: "foo", password: "bar" }) }
-    let(:cookie_auth){ BodhiContext.new({ server: "http://google.com", namespace: "test", cookie: "12345" }) }
+    let(:basic_auth){ Bodhi::Context.new({ server: "http://google.com", namespace: "test", username: "foo", password: "bar" }) }
+    let(:cookie_auth){ Bodhi::Context.new({ server: "http://google.com", namespace: "test", cookie: "12345" }) }
     
     context "with basic auth" do
       it "should return HTTP_BASIC" do
