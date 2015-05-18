@@ -1,5 +1,5 @@
 class BodhiContext
-  attr_reader :connection, :server, :namespace, 
+  attr_reader :errors, :connection, :server, :namespace, 
     :credentials, :credentials_type, :credentials_header
 
   def initialize(params)

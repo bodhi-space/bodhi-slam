@@ -2,13 +2,31 @@ require 'spec_helper'
 
 describe BodhiContext do
   describe "#valid?" do
-    context "with invalid params" do
-      it "should return false if 'server' param is not a String" do
-        expect(BodhiContext.new({ server: nil, namespace: "test" })).to_not be_valid
+    context "with invalid 'server' attribute" do
+      let(:context){ BodhiContext.new({ server: nil, namespace: "test", username: "foo", password: "bar" }) }
+      
+      it "should return false" do
+        expect(context).to_not be_valid
       end
       
-      it "should return false if 'namespace' param is not a String" do
-        expect(BodhiContext.new({ server: "http://google.com", namespace: nil })).to_not be_valid
+      it "should add new error messages" do
+        expect(context.errors).to be_a BodhiSlam::ContextError
+        expect(context.errors).to include("server url must be present")
+        expect(context.errors).to include("server url must be a string")
+      end
+    end
+
+    context "with invalid 'namespace' attribute" do
+      let(:context){ BodhiContext.new({ server: "http://google.com", namespace: nil, username: "foo", password: "bar" }) }
+      
+      it "should return false" do
+        expect(context).to_not be_valid
+      end
+      
+      it "should add new error messages" do
+        expect(context.errors).to be_a Hash
+        expect(context.errors).to include("namespace must be present")
+        expect(context.errors).to include("namespace must be a string")
       end
     end
     
@@ -17,6 +35,9 @@ describe BodhiContext do
         expect(BodhiContext.new({ server: "http://google.com", namespace: "test" })).to be_valid
       end
     end
+  end
+  
+  describe "#errors" do
   end
   
   describe "#attributes" do

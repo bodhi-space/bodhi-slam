@@ -4,11 +4,13 @@ require "json"
 require "time"
 
 require 'bodhi-slam/context'
+require 'bodhi-slam/context_error'
 require 'bodhi-slam/resource'
 
 class BodhiSlam
   def self.context(params, &block)
     bodhi_context = BodhiContext.new params
+    raise Bodhi::ContextError unless bodhi_context.valid?
 
     #puts "Switching context to: #{bodhi_context.attributes}"
     yield bodhi_context
@@ -16,7 +18,7 @@ class BodhiSlam
   end
   
   def self.analyze(context)
-    raise "Invalid BodhiContext" unless context.valid?
+    raise Bodhi::ContextError unless context.valid?
 
     #Get the types for this namespace
     result = context.connection.get do |request|
