@@ -22,6 +22,8 @@ class BodhiContext
       @credentials_header = "Authorization"
       @credentials_type = "HTTP_BASIC"
     end
+    
+    @errors = Bodhi::Errors.new
   end
   
   def attributes
@@ -33,7 +35,25 @@ class BodhiContext
     attributes
   end
   
+  # - Runs all the specified validations and returns true if no errors were added otherwise false.
   def valid?
-    return server.is_a?(String) && namespace.is_a?(String)
+    errors.add(:server, "must be present") if server.nil?
+    errors.add(:server, "must be a string") unless server.is_a? String
+    
+    errors.add(:namespace, "must be present") if namespace.nil?
+    errors.add(:namespace, "must be a string") unless namespace.is_a? String
+    
+    return !errors.messages.any?
+  end
+  
+  # - Performs the opposite of valid?. Returns true if errors were added, false otherwise.
+  def invalid?
+    errors.add(:server, "must be present") if server.nil?
+    errors.add(:server, "must be a string") unless server.is_a? String
+    
+    errors.add(:namespace, "must be present") if namespace.nil?
+    errors.add(:namespace, "must be a string") unless namespace.is_a? String
+    
+    return errors.messages.any?
   end
 end

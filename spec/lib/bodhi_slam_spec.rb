@@ -12,8 +12,8 @@ describe BodhiSlam do
     end
     
     context "with invalid params" do
-      it "should raise a Bodhi::ContextError" do
-        expect{ BodhiSlam.context({ server: nil, namespace: nil }){|context|} }.to raise_error(Bodhi::ContextError)
+      it "should raise a Bodhi::Errors" do
+        expect{ BodhiSlam.context({ server: nil, namespace: nil }){|context|} }.to raise_error(Bodhi::Errors)
       end
     end
   end
@@ -26,8 +26,8 @@ describe BodhiSlam do
     context "with invalid context" do
       let(:context){ BodhiContext.new({ server: nil, namespace: nil }) }
       
-      it "should raise a Bodhi::ContextError" do
-        expect{ BodhiSlam.analyze(context) }.to raise_error(Bodhi::ContextError)
+      it "should raise a Bodhi::Errors" do
+        expect{ BodhiSlam.analyze(context) }.to raise_error(Bodhi::Errors)
       end
     end
   end
