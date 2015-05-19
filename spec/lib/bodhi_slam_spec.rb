@@ -4,7 +4,7 @@ describe BodhiSlam do
   describe ".context" do
     context "with valid params" do
       it "should yield a Bodhi::Context" do
-        BodhiSlam.context({ server: "test", namespace: "test" }) do |context|
+        BodhiSlam.context({ server: "http://google.com", namespace: "test" }) do |context|
           expect(context).to be_a Bodhi::Context
           expect(context).to be_valid
         end
@@ -18,7 +18,7 @@ describe BodhiSlam do
         begin
           BodhiSlam.context({ server: nil, namespace: nil }){|context|}
         rescue Exception => e
-          expect(e.messages[:server]).to match_array(["must be present", "must be a string"])
+          expect(e.messages[:server]).to match_array(["must be present", "must be a string", "must be a valid URI"])
           expect(e.messages[:namespace]).to match_array(["must be present", "must be a string"])
         end
       end

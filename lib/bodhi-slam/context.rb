@@ -38,8 +38,10 @@ module Bodhi
   
     # - Runs all the specified validations and returns true if no errors were added otherwise false.
     def valid?
+      errors.clear
       errors.add(:server, "must be present") if server.nil?
       errors.add(:server, "must be a string") unless server.is_a? String
+      errors.add(:server, "must be a valid URI") unless server =~ /\A#{URI::regexp}\z/
     
       errors.add(:namespace, "must be present") if namespace.nil?
       errors.add(:namespace, "must be a string") unless namespace.is_a? String
@@ -49,13 +51,7 @@ module Bodhi
   
     # - Performs the opposite of valid?. Returns true if errors were added, false otherwise.
     def invalid?
-      errors.add(:server, "must be present") if server.nil?
-      errors.add(:server, "must be a string") unless server.is_a? String
-    
-      errors.add(:namespace, "must be present") if namespace.nil?
-      errors.add(:namespace, "must be a string") unless namespace.is_a? String
-    
-      return errors.messages.any?
+      !valid?
     end
   end
 end

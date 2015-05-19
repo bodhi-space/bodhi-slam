@@ -2,6 +2,19 @@ require 'spec_helper'
 
 describe Bodhi::Context do
   describe "#valid?" do    
+    
+    it "should clear all existing error messages before checking validity" do
+      bodhi_context = Bodhi::Context.new({ server: nil, namespace: nil })
+      bodhi_context.valid?
+      
+      expect(bodhi_context.errors.messages[:server]).to match_array(["must be present", "must be a string", "must be a valid URI"])
+      expect(bodhi_context.errors.messages[:namespace]).to match_array(["must be present", "must be a string"])
+      
+      bodhi_context.valid?
+      expect(bodhi_context.errors.messages[:server]).to match_array(["must be present", "must be a string", "must be a valid URI"])
+      expect(bodhi_context.errors.messages[:namespace]).to match_array(["must be present", "must be a string"])
+    end
+    
     context "with invalid 'server' attribute" do
       let(:context){ Bodhi::Context.new({ server: nil, namespace: "test", username: "foo", password: "bar" }) }
       
