@@ -85,4 +85,13 @@ describe Bodhi::Errors do
       expect(error.full_messages).to match_array(["test no worky!", "test another error!"])
     end
   end
+  
+  describe "#to_json" do
+    let(:error){ Bodhi::Errors.new({test: ["no worky!", "another error!"]}) }
+    
+    it "should return the messages hash in json format" do
+      expect(error.to_json).to be_a String
+      expect(error.to_json).to eq "{\"test\":[\"no worky!\",\"another error!\"]}"
+    end
+  end
 end

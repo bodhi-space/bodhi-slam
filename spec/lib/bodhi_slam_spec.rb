@@ -4,16 +4,13 @@ describe BodhiSlam do
   describe ".context" do
     context "with valid params" do
       it "should yield a Bodhi::Context" do
-        BodhiSlam.context({ server: "http://google.com", namespace: "test" }) do |context|
-          expect(context).to be_a Bodhi::Context
-          expect(context).to be_valid
-        end
+        expect { |block| BodhiSlam.context({ server: "http://google.com", namespace: "test" }, &block) }.to yield_with_args(Bodhi::Context)
       end
     end
     
     context "with invalid params" do
       it "should raise a Bodhi::Errors" do
-        expect{ BodhiSlam.context({ server: nil, namespace: nil }){|context|} }.to raise_error(Bodhi::Errors)
+        expect{ BodhiSlam.context({ server: "test", namespace: "test" }){|context|} }.to raise_error(Bodhi::Errors)
         
         begin
           BodhiSlam.context({ server: nil, namespace: nil }){|context|}

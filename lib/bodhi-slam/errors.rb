@@ -6,9 +6,9 @@ module Bodhi
       @messages = errors
     end
 
-    def add(symbol, msg)
-      @messages[symbol] = [] unless @messages.has_key?(symbol)
-      @messages[symbol].push(msg)
+    def add(name, msg)
+      @messages[name] = [] unless @messages.has_key?(name)
+      @messages[name].push(msg)
     end
     
     def clear
@@ -19,6 +19,10 @@ module Bodhi
       results = []
       @messages.each{ |key, values| values.each{ |value| results.push("#{key} #{value}") }}
       results
+    end
+    
+    def to_json
+      @messages.to_json
     end
   end
 end
