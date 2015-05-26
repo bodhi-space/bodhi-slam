@@ -38,11 +38,19 @@ describe BodhiSlam do
   
   describe ".get_types" do
     context "with valid context" do
-      it "should return an array of all types in a namespace"
+      let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
+      
+      it "should return an array of all types in a namespace" do
+        expect(BodhiSlam.get_types(context)).to be_a Array
+      end
     end
     
     context "with invalid authorization" do
-      it "should raise an error"
+      let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: "12345" }) }
+      
+      it "should raise an authentication.credentials.required error" do
+        expect{ BodhiSlam.get_types(context) }.to raise_error(RuntimeError, '{"authentication.credentials.required"=>"Authentication failed", "authentication.supported.types"=>"HTTP_COOKIE, HTTP_BASIC", "status"=>401}')
+      end
     end
     
     context "with invalid context" do
@@ -56,11 +64,19 @@ describe BodhiSlam do
   
   describe ".get_enumerations" do
     context "with valid context" do
-      it "should return an array of all enumerations in a namespace"
+      let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
+      
+      it "should return an array of all enumerations in a namespace" do
+        expect(BodhiSlam.get_enumerations(context)).to be_a Array
+      end
     end
     
     context "with invalid authorization" do
-      it "should raise an error"
+      let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: "12345" }) }
+      
+      it "should raise an authentication.credentials.required error" do
+        expect{ BodhiSlam.get_enumerations(context) }.to raise_error(RuntimeError, '{"authentication.credentials.required"=>"Authentication failed", "authentication.supported.types"=>"HTTP_COOKIE, HTTP_BASIC", "status"=>401}')
+      end
     end
     
     context "with invalid context" do

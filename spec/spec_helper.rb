@@ -8,6 +8,9 @@ Bundler.setup
 
 require 'bodhi-slam'
 
+require 'dotenv'
+Dotenv.load
+
 RSpec.configure do |config|
   # Only use the new 'expect' syntax
   config.expect_with :rspec do |c|

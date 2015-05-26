@@ -38,3 +38,6 @@ build/
 
 # Exclude simplecov folder
 coverage
+
+#Exclude .env file from dotenv gem
+.env
