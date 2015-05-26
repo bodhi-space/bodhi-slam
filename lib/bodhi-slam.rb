@@ -20,41 +20,14 @@ class BodhiSlam
   def self.analyze(context)
     raise context.errors unless context.valid?
 
-    #Get the types for this namespace
-    result = context.connection.get do |request|
-      request.url "/#{context.namespace}/types"
-      request.headers[context.credentials_header] = context.credentials
-    end
-    
-    if result.status != 200
-      errors = JSON.parse result.body
-      errors.each{|error| error['status'] = result.status } if errors.is_a? Array
-      errors["status"] = result.status if errors.is_a? Hash
-      raise errors.to_s
-    end
-    types = JSON.parse(result.body)
-    
-    #Get the enumerations for this namespace
-    result = context.connection.get do |request|
-      request.url "/#{context.namespace}/enums"
-      request.headers[context.credentials_header] = context.credentials
-    end
-    
-    if result.status != 200
-      errors = JSON.parse result.body
-      errors.each{|error| error['status'] = result.status } if errors.is_a? Array
-      errors["status"] = result.status if errors.is_a? Hash
-      raise errors.to_s
-    end
-    enumerations = JSON.parse(result.body)
+    types = get_types(context)
+    enumerations = get_enumerations(context)
     
     embedded_types = types.select{ |type| type["embedded"] }
     normal_types = types.select{ |type| !type["embedded"] }
     
     embedded_types.each{ |type| create_type(type, enumerations) }
     normal_types.each{ |type| create_type(type, enumerations) }
-    
-    #Party!
   end
   
   # - Create a BodhiResource from the given type definition and enumerations
@@ -130,5 +103,43 @@ class BodhiSlam
         end
       end
     end
+  end
+  
+  # - Get all types from a namespace
+  def self.get_types(context)
+    raise context.errors unless context.valid?
+    
+    result = context.connection.get do |request|
+      request.url "/#{context.namespace}/types"
+      request.headers[context.credentials_header] = context.credentials
+    end
+    
+    if result.status != 200
+      errors = JSON.parse result.body
+      errors.each{|error| error['status'] = result.status } if errors.is_a? Array
+      errors["status"] = result.status if errors.is_a? Hash
+      raise errors.to_s
+    end
+    
+    return JSON.parse(result.body)
+  end
+  
+  # - Get all enumerations from a namespace
+  def self.get_enumerations(context)
+    raise context.errors unless context.valid?
+    
+    result = context.connection.get do |request|
+      request.url "/#{context.namespace}/enums"
+      request.headers[context.credentials_header] = context.credentials
+    end
+    
+    if result.status != 200
+      errors = JSON.parse result.body
+      errors.each{|error| error['status'] = result.status } if errors.is_a? Array
+      errors["status"] = result.status if errors.is_a? Hash
+      raise errors.to_s
+    end
+    
+    return JSON.parse(result.body)
   end
 end

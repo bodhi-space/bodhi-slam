@@ -35,4 +35,40 @@ describe BodhiSlam do
       end
     end
   end
+  
+  describe ".get_types" do
+    context "with valid context" do
+      it "should return an array of all types in a namespace"
+    end
+    
+    context "with invalid authorization" do
+      it "should raise an error"
+    end
+    
+    context "with invalid context" do
+      let(:context){ Bodhi::Context.new({ server: nil, namespace: nil }) }
+      
+      it "should raise a Bodhi::Errors" do
+        expect{ BodhiSlam.get_types(context) }.to raise_error(Bodhi::Errors)
+      end
+    end
+  end
+  
+  describe ".get_enumerations" do
+    context "with valid context" do
+      it "should return an array of all enumerations in a namespace"
+    end
+    
+    context "with invalid authorization" do
+      it "should raise an error"
+    end
+    
+    context "with invalid context" do
+      let(:context){ Bodhi::Context.new({ server: nil, namespace: nil }) }
+      
+      it "should raise a Bodhi::Errors" do
+        expect{ BodhiSlam.get_enumerations(context) }.to raise_error(Bodhi::Errors)
+      end
+    end
+  end
 end
