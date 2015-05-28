@@ -32,9 +32,13 @@ class BodhiSlam
   
   # - Create a BodhiResource from the given type definition and enumerations
   def self.create_type(type, enumerations)
-    if type["package"] != "system"
-      properties = type["properties"].keys.collect{ |key| key.to_sym }
-      klass = Object.const_set(type["name"], Class.new {
+    raise "Expected type to be a Hash" unless type.is_a? Hash
+    raise "Expected enumerations to be an Array" unless enumerations.is_a? Array
+    type.symbolize_keys!
+    
+    if type[:package] != "system"
+      properties = type[:properties].keys.collect{ |key| key.to_sym }
+      klass = Object.const_set(type[:name], Class.new {
         include BodhiResource
         attr_accessor *properties
       })
@@ -56,53 +60,61 @@ class BodhiSlam
         return FactoryGirl.build(klass.name, object_hash)
       end
 
-      create_factory(klass.name, type["properties"], enumerations) unless FactoryGirl.factories.registered?(klass.name)
-      puts "Created Class & Factory for: #{klass.name}"
+      #create_factory(klass.name, type[:properties], enumerations) unless FactoryGirl.factories.registered?(klass.name)
+      #puts "Created Class & Factory for: #{klass.name}"
+      
+      return klass
     end
   end
   
   # - Create a Factory with the given name, properties, and available enumerations
-  def self.create_factory(name, properties, enumerations)
+  def self.create_factory(type, enumerations)
+    raise "Expected type to be a Hash" unless type.is_a? Hash
+    raise "Expected enumerations to be an Array" unless enumerations.is_a? Array
+    type.symbolize_keys!
+    
     FactoryGirl.define do
-      factory name.to_sym do
-        properties.each_pair do |k,v|
-          unless v["system"]
+      factory type[:name].to_sym do
+        type[:properties].each_pair do |k,v|
+          unless v[:system]
             
-            case v["type"]
+            case v[:type]
             when "GeoJSON"
-              send(k) { {type: "Point", coordinates: [10,20]} } if v["multi"].nil?
-              send(k) { [*0..5].sample.times.collect{ {type: "Point", coordinates: [10,20]} } } if v["multi"]
+              send(k) { {type: "Point", coordinates: [10,20]} } if v[:multi].nil?
+              send(k) { [*0..5].sample.times.collect{ {type: "Point", coordinates: [10,20]} } } if v[:multi]
             when "Boolean"
-              send(k) { [true, false].sample } if v["multi"].nil?
-              send(k) { [*0..5].sample.times.collect{ [true, false].sample } } if v["multi"]
+              send(k) { [true, false].sample } if v[:multi].nil?
+              send(k) { [*0..5].sample.times.collect{ [true, false].sample } } if v[:multi]
             when "Enumerated"
-              enum = enumerations.select{ |enumeration| enumeration["name"] == v["ref"].split('.')[0] }[0]
-              send(k) { enum["values"].sample[v["ref"].split('.')[1]] } if v["multi"].nil?
-              send(k) { [*0..5].sample.times.collect{ enum["values"].sample[v["ref"].split('.')[1]] } } if v["multi"]
+              enum = enumerations.select{ |enumeration| enumeration["name"] == v[:ref].split('.')[0] }[0]
+              send(k) { enum["values"].sample[v["ref"].split('.')[1]] } if v[:multi].nil?
+              send(k) { [*0..5].sample.times.collect{ enum["values"].sample[v[:ref].split('.')[1]] } } if v[:multi]
             when "Object"
-              send(k) { {"foo" => SecureRandom.hex} } if v["multi"].nil?
-              send(k) { [*0..5].sample.times.collect{ {"foo" => SecureRandom.hex} } } if v["multi"]
+              send(k) { {"foo" => SecureRandom.hex} } if v[:multi].nil?
+              send(k) { [*0..5].sample.times.collect{ {"foo" => SecureRandom.hex} } } if v[:multi]
             when "String"
-              send(k) { SecureRandom.hex } if v["multi"].nil?
-              send(k) { [*0..5].sample.times.collect{ SecureRandom.hex } } if v["multi"]
+              send(k) { SecureRandom.hex } if v[:multi].nil?
+              send(k) { [*0..5].sample.times.collect{ SecureRandom.hex } } if v[:multi]
             when "DateTime"
-              send(k) { Time.at(rand * Time.now.to_i).iso8601 } if v["multi"].nil?
-              send(k) { [*0..5].sample.times.collect{ Time.at(rand * Time.now.to_i).iso8601 } } if v["multi"]
+              send(k) { Time.at(rand * Time.now.to_i).iso8601 } if v[:multi].nil?
+              send(k) { [*0..5].sample.times.collect{ Time.at(rand * Time.now.to_i).iso8601 } } if v[:multi]
             when "Integer"
-              send(k) { SecureRandom.random_number(100) } if v["multi"].nil?
-              send(k) { [*0..5].sample.times.collect{ SecureRandom.random_number(100) } } if v["multi"]
+              send(k) { SecureRandom.random_number(100) } if v[:multi].nil?
+              send(k) { [*0..5].sample.times.collect{ SecureRandom.random_number(100) } } if v[:multi]
             when "Real"
-              send(k) { SecureRandom.random_number } if v["multi"].nil?
-              send(k) { [*0..5].sample.times.collect{ SecureRandom.random_number } } if v["multi"]
+              send(k) { SecureRandom.random_number } if v[:multi].nil?
+              send(k) { [*0..5].sample.times.collect{ SecureRandom.random_number } } if v[:multi]
             else # Its an embedded type
-              send(k) { FactoryGirl.build(v["type"]).attributes } if v["multi"].nil?
-              send(k) { [*0..5].sample.times.collect{ FactoryGirl.build(v["type"]).attributes } } if v["multi"]
+              send(k) { FactoryGirl.build(v[:type]).attributes } if v[:multi].nil?
+              send(k) { [*0..5].sample.times.collect{ FactoryGirl.build(v[:type]).attributes } } if v[:multi]
             end
             
           end
         end
       end
     end
+    
+    return FactoryGirl.factories.registered?(type[:name].to_sym)
   end
   
   # - Get all types from a namespace

@@ -36,6 +36,46 @@ describe BodhiSlam do
     end
   end
   
+  describe ".create_type" do
+    it "should accept a hash of the type as a parameter" do
+      expect{ BodhiSlam.create_type("invalid_param", []) }.to raise_error("Expected type to be a Hash")
+    end
+    
+    it "should accept an array of enumerations as a parameter" do
+      expect{ BodhiSlam.create_type({}, "invalid_param") }.to raise_error("Expected enumerations to be an Array")
+    end
+    
+    context "with valid parameters" do
+      let(:valid_type_hash){ { name: "TestType", package: "test", properties: { foo:{ type: "String"}, bar:{ type: "String" } } } }
+      let(:valid_enum_array){ [] }
+      
+      it "should return the newly created class" do
+        klass = BodhiSlam.create_type(valid_type_hash, valid_enum_array)
+        expect(klass).to be_a Class
+        expect(klass.name).to eq "TestType"
+      end
+    end
+  end
+  
+  describe ".create_factory" do
+    it "should accept a hash of the type as a parameter" do
+      expect{ BodhiSlam.create_factory("invalid_param", []) }.to raise_error("Expected type to be a Hash")
+    end
+    
+    it "should accept an array of enumerations as a parameter" do
+      expect{ BodhiSlam.create_factory({}, "invalid_param") }.to raise_error("Expected enumerations to be an Array")
+    end
+    
+    context "with valid parameters" do
+      let(:valid_type_hash){ { name: "TestType", package: "test", properties: { foo:{ type: "String"}, bar:{ type: "String" } } } }
+      let(:valid_enum_array){ [] }
+      
+      it "should return true" do
+        expect(BodhiSlam.create_factory(valid_type_hash, valid_enum_array)).to be true
+      end
+    end
+  end
+  
   describe ".get_types" do
     context "with valid context" do
       let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
