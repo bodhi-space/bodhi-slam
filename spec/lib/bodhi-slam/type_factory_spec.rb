@@ -48,9 +48,19 @@ describe Bodhi::TypeFactory do
     context "with GeoJSON properties" do
       context "and multi=true" do
         let(:type){ { name: "TestType", package: "test", properties: { foo:{ type: "GeoJSON", multi: true} } } }
-      
+        let(:klass){ Bodhi::TypeFactory.create_type(type, []) }
+        
         it "should register the factory and return true" do
           expect(Bodhi::TypeFactory.create_factory(type)).to be true
+        end
+        
+        it "should return 0..5 random GeoJSON objects in an Array" do
+          Bodhi::TypeFactory.create_factory(type)
+          obj = FactoryGirl.build(:TestType)
+          expect(obj.foo).to be_a Array
+          expect(obj.foo.size).to be_between(0,5)
+          
+          puts "Generated object was: #{obj.attributes}"
         end
       end
       
@@ -59,6 +69,18 @@ describe Bodhi::TypeFactory do
       
         it "should register the factory and return true" do
           expect(Bodhi::TypeFactory.create_factory(type)).to be true
+        end
+        
+        it "should return a random GeoJSON object" do
+          Bodhi::TypeFactory.create_factory(type)
+          obj = FactoryGirl.build(:TestType)
+          
+          expect(obj.foo).to be_a Hash
+          expect(obj.foo).to have_key :type
+          expect(obj.foo).to have_key :coordinates
+          expect(obj.foo[:coordinates]).to be_a Array
+          
+          puts "Generated object was: #{obj.attributes}"
         end
       end
     end
@@ -70,6 +92,15 @@ describe Bodhi::TypeFactory do
         it "should register the factory and return true" do
           expect(Bodhi::TypeFactory.create_factory(type)).to be true
         end
+        
+        it "should return 0..5 random Booleans in an Array" do
+          Bodhi::TypeFactory.create_factory(type)
+          obj = FactoryGirl.build(:TestType)
+          expect(obj.foo).to be_a Array
+          expect(obj.foo.size).to be_between(0,5)
+          
+          puts "Generated object was: #{obj.attributes}"
+        end
       end
       
       context "and multi=false" do
@@ -77,6 +108,15 @@ describe Bodhi::TypeFactory do
       
         it "should register the factory and return true" do
           expect(Bodhi::TypeFactory.create_factory(type)).to be true
+        end
+        
+        it "should return a random Boolean" do
+          Bodhi::TypeFactory.create_factory(type)
+          obj = FactoryGirl.build(:TestType)
+          
+          expect(obj.foo).to_not be_nil
+          
+          puts "Generated object was: #{obj.attributes}"
         end
       end
     end
@@ -91,7 +131,7 @@ describe Bodhi::TypeFactory do
       end
       
       context "and multi=false" do
-        let(:type){ { name: "TestType", package: "test", properties: { foo:{ type: "Enumerated"} } } }
+        let(:type){ { name: "TestType", package: "test", properties: { foo:{ type: "Enumerated", ref: "TestEnum.name"} } } }
       
         it "should register the factory and return true" do
           expect(Bodhi::TypeFactory.create_factory(type)).to be true
@@ -124,6 +164,17 @@ describe Bodhi::TypeFactory do
         it "should register the factory and return true" do
           expect(Bodhi::TypeFactory.create_factory(type)).to be true
         end
+        
+        it "should return 0..5 random Strings in an Array" do
+          Bodhi::TypeFactory.create_factory(type)
+          obj = FactoryGirl.build(:TestType)
+          
+          expect(obj.foo).to be_a Array
+          expect(obj.foo.size).to be_between(0,5)
+          expect(obj.foo[0]).to be_a String if obj.foo.size > 0
+          
+          puts "Generated object was: #{obj.attributes}"
+        end
       end
       
       context "and multi=false" do
@@ -131,6 +182,15 @@ describe Bodhi::TypeFactory do
       
         it "should register the factory and return true" do
           expect(Bodhi::TypeFactory.create_factory(type)).to be true
+        end
+        
+        it "should return a random String" do
+          Bodhi::TypeFactory.create_factory(type)
+          obj = FactoryGirl.build(:TestType)
+          
+          expect(obj.foo).to be_a String
+          
+          puts "Generated object was: #{obj.attributes}"
         end
       end
     end
@@ -142,6 +202,17 @@ describe Bodhi::TypeFactory do
         it "should register the factory and return true" do
           expect(Bodhi::TypeFactory.create_factory(type)).to be true
         end
+        
+        it "should return 0..5 random DateTimes as Strings in an Array" do
+          Bodhi::TypeFactory.create_factory(type)
+          obj = FactoryGirl.build(:TestType)
+          
+          expect(obj.foo).to be_a Array
+          expect(obj.foo.size).to be_between(0,5)
+          expect(Time.parse(obj.foo[0])).to be_a Time if obj.foo.size > 0
+          
+          puts "Generated object was: #{obj.attributes}"
+        end
       end
       
       context "and multi=false" do
@@ -149,6 +220,15 @@ describe Bodhi::TypeFactory do
       
         it "should register the factory and return true" do
           expect(Bodhi::TypeFactory.create_factory(type)).to be true
+        end
+        
+        it "should return a random DateTime as a String" do
+          Bodhi::TypeFactory.create_factory(type)
+          obj = FactoryGirl.build(:TestType)
+          
+          expect(Time.parse(obj.foo)).to be_a Time
+          
+          puts "Generated object was: #{obj.attributes}"
         end
       end
     end
@@ -160,6 +240,17 @@ describe Bodhi::TypeFactory do
         it "should register the factory and return true" do
           expect(Bodhi::TypeFactory.create_factory(type)).to be true
         end
+        
+        it "should return 0..5 random Integers in an Array" do
+          Bodhi::TypeFactory.create_factory(type)
+          obj = FactoryGirl.build(:TestType)
+          
+          expect(obj.foo).to be_a Array
+          expect(obj.foo.size).to be_between(0,5)
+          expect(obj.foo[0]).to be_a Integer if obj.foo.size > 0
+          
+          puts "Generated object was: #{obj.attributes}"
+        end
       end
       
       context "and multi=false" do
@@ -167,6 +258,15 @@ describe Bodhi::TypeFactory do
       
         it "should register the factory and return true" do
           expect(Bodhi::TypeFactory.create_factory(type)).to be true
+        end
+        
+        it "should return a random Integer" do
+          Bodhi::TypeFactory.create_factory(type)
+          obj = FactoryGirl.build(:TestType)
+          
+          expect(obj.foo).to be_a Integer
+          
+          puts "Generated object was: #{obj.attributes}"
         end
       end
     end
@@ -178,6 +278,17 @@ describe Bodhi::TypeFactory do
         it "should register the factory and return true" do
           expect(Bodhi::TypeFactory.create_factory(type)).to be true
         end
+        
+        it "should return 0..5 random Reals (Floats) in an Array" do
+          Bodhi::TypeFactory.create_factory(type)
+          obj = FactoryGirl.build(:TestType)
+          
+          expect(obj.foo).to be_a Array
+          expect(obj.foo.size).to be_between(0,5)
+          expect(obj.foo[0]).to be_a Float if obj.foo.size > 0
+          
+          puts "Generated object was: #{obj.attributes}"
+        end
       end
       
       context "and multi=false" do
@@ -185,6 +296,15 @@ describe Bodhi::TypeFactory do
       
         it "should register the factory and return true" do
           expect(Bodhi::TypeFactory.create_factory(type)).to be true
+        end
+        
+        it "should return a random Real (Float)" do
+          Bodhi::TypeFactory.create_factory(type)
+          obj = FactoryGirl.build(:TestType)
+          
+          expect(obj.foo).to be_a Float
+          
+          puts "Generated object was: #{obj.attributes}"
         end
       end
     end

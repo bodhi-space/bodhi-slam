@@ -64,11 +64,11 @@ module Bodhi
                 end
 
               when "Enumerated"
-                enum = enumerations.select{ |enumeration| enumeration["name"] == v[:ref].split('.')[0] }[0]
+                enum = enumerations.select{ |enumeration| enumeration[:name] == v[:ref].split('.')[0] }[0]
                 if v[:multi].nil?
-                  send(k) { enum["values"].sample[v["ref"].split('.')[1]] }
+                  send(k) { enum[:values].sample[v[:ref].split('.')[1]] }
                 else
-                  send(k) { [*0..5].sample.times.collect{ enum["values"].sample[v[:ref].split('.')[1]] } }
+                  send(k) { [*0..5].sample.times.collect{ enum[:values].sample[v[:ref].split('.')[1]] } }
                 end
 
               when "Object"
