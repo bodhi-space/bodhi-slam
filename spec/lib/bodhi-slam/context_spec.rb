@@ -1,68 +1,38 @@
 require 'spec_helper'
 
 describe Bodhi::Context do
-  describe "#valid?" do    
+  context "with invalid 'server' attribute" do
+    let(:context){ Bodhi::Context.new({ server: nil, namespace: "test", username: "foo", password: "bar" }) }
     
-    it "should clear all existing error messages before checking validity" do
-      bodhi_context = Bodhi::Context.new({ server: nil, namespace: nil })
-      bodhi_context.valid?
-      
-      expect(bodhi_context.errors.messages[:server]).to match_array(["must be present", "must be a string", "must be a valid URI"])
-      expect(bodhi_context.errors.messages[:namespace]).to match_array(["must be present", "must be a string"])
-      
-      bodhi_context.valid?
-      expect(bodhi_context.errors.messages[:server]).to match_array(["must be present", "must be a string", "must be a valid URI"])
-      expect(bodhi_context.errors.messages[:namespace]).to match_array(["must be present", "must be a string"])
+    it "should return false" do
+      expect(context).to_not be_valid
     end
     
-    context "with invalid 'server' attribute" do
-      let(:context){ Bodhi::Context.new({ server: nil, namespace: "test", username: "foo", password: "bar" }) }
-      
-      it "should return false" do
-        expect(context).to_not be_valid
-      end
-      
-      it "should add new error messages" do
-        context.valid?
-        expect(context.errors).to be_a Bodhi::Errors
-        expect(context.errors.full_messages).to include("server must be present")
-        expect(context.errors.full_messages).to include("server must be a string")
-      end
+    it "should add new error messages" do
+      context.valid?
+      expect(context.errors).to be_a Bodhi::Errors
+      expect(context.errors.full_messages).to include("server is required")
+      expect(context.errors.full_messages).to include("server must be a valid URL")
     end
+  end
 
-    context "with invalid 'namespace' attribute" do
-      let(:context){ Bodhi::Context.new({ server: "http://google.com", namespace: nil, username: "foo", password: "bar" }) }
-      
-      it "should return false" do
-        expect(context).to_not be_valid
-      end
-      
-      it "should add new error messages" do
-        context.valid?
-        expect(context.errors).to be_a Bodhi::Errors
-        expect(context.errors.full_messages).to include("namespace must be present")
-        expect(context.errors.full_messages).to include("namespace must be a string")
-      end
+  context "with invalid 'namespace' attribute" do
+    let(:context){ Bodhi::Context.new({ server: "http://google.com", namespace: nil, username: "foo", password: "bar" }) }
+    
+    it "should return false" do
+      expect(context).to_not be_valid
     end
     
-    context "with valid params" do
-      it "should return true" do
-        expect(Bodhi::Context.new({ server: "http://google.com", namespace: "test" })).to be_valid
-      end
+    it "should add new error messages" do
+      context.valid?
+      expect(context.errors).to be_a Bodhi::Errors
+      expect(context.errors.full_messages).to include("namespace is required")
     end
   end
   
-  describe "#invalid?" do
-    context "with valid attributes" do
-      it "should return false" do
-        expect(Bodhi::Context.new({ server: "http://google.com", namespace: "test" })).to_not be_invalid
-      end
-    end
-    
-    context "with invalid attributes" do
-      it "should return true" do
-        expect(Bodhi::Context.new({ server: nil, namespace: nil })).to be_invalid
-      end
+  context "with valid attributes" do
+    it "should return true" do
+      expect(Bodhi::Context.new({ server: "http://google.com", namespace: "test" })).to be_valid
     end
   end
   

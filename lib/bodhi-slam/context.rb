@@ -1,8 +1,14 @@
+require 'bodhi-slam/validations'
+
 module Bodhi
   class Context
-    attr_reader :errors, :connection, :server, :namespace, 
+    include Bodhi::Validations
+    attr_reader :connection, :server, :namespace, 
       :credentials, :credentials_type, :credentials_header
-
+    
+      validates :server, required: true, not_blank: true, url: true
+      validates :namespace, required: true, not_blank: true
+    
     def initialize(params)
       params.symbolize_keys!
     
@@ -23,8 +29,6 @@ module Bodhi
         @credentials_header = "Authorization"
         @credentials_type = "HTTP_BASIC"
       end
-    
-      @errors = Bodhi::Errors.new
     end
   
     def attributes
@@ -35,23 +39,6 @@ module Bodhi
       end
       attributes
     end
-  
-    # - Runs all the specified validations and returns true if no errors were added otherwise false.
-    def valid?
-      errors.clear
-      errors.add(:server, "must be present") if server.nil?
-      errors.add(:server, "must be a string") unless server.is_a? String
-      errors.add(:server, "must be a valid URI") unless server =~ /\A#{URI::regexp}\z/
-    
-      errors.add(:namespace, "must be present") if namespace.nil?
-      errors.add(:namespace, "must be a string") unless namespace.is_a? String
-    
-      return !errors.messages.any?
-    end
-  
-    # - Performs the opposite of valid?. Returns true if errors were added, false otherwise.
-    def invalid?
-      !valid?
-    end
+
   end
 end

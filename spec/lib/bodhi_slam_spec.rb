@@ -15,8 +15,8 @@ describe BodhiSlam do
         begin
           BodhiSlam.context({ server: nil, namespace: nil }){|context|}
         rescue Exception => e
-          expect(e.messages[:server]).to match_array(["must be present", "must be a string", "must be a valid URI"])
-          expect(e.messages[:namespace]).to match_array(["must be present", "must be a string"])
+          expect(e.messages[:server]).to match_array(["is required", "must be a valid URL"])
+          expect(e.messages[:namespace]).to match_array(["is required"])
         end
       end
     end

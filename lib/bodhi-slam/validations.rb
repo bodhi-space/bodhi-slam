@@ -25,7 +25,7 @@ module Bodhi
       def validations; @validations; end
       
       # :nodoc:
-      OPTIONS_FOR_VALIDATES = [:required, :multi, :url].freeze
+      OPTIONS_FOR_VALIDATES = [:required, :multi, :url, :not_blank].freeze
       
       # Creates a new validation on the given +attribute+ using the supplied +options+
       #
@@ -52,6 +52,16 @@ module Bodhi
         
         if options[:multi]
           validation = Bodhi::MultiValidation.new
+          @validations.has_key?(attribute) ? @validations[attribute].push(validation) : @validations[attribute] = [validation]
+        end
+        
+        if options[:url]
+          validation = Bodhi::URLValidation.new
+          @validations.has_key?(attribute) ? @validations[attribute].push(validation) : @validations[attribute] = [validation]
+        end
+        
+        if options[:not_blank]
+          validation = Bodhi::NotBlankValidation.new
           @validations.has_key?(attribute) ? @validations[attribute].push(validation) : @validations[attribute] = [validation]
         end
       end
