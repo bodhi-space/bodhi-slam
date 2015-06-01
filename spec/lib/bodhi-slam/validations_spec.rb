@@ -52,6 +52,54 @@ describe Bodhi::Validations do
     end
   end
   
+  describe "#valid?" do
+    let(:klass) do
+      Class.new do
+        include Bodhi::Validations
+        attr_accessor :foo
+        validates :foo, required: true
+      end
+    end
+    let(:obj){ klass.new }
+    
+    context "with errors present" do
+      it "should return false" do
+        expect(obj.valid?).to be false
+      end
+    end
+    
+    context "with no errors present" do
+      it "should return true" do
+        obj.foo = 12345
+        expect(obj.valid?).to be true
+      end
+    end
+  end
+  
+  describe "#invalid?" do
+    let(:klass) do
+      Class.new do
+        include Bodhi::Validations
+        attr_accessor :foo
+        validates :foo, required: true
+      end
+    end
+    let(:obj){ klass.new }
+    
+    context "with errors present" do
+      it "should return true" do
+        expect(obj.invalid?).to be true
+      end
+    end
+    
+    context "with no errors present" do
+      it "should return false" do
+        obj.foo = 12345
+        expect(obj.invalid?).to be false
+      end
+    end
+  end
+  
   describe ".validates(attribute, options)" do
     let(:klass) do
       Class.new do

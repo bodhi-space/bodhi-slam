@@ -101,6 +101,31 @@ module Bodhi
         end
       end
       
+      # Runs all validations and returns +true+ if no errors are present otherwise +false+.
+      #
+      #   class User
+      #     include Bodhi::Validations
+      #
+      #     attr_accessor :name
+      #     validates :name, required: true
+      #   end
+      #
+      #   user = User.new
+      #   user.valid? # => false
+      #   user.errors.full_messages # => ["name is required"]
+      #
+      #   user.name = "Bob"
+      #   user.valid? # => true
+      #   user.errors.full_messages # => []
+      def valid?
+        validate!
+        !errors.messages.any?
+      end
+      
+      # Runs all validations and returns +false+ if no errors are present otherwise +true+.
+      def invalid?
+        !valid?
+      end
     end
     
     def self.included(base)
