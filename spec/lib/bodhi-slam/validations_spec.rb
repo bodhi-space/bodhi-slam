@@ -71,7 +71,7 @@ describe Bodhi::Validations do
       
       it "should raise ArgumentError if an option doesnt exist" do
         expect{ klass.validates(:foo, { required: true }) }.to_not raise_error
-        expect{ klass.validates(:foo, { bar: true }) }.to raise_error(ArgumentError, "Unknown key: :bar. Valid keys are: :required, :multi.")
+        expect{ klass.validates(:foo, { bar: true }) }.to raise_error(ArgumentError, "Unknown key: :bar. Valid keys are: :required, :multi, :url.")
       end
     end
     

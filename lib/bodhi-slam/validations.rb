@@ -25,7 +25,7 @@ module Bodhi
       def validations; @validations; end
       
       # :nodoc:
-      OPTIONS_FOR_VALIDATES = [:required, :multi].freeze
+      OPTIONS_FOR_VALIDATES = [:required, :multi, :url].freeze
       
       # Creates a new validation on the given +attribute+ using the supplied +options+
       #
