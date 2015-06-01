@@ -7,6 +7,7 @@ require 'bodhi-slam/context'
 require 'bodhi-slam/errors'
 require 'bodhi-slam/resource'
 require 'bodhi-slam/type_factory'
+require 'bodhi-slam/validations'
 
 class BodhiSlam
   def self.context(params, &block)
