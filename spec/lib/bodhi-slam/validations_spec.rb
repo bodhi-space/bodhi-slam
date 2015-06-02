@@ -31,13 +31,13 @@ describe Bodhi::Validations do
       
       obj.validate!
       
-      expect(obj.errors.messages.any?).to be false
+      expect(obj.errors.any?).to be false
     end
     
     context "with errors" do
       it "should add all errors to the object" do
         obj.validate!
-        expect(obj.errors.messages.any?).to be true
+        expect(obj.errors.any?).to be true
         expect(obj.errors.full_messages).to include("foo is required")
       end
     end
@@ -46,7 +46,7 @@ describe Bodhi::Validations do
       it "should not add any errors to the object" do
         obj.foo = "foo"
         obj.validate!
-        expect(obj.errors.messages.any?).to be false
+        expect(obj.errors.any?).to be false
         expect(obj.errors.full_messages).to_not include("foo is required")
       end
     end

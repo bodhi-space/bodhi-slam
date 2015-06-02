@@ -29,23 +29,7 @@ describe Bodhi::Errors do
   
   describe "#messages" do
     let(:error){ Bodhi::Errors.new({test: ["foo", "bar"]}) }
-
-    describe "#any?" do
-      context "with errors present" do
-        it "should return true" do
-          expect(error.messages.any?).to be true
-        end
-      end
-      
-      context "with no errors present" do
-        let(:error){ Bodhi::Errors.new }
-
-        it "should return false" do
-          expect(error.messages.any?).to be false
-        end
-      end
-    end
-
+    
     it "returns a hash" do
       expect(error.messages).to be_a Hash
     end
@@ -59,24 +43,6 @@ describe Bodhi::Errors do
   describe "#full_messages" do
     let(:error){ Bodhi::Errors.new({test: ["no worky!", "another error!"]}) }
     
-    describe "#any?" do
-      context "with errors present" do
-        let(:error){ Bodhi::Errors.new({test: ["foo", "bar"]}) }
-
-        it "should return true" do
-          expect(error.full_messages.any?).to be true
-        end
-      end
-      
-      context "with no errors present" do
-        let(:error){ Bodhi::Errors.new }
-
-        it "should return false" do
-          expect(error.full_messages.any?).to be false
-        end
-      end
-    end
-    
     it "returns an array" do
       expect(error.full_messages).to be_a Array
     end
@@ -86,12 +52,80 @@ describe Bodhi::Errors do
     end
   end
   
+  describe "#each" do
+    let(:error){ Bodhi::Errors.new({foo: ["is required", "must be awesome"]}) }
+    
+    it "should yield for each error in the messages hash" do
+      expect { |block| error.each(&block) }.to yield_successive_args([:foo, "is required"], [:foo, "must be awesome"])
+    end
+  end
+  
+  describe "#any?" do
+    it "returns true if any errors are present" do
+      error = Bodhi::Errors.new({test: ["foo", "bar"]})
+      expect(error.any?).to be true
+    end
+    
+    it "returns false if no errors are present" do
+      error = Bodhi::Errors.new
+      expect(error.any?).to be false
+    end
+  end
+  
   describe "#to_json" do
     let(:error){ Bodhi::Errors.new({test: ["no worky!", "another error!"]}) }
     
     it "should return the messages hash in json format" do
       expect(error.to_json).to be_a String
       expect(error.to_json).to eq "{\"test\":[\"no worky!\",\"another error!\"]}"
+    end
+  end
+  
+  describe "#include?(attribute)" do
+    let(:error){ Bodhi::Errors.new({test: ["no worky!", "another error!"]}) }
+    
+    it "returns true if errors contains the attribute" do
+      expect(error.include?(:test)).to be true
+    end
+    
+    it "returns false if errors does not contain the attribute" do
+      expect(error.include?(:foo)).to be false
+    end
+  end
+  
+  describe "#[](attribute)" do
+    let(:error){ Bodhi::Errors.new({test: ["no worky!", "another error!"]}) }
+    
+    it "returns an array of error messages if the attribute exists" do
+      expect(error[:test]).to match_array(["no worky!", "another error!"])
+      expect(error["test"]).to match_array(["no worky!", "another error!"])
+    end
+    
+    it "returns nil if the attribute does not exist" do
+      expect(error[:foo]).to be_nil
+      expect(error["foo"]).to be_nil
+    end
+  end
+  
+  describe "#size" do
+    let(:error){ Bodhi::Errors.new({test: ["no worky!", "another error!"]}) }
+    
+    it "returns the number of error messages" do
+      expect(error.size).to eq 2
+      error.clear
+      expect(error.size).to eq 0
+    end
+  end
+  
+  describe "#empty?" do
+    it "returns true if no errors are present" do
+      error = Bodhi::Errors.new
+      expect(error.empty?).to be true
+    end
+    
+    it "returns false if errors are present" do
+      error = Bodhi::Errors.new({test: ["no worky!", "another error!"]})
+      expect(error.empty?).to be false
     end
   end
 end
