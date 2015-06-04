@@ -16,5 +16,11 @@ describe Bodhi::MultiValidation do
       validation.validate(record, :foo, record.foo)
       expect(record.errors.full_messages).to include("foo must be an array")
     end
+    
+    it "should not add error if :value is an array" do
+      record.foo = []
+      validation.validate(record, :foo, record.foo)
+      expect(record.errors.full_messages).to_not include("foo must be an array")
+    end
   end
 end

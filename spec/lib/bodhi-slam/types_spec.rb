@@ -76,15 +76,15 @@ describe Bodhi::Type do
   end
   
   describe "#validations" do
-    let(:type){ Bodhi::Type.new({ properties: { foo: { type: "String", required: true } } }) }
+    let(:type){ Bodhi::Type.new({ properties: { foo: { type: "String", required: true }, bar: { type: "Integer", required: true, multi: true } } }) }
     
     it "is a hash" do
       expect(type.validations).to be_a Hash
     end
     
     it "contains all validations for the type keyed by attribute name" do
-      expect(type.validations[:foo]).to include Bodhi::TypeValidation
-      expect(type.validations[:foo]).to include Bodhi::RequiredValidation
+      expect(type.validations[:foo]).to match_array [Bodhi::StringValidation, Bodhi::RequiredValidation]
+      expect(type.validations[:bar]).to match_array [Bodhi::IntegerValidation, Bodhi::RequiredValidation, Bodhi::MultiValidation]
     end
   end
   

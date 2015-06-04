@@ -16,5 +16,11 @@ describe Bodhi::RequiredValidation do
       validation.validate(record, :foo, record.foo)
       expect(record.errors.full_messages).to include("foo is required")
     end
+    
+    it "should not add error if :value is not nil" do
+      record.foo = "test"
+      validation.validate(record, :foo, record.foo)
+      expect(record.errors.full_messages).to_not include("foo is required")
+    end
   end
 end

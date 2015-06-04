@@ -26,10 +26,14 @@ module Bodhi
         properties.symbolize_keys!
         properties.each_pair do |attr_name, attr_properties|
           attr_type = attr_properties[:type].to_sym
-          @validations[attr_name] = [Bodhi::TypeValidation.new(attr_type)]
+          @validations[attr_name] = [Bodhi::ValidationFactory.build(attr_type)]
           
           if attr_properties.has_key? :required
-            @validations[attr_name].push Bodhi::RequiredValidation.new
+            @validations[attr_name].push Bodhi::ValidationFactory.build(:required)
+          end
+          
+          if attr_properties.has_key? :multi
+            @validations[attr_name].push Bodhi::ValidationFactory.build(:multi)
           end
         end
       end
