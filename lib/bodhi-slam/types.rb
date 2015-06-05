@@ -25,18 +25,28 @@ module Bodhi
       if properties
         properties.symbolize_keys!
         properties.each_pair do |attr_name, attr_properties|
-          attr_type = attr_properties[:type].to_sym
-          @validations[attr_name] = [Bodhi::ValidationFactory.build(attr_type)]
-          
-          if attr_properties.has_key? :required
-            @validations[attr_name].push Bodhi::ValidationFactory.build(:required)
-          end
-          
-          if attr_properties.has_key? :multi
-            @validations[attr_name].push Bodhi::ValidationFactory.build(:multi)
-          end
+          attr_properties.symbolize_keys!
+          @validations[attr_name] = Bodhi::ValidationFactory.build(attr_properties)
         end
       end
+    end
+    
+    def self.find_all(context)
+      raise context.errors unless context.valid?
+      
+      result = context.connection.get do |request|
+        request.url "/#{context.namespace}/types"
+        request.headers[context.credentials_header] = context.credentials
+      end
+    
+      if result.status != 200
+        errors = JSON.parse result.body
+        errors.each{|error| error['status'] = result.status } if errors.is_a? Array
+        errors["status"] = result.status if errors.is_a? Hash
+        raise errors.to_s
+      end
+    
+      JSON.parse(result.body).collect{ |type| Bodhi::Type.new(type) }
     end
   end
 end

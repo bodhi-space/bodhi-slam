@@ -1,35 +1,48 @@
 module Bodhi
   class ValidationFactory
-    def self.build(name)
-      raise ArgumentError.new("Expected #{name.class} to be a Symbol") unless name.is_a? Symbol
-      validation = nil
-      
-      case name
-      when :required
-        validation = Bodhi::RequiredValidation.new
-      when :multi
-        validation = Bodhi::MultiValidation.new
-      when :not_blank
-        validation = Bodhi::NotBlankValidation.new
-      when :Object
-        validation = Bodhi::ObjectValidation.new
-      when :Boolean
-        validation = Bodhi::BooleanValidation.new
-      when :String
-        validation = Bodhi::StringValidation.new
-      when :Integer
-        validation = Bodhi::IntegerValidation.new
-      when :DateTime
-        validation = Bodhi::DateTimeValidation.new
-      when :Real
-        validation = Bodhi::RealValidation.new
-      when :GeoJSON
-        validation = Bodhi::GeoJSONValidation.new
-      when :Enumerated
-        validation = Bodhi::EnumeratedValidation.new
+    def self.build(attribute)
+      if !attribute.is_a? Hash
+        raise ArgumentError.new("Expected #{attribute.class} to be a Hash")
+      elsif attribute[:type].nil?
+        raise ArgumentError.new("Missing key :type")
       end
       
-      validation
+      validations = []
+      type = attribute[:type].to_sym
+      case type
+      when :Object
+        validations << Bodhi::ObjectValidation.new
+      when :Boolean
+        validations << Bodhi::BooleanValidation.new
+      when :String
+        validations << Bodhi::StringValidation.new
+      when :Integer
+        validations << Bodhi::IntegerValidation.new
+      when :DateTime
+        validations << Bodhi::DateTimeValidation.new
+      when :Real
+        validations << Bodhi::RealValidation.new
+      when :GeoJSON
+        validations << Bodhi::GeoJSONValidation.new
+      when :Enumerated
+        validations << Bodhi::EnumeratedValidation.new(attribute[:ref])
+      else #Embedded Doc
+        validations << Bodhi::EmbeddedValidation.new(type)
+      end
+      
+      if attribute[:required]
+        validations << Bodhi::RequiredValidation.new
+      end
+      
+      if attribute[:multi]
+        validations << Bodhi::MultiValidation.new
+      end
+      
+      if attribute[:isNotBlank]
+        validations << Bodhi::NotBlankValidation.new
+      end
+      
+      validations
     end
   end
 end

@@ -1,54 +1,74 @@
 require 'spec_helper'
 
 describe Bodhi::ValidationFactory do
-  describe ".build(name)" do
-    it "returns ArgumentError if :name is not a symbol or string" do
-      expect{ Bodhi::ValidationFactory.build(12345) }.to raise_error(ArgumentError, "Expected Fixnum to be a Symbol")
+  describe ".build(attribute_properties)" do
+    let(:properties_hash){ { type: "String", required: true }  }
+    
+    it "returns an Array if no errors occured" do
+      expect(Bodhi::ValidationFactory.build(properties_hash)).to be_a Array
     end
     
-    it "returns Bodhi::RequiredValidation if name is :required" do
-      expect(Bodhi::ValidationFactory.build(:required)).to be_a Bodhi::RequiredValidation
+    it "returns ArgumentError if :attribute_properties is not a Hash" do
+      expect{ Bodhi::ValidationFactory.build(12345) }.to raise_error(ArgumentError, "Expected Fixnum to be a Hash")
     end
     
-    it "returns Bodhi::MultiValidation if name is :multi" do
-      expect(Bodhi::ValidationFactory.build(:multi)).to be_a Bodhi::MultiValidation
+    it "should include Bodhi::RequiredValidation if property is :required" do
+      expect(Bodhi::ValidationFactory.build(properties_hash)).to include Bodhi::RequiredValidation
     end
     
-    it "returns Bodhi::NotBlankValidation if name is :not_blank" do
-      expect(Bodhi::ValidationFactory.build(:not_blank)).to be_a Bodhi::NotBlankValidation
+    it "should include Bodhi::MultiValidation if property is :multi" do
+      properties_hash[:multi] = true
+      expect(Bodhi::ValidationFactory.build(properties_hash)).to include Bodhi::MultiValidation
     end
     
-    
-    it "returns Bodhi::ObjectValidation if name is :Object" do
-      expect(Bodhi::ValidationFactory.build(:Object)).to be_a Bodhi::ObjectValidation
+    it "should include Bodhi::NotBlankValidation if property is :not_blank" do
+      properties_hash[:isNotBlank] = true
+      expect(Bodhi::ValidationFactory.build(properties_hash)).to include Bodhi::NotBlankValidation
     end
     
-    it "returns Bodhi::BooleanValidation if name is :Boolean" do
-      expect(Bodhi::ValidationFactory.build(:Boolean)).to be_a Bodhi::BooleanValidation
+    it "should include Bodhi::ObjectValidation if property is :Object" do
+      properties_hash[:type] = "Object"
+      expect(Bodhi::ValidationFactory.build(properties_hash)).to include Bodhi::ObjectValidation
     end
     
-    it "returns Bodhi::StringValidation if name is :String" do
-      expect(Bodhi::ValidationFactory.build(:String)).to be_a Bodhi::StringValidation
+    it "should include Bodhi::BooleanValidation if property is :Boolean" do
+      properties_hash[:type] = "Boolean"
+      expect(Bodhi::ValidationFactory.build(properties_hash)).to include Bodhi::BooleanValidation
     end
     
-    it "returns Bodhi::IntegerValidation if name is :Integer" do
-      expect(Bodhi::ValidationFactory.build(:Integer)).to be_a Bodhi::IntegerValidation
+    it "should include Bodhi::StringValidation if property is :String" do
+      properties_hash[:type] = "String"
+      expect(Bodhi::ValidationFactory.build(properties_hash)).to include Bodhi::StringValidation
     end
     
-    it "returns Bodhi::DateTimeValidation if name is :DateTime" do
-      expect(Bodhi::ValidationFactory.build(:DateTime)).to be_a Bodhi::DateTimeValidation
+    it "should include Bodhi::IntegerValidation if property is :Integer" do
+      properties_hash[:type] = "Integer"
+      expect(Bodhi::ValidationFactory.build(properties_hash)).to include Bodhi::IntegerValidation
     end
     
-    it "returns Bodhi::RealValidation if name is :Real" do
-      expect(Bodhi::ValidationFactory.build(:Real)).to be_a Bodhi::RealValidation
+    it "should include Bodhi::DateTimeValidation if property is :DateTime" do
+      properties_hash[:type] = "DateTime"
+      expect(Bodhi::ValidationFactory.build(properties_hash)).to include Bodhi::DateTimeValidation
     end
     
-    it "returns Bodhi::GeoJSONValidation if name is :GeoJSON" do
-      expect(Bodhi::ValidationFactory.build(:GeoJSON)).to be_a Bodhi::GeoJSONValidation
+    it "should include Bodhi::RealValidation if property is :Real" do
+      properties_hash[:type] = "Real"
+      expect(Bodhi::ValidationFactory.build(properties_hash)).to include Bodhi::RealValidation
     end
     
-    it "returns Bodhi::EnumeratedValidation if name is :Enumerated" do
-      expect(Bodhi::ValidationFactory.build(:Enumerated)).to be_a Bodhi::EnumeratedValidation
+    it "should include Bodhi::GeoJSONValidation if property is :GeoJSON" do
+      properties_hash[:type] = "GeoJSON"
+      expect(Bodhi::ValidationFactory.build(properties_hash)).to include Bodhi::GeoJSONValidation
+    end
+    
+    it "should include Bodhi::EnumeratedValidation if property is :Enumerated" do
+      properties_hash[:type] = "Enumerated"
+      expect(Bodhi::ValidationFactory.build(properties_hash)).to include Bodhi::EnumeratedValidation
+    end
+    
+    it "should include Bodhi::EmbeddedValidation if property is :Store" do
+      properties_hash[:type] = "Store"
+      expect(Bodhi::ValidationFactory.build(properties_hash)).to include Bodhi::EmbeddedValidation
     end
   end
 end

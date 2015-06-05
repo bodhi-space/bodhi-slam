@@ -89,12 +89,23 @@ describe Bodhi::Type do
   end
   
   describe ".find_all(context)" do
+    let(:context){ Bodhi::Context.new({ server: nil, namespace: nil, cookie: nil }) }
+    
     context "with invalid context" do
-      it "returns Bodhi::ContextErrors"
+      it "returns Bodhi::Errors" do
+        expect{ Bodhi::Type.find_all(context) }.to raise_error(Bodhi::Errors)
+      end
     end
     
     context "with valid context" do
-      it "returns an array of Bodhi::Type objects"
+      let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
+      
+      it "returns an array of Bodhi::Type objects" do
+        types = Bodhi::Type.find_all(context)
+        expect(types).to be_a Array
+        types.each{ |type| expect(type).to be_a Bodhi::Type }
+        puts types.to_s
+      end
     end
   end
   
