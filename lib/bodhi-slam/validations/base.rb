@@ -14,7 +14,7 @@ module Bodhi
     # StringValidation.to_sym # => :string
     # NotBlankValidation.to_sym # => :not_blank
     def to_sym
-      self.class.name.underscore.
+      underscore.
       gsub("bodhi/", "").
       gsub("_validation", "").
       to_sym
