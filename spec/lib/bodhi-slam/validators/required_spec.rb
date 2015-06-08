@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe Bodhi::RequiredValidation do
-  let(:validation){ Bodhi::RequiredValidation.new }
+describe Bodhi::RequiredValidator do
+  let(:validation){ Bodhi::RequiredValidator.new }
   let(:klass) do
     Class.new do
       include Bodhi::Validations

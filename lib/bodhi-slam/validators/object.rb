@@ -1,5 +1,5 @@
 module Bodhi
-  class ObjectValidation < BaseValidation
+  class ObjectValidator < Validator
     
     def validate(record, attribute, value)
       unless value.nil?

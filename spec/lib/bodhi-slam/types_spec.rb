@@ -83,8 +83,8 @@ describe Bodhi::Type do
     end
     
     it "contains all validations for the type keyed by attribute name" do
-      expect(type.validations[:foo]).to match_array [Bodhi::StringValidation, Bodhi::RequiredValidation]
-      expect(type.validations[:bar]).to match_array [Bodhi::IntegerValidation, Bodhi::RequiredValidation, Bodhi::MultiValidation]
+      expect(type.validations[:foo]).to match_array [Bodhi::StringValidator, Bodhi::RequiredValidator]
+      expect(type.validations[:bar]).to match_array [Bodhi::IntegerValidator, Bodhi::RequiredValidator, Bodhi::MultiValidator]
     end
   end
   
@@ -104,7 +104,7 @@ describe Bodhi::Type do
         types = Bodhi::Type.find_all(context)
         expect(types).to be_a Array
         types.each{ |type| expect(type).to be_a Bodhi::Type }
-        puts types.to_s
+        #puts types.to_s
       end
     end
   end
@@ -128,8 +128,8 @@ describe Bodhi::Type do
       it "returns the class defined by the type argument" do
         klass = Bodhi::Type.create_class_with(type)
         expect(klass.name).to eq "TestCreateType"
-        expect(klass.validations[:foo]).to match_array([ Bodhi::StringValidation, Bodhi::RequiredValidation ])
-        expect(klass.validations[:bar]).to match_array([ Bodhi::IntegerValidation, Bodhi::RequiredValidation, Bodhi::MultiValidation ])
+        expect(klass.validators[:foo]).to match_array([ Bodhi::StringValidator, Bodhi::RequiredValidator ])
+        expect(klass.validators[:bar]).to match_array([ Bodhi::IntegerValidator, Bodhi::RequiredValidator, Bodhi::MultiValidator ])
         
         obj = klass.new
         obj.foo = "test"

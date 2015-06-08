@@ -1,5 +1,5 @@
 module Bodhi
-  class EnumeratedValidation < BaseValidation
+  class EnumeratedValidator < Validator
     attr_reader :reference
     
     def initialize(reference, values=[])

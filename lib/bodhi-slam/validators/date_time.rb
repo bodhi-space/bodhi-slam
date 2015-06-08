@@ -1,5 +1,5 @@
 module Bodhi
-  class DateTimeValidation < BaseValidation
+  class DateTimeValidator < Validator
     
     def validate(record, attribute, value)
       unless value.nil?

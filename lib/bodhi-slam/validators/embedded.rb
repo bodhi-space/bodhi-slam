@@ -1,5 +1,5 @@
 module Bodhi
-  class EmbeddedValidation < BaseValidation
+  class EmbeddedValidator < Validator
     attr_reader :klass
     
     def initialize(klass)

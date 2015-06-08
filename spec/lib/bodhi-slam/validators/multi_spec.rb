@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe Bodhi::MultiValidation do
-  let(:validation){ Bodhi::MultiValidation.new }
+describe Bodhi::MultiValidator do
+  let(:validation){ Bodhi::MultiValidator.new }
   let(:klass) do
     Class.new do
       include Bodhi::Validations

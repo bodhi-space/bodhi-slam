@@ -1,5 +1,5 @@
 module Bodhi
-  class GeoJSONValidation < BaseValidation
+  class GeoJsonValidator < Validator
     
     def validate(record, attribute, value)
       unless value.nil?

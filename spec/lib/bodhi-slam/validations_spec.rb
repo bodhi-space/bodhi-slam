@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Bodhi::Validations do
+describe Bodhi::Validations do  
   it "can be included in a class" do
     klass = Class.new { include Bodhi::Validations }
     expect(klass.ancestors).to include Bodhi::Validations
@@ -117,7 +117,7 @@ describe Bodhi::Validations do
         expect{ klass.validates(:foo, "test") }.to raise_error(ArgumentError, "Invalid :options argument. Expected String to be a Hash")
       end
       
-      it "should raise ArgumentError if an option doesnt exist" do
+      it "should raise ArgumentError if an option does not exist" do
         expect{ klass.validates(:foo, { required: true }) }.to_not raise_error
         expect{ klass.validates(:foo, { bar: true }) }.to raise_error(ArgumentError, "Unknown option: :bar")
       end
@@ -125,12 +125,12 @@ describe Bodhi::Validations do
     
     it "should add the validation to the validations hash for the given attribute" do
       klass.validates(:foo, required: true)
-      expect(klass.validations).to have_key :foo
-      expect(klass.validations[:foo]).to include Bodhi::RequiredValidation
+      expect(klass.validators).to have_key :foo
+      expect(klass.validators[:foo]).to include Bodhi::RequiredValidator
     end
   end
   
-  describe ".validations" do
+  describe ".validators" do
     let(:klass) do
       Class.new do
         include Bodhi::Validations
@@ -141,18 +141,18 @@ describe Bodhi::Validations do
     end
     
     it "returns a Hash" do
-      expect(klass.validations).to be_a Hash
+      expect(klass.validators).to be_a Hash
     end
     
     it "returns class attribute names as keys in the Hash" do
-      expect(klass.validations).to have_key :foo
-      expect(klass.validations).to have_key :bar
-      expect(klass.validations).to_not have_key :baz
+      expect(klass.validators).to have_key :foo
+      expect(klass.validators).to have_key :bar
+      expect(klass.validators).to_not have_key :baz
     end
     
     it "returns an array for Bodhi::Validators for each class attribute" do
-      expect(klass.validations[:foo]).to match_array([Bodhi::RequiredValidation, Bodhi::MultiValidation])
-      expect(klass.validations[:bar]).to match_array(Bodhi::RequiredValidation)
+      expect(klass.validators[:foo]).to match_array([Bodhi::RequiredValidator, Bodhi::MultiValidator])
+      expect(klass.validators[:bar]).to match_array(Bodhi::RequiredValidator)
     end
   end
 end

@@ -1,5 +1,5 @@
 module Bodhi
-  class RealValidation < BaseValidation
+  class RealValidator < Validator
     
     def validate(record, attribute, value)
       unless value.nil?

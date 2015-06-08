@@ -11,35 +11,35 @@ module Bodhi
       type = attribute[:type].to_sym
       case type
       when :Object
-        validations << Bodhi::ObjectValidation.new
+        validations << Bodhi::ObjectValidator.new
       when :Boolean
-        validations << Bodhi::BooleanValidation.new
+        validations << Bodhi::BooleanValidator.new
       when :String
-        validations << Bodhi::StringValidation.new
+        validations << Bodhi::StringValidator.new
       when :Integer
-        validations << Bodhi::IntegerValidation.new
+        validations << Bodhi::IntegerValidator.new
       when :DateTime
-        validations << Bodhi::DateTimeValidation.new
+        validations << Bodhi::DateTimeValidator.new
       when :Real
-        validations << Bodhi::RealValidation.new
+        validations << Bodhi::RealValidator.new
       when :GeoJSON
-        validations << Bodhi::GeoJSONValidation.new
+        validations << Bodhi::GeoJsonValidator.new
       when :Enumerated
-        validations << Bodhi::EnumeratedValidation.new(attribute[:ref])
+        validations << Bodhi::EnumeratedValidator.new(attribute[:ref])
       else #Embedded Doc
-        validations << Bodhi::EmbeddedValidation.new(type)
+        validations << Bodhi::EmbeddedValidator.new(type)
       end
       
       if attribute[:required]
-        validations << Bodhi::RequiredValidation.new
+        validations << Bodhi::RequiredValidator.new
       end
       
       if attribute[:multi]
-        validations << Bodhi::MultiValidation.new
+        validations << Bodhi::MultiValidator.new
       end
       
       if attribute[:isNotBlank]
-        validations << Bodhi::NotBlankValidation.new
+        validations << Bodhi::NotBlankValidator.new
       end
       
       validations

@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe Bodhi::UrlValidation do
-  let(:validation){ Bodhi::UrlValidation.new }
+describe Bodhi::UrlValidator do
+  let(:validation){ Bodhi::UrlValidator.new }
   let(:klass) do
     Class.new do
       include Bodhi::Validations

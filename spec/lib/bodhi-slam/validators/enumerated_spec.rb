@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe Bodhi::EnumeratedValidation do
-  let(:validation){ Bodhi::EnumeratedValidation.new("Currency.name", ["USD", "GBP"]) }
+describe Bodhi::EnumeratedValidator do
+  let(:validation){ Bodhi::EnumeratedValidator.new("Currency.name", ["USD", "GBP"]) }
   let(:klass) do
     Class.new do
       include Bodhi::Validations

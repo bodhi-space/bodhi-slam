@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe Bodhi::GeoJSONValidation do
-  let(:validation){ Bodhi::GeoJSONValidation.new }
+describe Bodhi::GeoJsonValidator do
+  let(:validation){ Bodhi::GeoJsonValidator.new }
   let(:klass) do
     Class.new do
       include Bodhi::Validations

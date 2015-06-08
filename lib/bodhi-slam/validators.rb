@@ -1,5 +1,5 @@
 module Bodhi
-  class BaseValidation
+  class Validator
     
     # Override this method in subclasses with validation logic, adding errors
     # to the records +errors+ array where necessary.
@@ -16,7 +16,7 @@ module Bodhi
     def to_sym
       underscore.
       gsub("bodhi/", "").
-      gsub("_validation", "").
+      gsub("_validator", "").
       to_sym
     end
     
@@ -35,3 +35,5 @@ module Bodhi
     
   end
 end
+
+Dir[File.dirname(__FILE__) + "/validators/*.rb"].each { |file| require file }

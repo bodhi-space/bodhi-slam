@@ -1,23 +1,23 @@
 require 'spec_helper'
 
-describe Bodhi::BaseValidation do
-  let(:validation){ Bodhi::BaseValidation.new }
+describe Bodhi::Validator do
+  let(:validator){ Bodhi::Validator.new }
   
   describe "#validate(record, attribute, value)" do
     it "should raise a NotImplementedError" do
-      expect{ validation.validate(nil, nil, nil) }.to raise_error(NotImplementedError)
+      expect{ validator.validate(nil, nil, nil) }.to raise_error(NotImplementedError)
     end
   end
   
   describe "#to_sym" do
     it "returns the class name as a symbol" do
-      expect(validation.to_sym).to eq :base
+      expect(validator.to_sym).to eq :validator
     end
   end
   
   describe "#underscore" do
     it "returns the class name in snake_case" do
-      expect(validation.underscore).to eq "bodhi/base_validation"
+      expect(validator.underscore).to eq "bodhi/validator"
     end
   end
 end

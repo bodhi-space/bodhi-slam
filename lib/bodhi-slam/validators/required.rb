@@ -1,5 +1,5 @@
 module Bodhi
-  class RequiredValidation < BaseValidation
+  class RequiredValidator < Validator
     
     def validate(record, attribute, value)
       record.errors.add(attribute, "is required") if value.nil?

@@ -22,7 +22,7 @@ module Bodhi
       #   #        #<RequiredValidator:0x007fbff403e808 @options={}>
       #   #      ]
       #   #    }
-      def validations; @validations; end
+      def validators; @validators; end
       
       # Creates a new validation on the given +attribute+ using the supplied +options+
       #
@@ -45,17 +45,17 @@ module Bodhi
           raise ArgumentError.new("Invalid :options argument. Options can not be empty")
         end
 
-        @validations[attribute] = []
+        @validators[attribute] = []
         options.each_pair do |key, value|
           camelized_name = key.to_s.split('_').collect(&:capitalize).join
-          full_name = "Bodhi::#{camelized_name}Validation"
+          full_name = "Bodhi::#{camelized_name}Validator"
           
           unless Object.const_defined?(full_name)
             raise ArgumentError.new("Unknown option: #{key.inspect}")
           end
           
           klass = Object.const_get(full_name)
-          @validations[attribute] << klass.new
+          @validators[attribute] << klass.new
         end
       end
     end
@@ -96,7 +96,7 @@ module Bodhi
       #   user.errors.full_messages # => []
       def validate!
         errors.clear
-        self.class.validations.each_pair do |attribute, array|
+        self.class.validators.each_pair do |attribute, array|
           value = self.send(attribute)
           array.each do |validator|
             validator.validate(self, attribute, value)
@@ -134,9 +134,9 @@ module Bodhi
     def self.included(base)
       base.extend(ClassMethods)
       base.include(InstanceMethods)
-      base.instance_variable_set(:@validations, Hash.new)
+      base.instance_variable_set(:@validators, Hash.new)
     end
   end
 end
 
-Dir[File.dirname(__FILE__) + "/validations/*.rb"].each { |file| require file }
+require File.dirname(__FILE__) + "/validators.rb"

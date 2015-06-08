@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe Bodhi::BooleanValidation do
-  let(:validation){ Bodhi::BooleanValidation.new }
+describe Bodhi::BooleanValidator do
+  let(:validator){ Bodhi::BooleanValidator.new }
   let(:klass) do
     Class.new do
       include Bodhi::Validations
@@ -13,13 +13,13 @@ describe Bodhi::BooleanValidation do
   describe "#validate(record, attribute, value)" do
     it "should add error if :value is not a Boolean" do
       record.foo = 12345
-      validation.validate(record, :foo, record.foo)
+      validator.validate(record, :foo, record.foo)
       expect(record.errors.full_messages).to include("foo must be a Boolean")
     end
     
     it "should not add error if :value is a Boolean" do
       record.foo = false
-      validation.validate(record, :foo, record.foo)
+      validator.validate(record, :foo, record.foo)
       expect(record.errors.full_messages).to_not include("foo must be a Boolean")
     end
   end
