@@ -110,12 +110,33 @@ describe Bodhi::Type do
   end
   
   describe ".create_class_with(type)" do
+    let(:type) do
+      Bodhi::Type.new({
+        name: "TestCreateType",
+        properties: { foo: { type: "String", required: true }, bar: { type: "Integer", required: true, multi: true } } 
+      })
+    end
+    
     context "with invalid argument" do
-      it "returns an ArgumentError"
+      it "returns an ArgumentError if :type is not a Bodhi::Type" do
+        type = "test"
+        expect{ Bodhi::Type.create_class_with(type) }.to raise_error(ArgumentError, "Expected String to be a Bodhi::Type")
+      end
     end
     
     context "with valid argument" do
-      it "returns the class defined by the type argument"
+      it "returns the class defined by the type argument" do
+        klass = Bodhi::Type.create_class_with(type)
+        expect(klass.name).to eq "TestCreateType"
+        expect(klass.validations[:foo]).to match_array([ Bodhi::StringValidation, Bodhi::RequiredValidation ])
+        expect(klass.validations[:bar]).to match_array([ Bodhi::IntegerValidation, Bodhi::RequiredValidation, Bodhi::MultiValidation ])
+        
+        obj = klass.new
+        obj.foo = "test"
+        obj.bar = [10, 20, 30]
+        obj.valid?
+        expect(obj.errors.messages).to eq Hash.new
+      end
     end
   end
 end

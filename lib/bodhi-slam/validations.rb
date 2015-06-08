@@ -24,9 +24,6 @@ module Bodhi
       #   #    }
       def validations; @validations; end
       
-      # :nodoc:
-      OPTIONS_FOR_VALIDATES = [:required, :multi, :url, :not_blank].freeze
-      
       # Creates a new validation on the given +attribute+ using the supplied +options+
       #
       #   class User
@@ -36,33 +33,29 @@ module Bodhi
       #     validates :tags, requried: true, multi: true
       #     validates :name, required: true
       def validates(attribute, options)
-        raise ArgumentError.new("Invalid :attribute argument. Expected #{attribute.class} to be a Symbol") unless attribute.is_a? Symbol
-        raise ArgumentError.new("Invalid :options argument. Expected #{options.class} to be a Hash") unless options.is_a? Hash
+        unless attribute.is_a? Symbol
+          raise ArgumentError.new("Invalid :attribute argument. Expected #{attribute.class} to be a Symbol")
+        end
         
-        options.each_key do |key|
-          unless OPTIONS_FOR_VALIDATES.include?(key)
-            raise ArgumentError.new("Unknown key: #{key.inspect}. Valid keys are: #{OPTIONS_FOR_VALIDATES.map(&:inspect).join(', ')}.")
+        unless options.is_a? Hash
+          raise ArgumentError.new("Invalid :options argument. Expected #{options.class} to be a Hash")
+        end
+        
+        if options.keys.empty?
+          raise ArgumentError.new("Invalid :options argument. Options can not be empty")
+        end
+
+        @validations[attribute] = []
+        options.each_pair do |key, value|
+          camelized_name = key.to_s.split('_').collect(&:capitalize).join
+          full_name = "Bodhi::#{camelized_name}Validation"
+          
+          unless Object.const_defined?(full_name)
+            raise ArgumentError.new("Unknown option: #{key.inspect}")
           end
-        end
-        
-        if options[:required]
-          validation = Bodhi::RequiredValidation.new
-          @validations.has_key?(attribute) ? @validations[attribute].push(validation) : @validations[attribute] = [validation]
-        end
-        
-        if options[:multi]
-          validation = Bodhi::MultiValidation.new
-          @validations.has_key?(attribute) ? @validations[attribute].push(validation) : @validations[attribute] = [validation]
-        end
-        
-        if options[:url]
-          validation = Bodhi::URLValidation.new
-          @validations.has_key?(attribute) ? @validations[attribute].push(validation) : @validations[attribute] = [validation]
-        end
-        
-        if options[:not_blank]
-          validation = Bodhi::NotBlankValidation.new
-          @validations.has_key?(attribute) ? @validations[attribute].push(validation) : @validations[attribute] = [validation]
+          
+          klass = Object.const_get(full_name)
+          @validations[attribute] << klass.new
         end
       end
     end

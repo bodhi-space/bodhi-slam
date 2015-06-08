@@ -48,5 +48,25 @@ module Bodhi
     
       JSON.parse(result.body).collect{ |type| Bodhi::Type.new(type) }
     end
+    
+    def self.create_class_with(type)
+      unless type.is_a? Bodhi::Type
+        raise ArgumentError.new("Expected #{type.class} to be a Bodhi::Type")
+      end
+      
+      klass = Object.const_set(type.name, Class.new {
+        include BodhiResource
+        include Bodhi::Validations
+        attr_accessor *type.properties.keys
+      })
+      
+      type.validations.each_pair do |attribute, validations|
+        options = {}
+        validations.each{ |validation| options[validation.to_sym] = true }
+        klass.validates(attribute, options)
+      end
+      
+      klass
+    end
   end
 end

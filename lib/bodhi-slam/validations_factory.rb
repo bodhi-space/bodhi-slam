@@ -1,5 +1,5 @@
 module Bodhi
-  class ValidationFactory
+  class ValidationFactory    
     def self.build(attribute)
       if !attribute.is_a? Hash
         raise ArgumentError.new("Expected #{attribute.class} to be a Hash")
