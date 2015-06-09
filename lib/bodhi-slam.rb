@@ -10,6 +10,7 @@ require 'bodhi-slam/types'
 require 'bodhi-slam/type_factory'
 require 'bodhi-slam/validations'
 require 'bodhi-slam/validations_factory'
+require 'bodhi-slam/enumerations'
 
 class BodhiSlam
   def self.context(params, &block)
@@ -26,7 +27,7 @@ class BodhiSlam
     
     # all_types = Bodhi::Type.find_all(context)
     # all_enums = Bodhi::Enumeration.find_all(context)
-    # klasses = all_types.collect{ |type| Bodhi::Type.create_class_with(type) }.delete_if{ |klass| klass.nil? }
+    # klasses = all_types.collect{ |type| Bodhi::Type.create_class_with(type) }
     # 
     # embedded_types = all_types.select{ |type| type.embedded }
     # normal_types = all_types.select{ |type| !type.embedded }
