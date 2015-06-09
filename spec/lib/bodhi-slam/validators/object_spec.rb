@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Bodhi::ObjectValidator do
-  let(:validation){ Bodhi::ObjectValidator.new }
+  let(:validator){ Bodhi::ObjectValidator.new }
   let(:klass) do
     Class.new do
       include Bodhi::Validations
@@ -11,16 +11,52 @@ describe Bodhi::ObjectValidator do
   let(:record){ klass.new }
   
   describe "#validate(record, attribute, value)" do
-    it "should add error if :value is not a JSON Object" do
-      record.foo = 12345
-      validation.validate(record, :foo, record.foo)
-      expect(record.errors.full_messages).to include("foo must be a JSON Object")
+    
+    context "when :value is a single object" do
+      it "should add error if :value is not a JSON Object" do
+        record.foo = 12345
+        validator.validate(record, :foo, record.foo)
+        expect(record.errors.full_messages).to include("foo must be a JSON Object")
+        expect(record.errors.full_messages).to_not include("foo must contain only JSON Objects")
+      end
+    
+      it "should not add error if :value is a JSON Object" do
+        record.foo = { foo: "test" }
+        validator.validate(record, :foo, record.foo)
+        expect(record.errors.full_messages).to_not include("foo must be a JSON Object")
+        expect(record.errors.full_messages).to_not include("foo must contain only JSON Objects")
+      end
+      
+      it "should not add error if :value is nil" do
+        record.foo = nil
+        validator.validate(record, :foo, record.foo)
+        expect(record.errors.full_messages).to_not include("foo must be a JSON Object")
+        expect(record.errors.full_messages).to_not include("foo must contain only JSON Objects")
+      end
     end
     
-    it "should not add error if :value is a JSON Object" do
-      record.foo = { foo: "test" }
-      validation.validate(record, :foo, record.foo)
-      expect(record.errors.full_messages).to_not include("foo must be a JSON Object")
+    context "when :value is an array" do
+      it "should add error if any :value is not a JSON Object" do
+        record.foo = [{ foo: "test" }, { foo: "test" }, "test"]
+        validator.validate(record, :foo, record.foo)
+        expect(record.errors.full_messages).to include("foo must contain only JSON Objects")
+        expect(record.errors.full_messages).to_not include("foo must be a JSON Object")
+      end
+      
+      it "should not add any errors if :value is empty" do
+        record.foo = []
+        validator.validate(record, :foo, record.foo)
+        expect(record.errors.full_messages).to_not include("foo must contain only JSON Objects")
+        expect(record.errors.full_messages).to_not include("foo must be a JSON Object")
+      end
+      
+      it "should not add any errors if all :values are JSON Objects" do
+        record.foo = [{ foo: "test" }, { foo: "test" }, { foo: "test" }]
+        validator.validate(record, :foo, record.foo)
+        expect(record.errors.full_messages).to_not include("foo must contain only JSON Objects")
+        expect(record.errors.full_messages).to_not include("foo must be a JSON Object")
+      end
     end
+    
   end
 end

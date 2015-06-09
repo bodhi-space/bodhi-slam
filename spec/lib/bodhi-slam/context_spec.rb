@@ -12,7 +12,6 @@ describe Bodhi::Context do
       context.valid?
       expect(context.errors).to be_a Bodhi::Errors
       expect(context.errors.full_messages).to include("server is required")
-      expect(context.errors.full_messages).to include("server must be a valid URL")
     end
   end
 

@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Bodhi::RealValidator do
-  let(:validation){ Bodhi::RealValidator.new }
+  let(:validator){ Bodhi::RealValidator.new }
   let(:klass) do
     Class.new do
       include Bodhi::Validations
@@ -11,16 +11,52 @@ describe Bodhi::RealValidator do
   let(:record){ klass.new }
   
   describe "#validate(record, attribute, value)" do
-    it "should add error if :value is not a Real (Float)" do
-      record.foo = "test"
-      validation.validate(record, :foo, record.foo)
-      expect(record.errors.full_messages).to include("foo must be a Real (Float)")
+    
+    context "when :value is a single object" do
+      it "should add error if :value is not a Real (Float)" do
+        record.foo = 10
+        validator.validate(record, :foo, record.foo)
+        expect(record.errors.full_messages).to include("foo must be a Real (Float)")
+        expect(record.errors.full_messages).to_not include("foo must contain only Real (Float) numbers")
+      end
+    
+      it "should not add error if :value is a Real (Float)" do
+        record.foo = 1.0
+        validator.validate(record, :foo, record.foo)
+        expect(record.errors.full_messages).to_not include("foo must be a Real (Float)")
+        expect(record.errors.full_messages).to_not include("foo must contain only Real (Float) numbers")
+      end
+      
+      it "should not add error if :value is nil" do
+        record.foo = nil
+        validator.validate(record, :foo, record.foo)
+        expect(record.errors.full_messages).to_not include("foo must be a Real (Float)")
+        expect(record.errors.full_messages).to_not include("foo must contain only Real (Float) numbers")
+      end
     end
     
-    it "should not add error if :value is a Real (Float)" do
-      record.foo = 1.0
-      validation.validate(record, :foo, record.foo)
-      expect(record.errors.full_messages).to_not include("foo must be a Real (Float)")
+    context "when :value is an array" do
+      it "should add error if any :value is not a Real (Float)" do
+        record.foo = [1.0, 2.5, 3]
+        validator.validate(record, :foo, record.foo)
+        expect(record.errors.full_messages).to include("foo must contain only Real (Float) numbers")
+        expect(record.errors.full_messages).to_not include("foo must be a Real (Float)")
+      end
+      
+      it "should not add any errors if :value is empty" do
+        record.foo = []
+        validator.validate(record, :foo, record.foo)
+        expect(record.errors.full_messages).to_not include("foo must contain only Real (Float) numbers")
+        expect(record.errors.full_messages).to_not include("foo must be a Real (Float)")
+      end
+      
+      it "should not add any errors if all :values are Reals" do
+        record.foo = [1.0, 2.5, 3.99]
+        validator.validate(record, :foo, record.foo)
+        expect(record.errors.full_messages).to_not include("foo must contain only Real (Float) numbers")
+        expect(record.errors.full_messages).to_not include("foo must be a Real (Float)")
+      end
     end
+    
   end
 end

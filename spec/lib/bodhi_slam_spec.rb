@@ -13,9 +13,9 @@ describe BodhiSlam do
         expect{ BodhiSlam.context({ server: "test", namespace: "test" }){|context|} }.to raise_error(Bodhi::Errors)
         
         begin
-          BodhiSlam.context({ server: nil, namespace: nil }){|context|}
+          BodhiSlam.context({ server: "test", namespace: nil }){|context|}
         rescue Exception => e
-          expect(e.messages[:server]).to match_array(["is required", "must be a valid URL"])
+          expect(e.messages[:server]).to match_array(["must be a valid URL"])
           expect(e.messages[:namespace]).to match_array(["is required"])
         end
       end

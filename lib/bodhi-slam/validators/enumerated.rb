@@ -9,7 +9,15 @@ module Bodhi
     
     def validate(record, attribute, value)
       unless value.nil?
-        record.errors.add(attribute, "is not a #{@reference}") unless @values.include?(value)
+        
+        if value.is_a?(Array)
+          unless value.empty?
+            record.errors.add(attribute, "must contain only #{@reference} values") unless value.delete_if{ |v| @values.include?(v) }.empty?
+          end
+        else
+          record.errors.add(attribute, "is not a #{@reference}") unless @values.include?(value)
+        end
+        
       end
     end
     

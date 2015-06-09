@@ -8,7 +8,15 @@ module Bodhi
     
     def validate(record, attribute, value)
       unless value.nil?
-        record.errors.add(attribute, "must be a #{klass}") unless value.is_a? Object.const_get(@klass)
+        
+        if value.is_a?(Array)
+          unless value.empty?
+            record.errors.add(attribute, "must contain only #{klass} objects") unless value.delete_if{ |v| v.is_a? Object.const_get(@klass) }.empty?
+          end
+        else
+          record.errors.add(attribute, "must be a #{klass}") unless value.is_a? Object.const_get(@klass)
+        end
+        
       end
     end
     
