@@ -59,4 +59,10 @@ describe Bodhi::RealValidator do
     end
     
   end
+  
+  describe "#to_options" do
+    it "should return the validator as an option Hash" do
+      expect(validator.to_options).to include({real: true})
+    end
+  end
 end

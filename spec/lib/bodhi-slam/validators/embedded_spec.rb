@@ -1,17 +1,17 @@
 require 'spec_helper'
 
 describe Bodhi::EmbeddedValidator do
-  describe "#validate(record, attribute, value)" do
-    let(:embedded_klass){ Object.const_set(:TestEmbedded, Class.new) }
-    let(:validator){ Bodhi::EmbeddedValidator.new(:TestEmbedded) }
-    let(:klass) do
-      Class.new do
-        include Bodhi::Validations
-        attr_accessor :foo
-      end
+  let(:embedded_klass){ Object.const_set("TestEmbedded", Class.new) }
+  let(:validator){ Bodhi::EmbeddedValidator.new("TestEmbedded") }
+  let(:klass) do
+    Class.new do
+      include Bodhi::Validations
+      attr_accessor :foo
     end
-    let(:record){ klass.new }
-    
+  end
+  let(:record){ klass.new }
+  
+  describe "#validate(record, attribute, value)" do    
     context "when :value is a single object" do
       it "should add error if :value is not a type of :embedded_klass" do
         Object.const_set("TestEmbedded", Class.new) #no clue why i need to do this again here..  :(
@@ -56,6 +56,12 @@ describe Bodhi::EmbeddedValidator do
         expect(record.errors.full_messages).to_not include("foo must contain only #{embedded_klass} objects")
         expect(record.errors.full_messages).to_not include("foo must be a #{embedded_klass}")
       end
+    end
+  end
+  
+  describe "#to_options" do
+    it "should return the validator as an option Hash" do
+      expect(validator.to_options).to include({embedded: "TestEmbedded"})
     end
   end
 end

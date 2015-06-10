@@ -15,5 +15,8 @@ module Bodhi
       end
     end
     
+    def to_options
+      {date_time: true}
+    end
   end
 end

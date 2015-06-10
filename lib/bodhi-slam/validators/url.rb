@@ -15,5 +15,8 @@ module Bodhi
       end
     end
     
+    def to_options
+      {url: true}
+    end
   end
 end

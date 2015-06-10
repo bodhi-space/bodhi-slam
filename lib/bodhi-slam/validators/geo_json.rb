@@ -15,5 +15,8 @@ module Bodhi
       end
     end
     
+    def to_options
+      {geo_json: true}
+    end
   end
 end

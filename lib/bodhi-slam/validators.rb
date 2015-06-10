@@ -33,6 +33,15 @@ module Bodhi
       downcase
     end
     
+    # Returns the validation as an options Hash.
+    # The options hash is suitable to be used in the Bodhi::Validations.valdiates method
+    #
+    # StringValidation.to_options # => { string: true }
+    # EmbeddedValidation.to_options # => { embedded: "ClassName" }
+    # EnumeratedValidation.to_options # => { enumerated: "Country.name" }
+    def to_options
+      raise NotImplementedError, "Subclasses must implement a to_options method."
+    end
   end
 end
 

@@ -20,5 +20,9 @@ module Bodhi
       end
     end
     
+    def to_options
+      {embedded: @klass.to_s}
+    end
+    
   end
 end

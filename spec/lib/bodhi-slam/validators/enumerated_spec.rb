@@ -56,4 +56,10 @@ describe Bodhi::EnumeratedValidator do
       end
     end
   end
+  
+  describe "#to_options" do
+    it "should return the validator as an option Hash" do
+      expect(validator.to_options).to include({enumerated: "Currency.name"})
+    end
+  end
 end

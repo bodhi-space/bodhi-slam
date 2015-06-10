@@ -5,5 +5,8 @@ module Bodhi
       record.errors.add(attribute, "is required") if value.nil?
     end
     
+    def to_options
+      {required: true}
+    end
   end
 end

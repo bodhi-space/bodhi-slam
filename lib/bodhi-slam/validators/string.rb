@@ -15,5 +15,9 @@ module Bodhi
       end
     end
     
+    def to_options
+      {string: true}
+    end
+    
   end
 end

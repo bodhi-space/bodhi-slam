@@ -21,5 +21,8 @@ module Bodhi
       end
     end
     
+    def to_options
+      {enumerated: @reference}
+    end
   end
 end

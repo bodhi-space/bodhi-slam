@@ -20,4 +20,10 @@ describe Bodhi::Validator do
       expect(validator.underscore).to eq "bodhi/validator"
     end
   end
+  
+  describe "#to_options" do
+    it "should raise a NotImplementedError" do
+      expect{ validator.to_options }.to raise_error(NotImplementedError)
+    end
+  end
 end

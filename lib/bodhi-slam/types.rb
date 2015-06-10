@@ -61,9 +61,9 @@ module Bodhi
       })
       
       type.validations.each_pair do |attribute, validations|
-        options = {}
-        validations.each{ |validation| options[validation.to_sym] = true }
-        klass.validates(attribute, options)
+        attr_options = Hash.new
+        validations.each{ |validation| attr_options.merge!(validation.to_options) }
+        klass.validates(attribute, attr_options)
       end
       
       klass

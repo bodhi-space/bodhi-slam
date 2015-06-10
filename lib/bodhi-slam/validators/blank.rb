@@ -15,5 +15,8 @@ module Bodhi
       end
     end
     
+    def to_options
+      {not_blank: true}
+    end
   end
 end
