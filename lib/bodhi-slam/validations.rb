@@ -28,10 +28,11 @@ module Bodhi
       #
       #   class User
       #     include Bodhi::Validations
-      #     attr_accessor :name, :tags
+      #     attr_accessor :name, :address, :tags
       #
-      #     validates :tags, requried: true, multi: true
-      #     validates :name, required: true
+      #     validates :name, type: "String", required: true
+      #     validates :address, type: "PostalAddress", required: true
+      #     validates :tags, type: "String", multi: true
       def validates(attribute, options)
         unless attribute.is_a? Symbol
           raise ArgumentError.new("Invalid :attribute argument. Expected #{attribute.class} to be a Symbol")
@@ -47,15 +48,13 @@ module Bodhi
 
         @validators[attribute] = []
         options.each_pair do |key, value|
-          camelized_name = key.to_s.split('_').collect(&:capitalize).join
-          full_name = "Bodhi::#{camelized_name}Validator"
-          
-          unless Object.const_defined?(full_name)
-            raise ArgumentError.new("Unknown option: #{key.inspect}")
+          unless [:ref].include?(key)
+            if key == :type
+              @validators[attribute] << Bodhi::Validator.constantize(key).new(value)
+            else
+              @validators[attribute] << Bodhi::Validator.constantize(key).new
+            end
           end
-          
-          klass = Object.const_get(full_name)
-          @validators[attribute] << klass.new
         end
       end
     end

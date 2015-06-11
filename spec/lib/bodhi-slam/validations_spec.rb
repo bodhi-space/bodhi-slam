@@ -104,7 +104,7 @@ describe Bodhi::Validations do
     let(:klass) do
       Class.new do
         include Bodhi::Validations
-        attr_accessor :foo
+        attr_accessor :foo, :bar, :baz
       end
     end
     
@@ -119,14 +119,19 @@ describe Bodhi::Validations do
       
       it "should raise ArgumentError if an option does not exist" do
         expect{ klass.validates(:foo, { required: true }) }.to_not raise_error
-        expect{ klass.validates(:foo, { bar: true }) }.to raise_error(ArgumentError, "Unknown option: :bar")
+        expect{ klass.validates(:foo, { bar: true }) }.to raise_error(NameError, "uninitialized constant Bodhi::BarValidator")
       end
     end
     
     it "should add the validation to the validations hash for the given attribute" do
-      klass.validates(:foo, required: true)
-      expect(klass.validators).to have_key :foo
-      expect(klass.validators[:foo]).to include Bodhi::RequiredValidator
+      klass.validates(:foo, type: "String", required: true)
+      klass.validates(:bar, type: "MyClass", required: true, multi: true)
+      klass.validates(:baz, type: "Enumerated", ref: "MyEnum.name", required: true)
+      
+      expect(klass.validators.keys).to match_array([ :foo, :bar, :baz ])
+      expect(klass.validators[:foo]).to match_array([Bodhi::RequiredValidator, Bodhi::TypeValidator])
+      expect(klass.validators[:bar]).to match_array([Bodhi::RequiredValidator, Bodhi::TypeValidator, Bodhi::MultiValidator])
+      expect(klass.validators[:baz]).to match_array([Bodhi::RequiredValidator, Bodhi::TypeValidator])
     end
   end
   
