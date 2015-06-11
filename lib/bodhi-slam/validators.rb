@@ -42,6 +42,12 @@ module Bodhi
     def to_options
       raise NotImplementedError, "Subclasses must implement a to_options method."
     end
+
+    def self.constantize(name)
+      camelized_name = name.to_s.split('_').collect(&:capitalize).join
+      full_name = "Bodhi::#{camelized_name}Validator"      
+      Object.const_get(full_name)
+    end
   end
 end
 

@@ -26,4 +26,17 @@ describe Bodhi::Validator do
       expect{ validator.to_options }.to raise_error(NotImplementedError)
     end
   end
+  
+  describe "#constantize(name)" do
+    it "returns the validator class with the given name" do
+      expect(Bodhi::Validator.constantize("string")).to eq Bodhi::StringValidator
+      expect(Bodhi::Validator.constantize("String")).to eq Bodhi::StringValidator
+      expect(Bodhi::Validator.constantize(:string)).to eq Bodhi::StringValidator
+      expect(Bodhi::Validator.constantize(:String)).to eq Bodhi::StringValidator
+    end
+
+    it "raises NameError if validator name cannot be found" do
+      expect{ Bodhi::Validator.constantize("test") }.to raise_error(NameError, "uninitialized constant Bodhi::TestValidator")
+    end
+  end
 end
