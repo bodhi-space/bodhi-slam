@@ -38,8 +38,7 @@ describe BodhiSlam do
         expect(result).to_not be_empty
         expect(result_type_names).to match_array(@type_names)
 
-        p Employee.new
-        p FactoryGirl.build(:Employee)
+        p FactoryGirl.build(:SalesTransaction).attributes
       end
     end
     

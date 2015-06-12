@@ -42,12 +42,14 @@ module Bodhi
       raise "Expected type to be a Hash" unless type.is_a? Hash
       raise "Expected enumerations to be an Array" unless enumerations.is_a? Array
       type.symbolize_keys!
-    
+
       FactoryGirl.define do
         factory type[:name].to_sym do
           type[:properties].each_pair do |k,v|
+            v.symbolize_keys!
+
             unless v[:system]
-            
+
               case v[:type]
               when "GeoJSON"
                 if v[:multi].nil?
@@ -73,6 +75,7 @@ module Bodhi
                   if field.nil?
                     send(k) { enum[:values].sample }
                   else
+                    enum[:values].map!{ |value| value.symbolize_keys! }
                     send(k) { enum[:values].sample[field.to_sym] }
                   end
                 else
