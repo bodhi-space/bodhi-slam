@@ -109,16 +109,16 @@ module Bodhi
 
               when "Integer"
                 if v[:multi].nil?
-                  send(k) { SecureRandom.random_number(100) }
+                  send(k) { SecureRandom.random_number(10000) }
                 else
-                  send(k) { [*0..5].sample.times.collect{ SecureRandom.random_number(100) } }
+                  send(k) { [*0..5].sample.times.collect{ SecureRandom.random_number(100000) } }
                 end
 
               when "Real"
                 if v[:multi].nil?
-                  send(k) { SecureRandom.random_number }
+                  send(k) { SecureRandom.random_number * [100,1000,10000].sample }
                 else
-                  send(k) { [*0..5].sample.times.collect{ SecureRandom.random_number } }
+                  send(k) { [*0..5].sample.times.collect{ SecureRandom.random_number * [100,1000,10000].sample } }
                 end
 
               else # Its an embedded type
