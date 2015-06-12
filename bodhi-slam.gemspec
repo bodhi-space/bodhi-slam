@@ -1,17 +1,17 @@
 Gem::Specification.new do |s|
   s.name        = 'bodhi-slam'
-  s.version     = '0.0.6'
-  s.date        = '2015-05-14'
-  s.summary     = "Generate data and push to the Bodhi API"
-  s.description = "Generate data and push to the Bodhi API"
+  s.version     = '0.1.0'
+  s.date        = '2015-06-12'
+  s.summary     = "Ruby bindings for the Bodhi API"
+  s.description = "BodhiSlam is a tool for generating large datasets and uploading them to bodhi.space.  It provides an ActiveRecord esque interface to the collections defined in bodhi.space"
   s.authors     = ["Will Davis"]
   s.email       = 'will.davis@hotschedules.com'
-  s.files       = ["lib/bodhi-slam.rb", "lib/bodhi-slam/context.rb", "lib/bodhi-slam/errors.rb", "lib/bodhi-slam/resource.rb"].flatten
+  s.files       = `git ls-files`.split("\n").select{|file| file.match("lib/") && !file.match("spec/") }
   s.license     = 'MIT'
-  #s.add_runtime_dependency 'faker', '~> 1.4'
   s.add_runtime_dependency 'factory_girl', '~> 4.5'
   s.add_runtime_dependency 'faraday', '~> 0.9'
   s.add_runtime_dependency 'json', '~> 1.7'
   s.add_development_dependency "rspec"
   s.add_development_dependency "dotenv"
+  s.add_development_dependency "simplecov"
 end
