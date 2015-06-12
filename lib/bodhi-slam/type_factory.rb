@@ -1,7 +1,7 @@
 module Bodhi
   class TypeFactory
     # - Create a BodhiResource from the given type definition and enumerations
-    def self.create_type(type, enumerations)
+    def self.create_type(type, enumerations=[])
       raise "Expected type to be a Hash" unless type.is_a? Hash
       raise "Expected enumerations to be an Array" unless enumerations.is_a? Array
       type.symbolize_keys!
@@ -30,7 +30,7 @@ module Bodhi
           return FactoryGirl.build(klass.name, object_hash)
         end
 
-        #create_factory(klass.name, type[:properties], enumerations) unless FactoryGirl.factories.registered?(klass.name)
+        #create_factory(type, enumerations) unless FactoryGirl.factories.registered?(klass.name)
         #puts "Created Class & Factory for: #{klass.name}"
       
         klass
@@ -64,18 +64,30 @@ module Bodhi
                 end
 
               when "Enumerated"
-                enum = enumerations.select{ |enumeration| enumeration[:name] == v[:ref].split('.')[0] }[0]
+                reference = v[:ref].split('.')
+                name = reference[0]
+                field = reference[1]
+
+                enum = enumerations.select{ |enumeration| enumeration[:name] == name }[0]
                 if v[:multi].nil?
-                  send(k) { enum[:values].sample[v[:ref].split('.')[1]] }
+                  if field.nil?
+                    send(k) { enum[:values].sample }
+                  else
+                    send(k) { enum[:values].sample[field.to_sym] }
+                  end
                 else
-                  send(k) { [*0..5].sample.times.collect{ enum[:values].sample[v[:ref].split('.')[1]] } }
+                  if field.nil?
+                    send(k) { [*0..5].sample.times.collect{ enum[:values].sample } }
+                  else
+                    send(k) { [*0..5].sample.times.collect{ enum[:values].sample[field.to_sym] } }
+                  end
                 end
 
               when "Object"
                 if v[:multi].nil?
-                  send(k) { {"foo" => SecureRandom.hex} }
+                  send(k) { {SecureRandom.hex => SecureRandom.hex} }
                 else
-                  send(k) { [*0..5].sample.times.collect{ {"foo" => SecureRandom.hex} } }
+                  send(k) { [*0..5].sample.times.collect{ {SecureRandom.hex => SecureRandom.hex} } }
                 end
 
               when "String"
@@ -108,9 +120,9 @@ module Bodhi
 
               else # Its an embedded type
                 if v[:multi].nil?
-                  send(k) { FactoryGirl.build(v[:type]).attributes }
+                  send(k) { FactoryGirl.build(v[:type]) }
                 else
-                  send(k) { [*0..5].sample.times.collect{ FactoryGirl.build(v[:type]).attributes } }
+                  send(k) { [*0..5].sample.times.collect{ FactoryGirl.build(v[:type]) } }
                 end
               end
             
