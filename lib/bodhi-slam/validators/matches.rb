@@ -21,7 +21,7 @@ module Bodhi
     end
     
     def to_options
-      {matches: @value}
+      {self.to_sym => @value}
     end
   end
 end

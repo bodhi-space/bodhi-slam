@@ -14,7 +14,7 @@ module Bodhi
     end
     
     def to_options
-      {is_not_empty: true}
+      {self.to_sym => true}
     end
   end
 end

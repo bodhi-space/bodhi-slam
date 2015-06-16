@@ -8,7 +8,7 @@ module Bodhi
     end
     
     def to_options
-      {required: true}
+      {self.to_sym => true}
     end
   end
 end

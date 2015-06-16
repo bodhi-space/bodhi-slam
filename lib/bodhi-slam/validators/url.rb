@@ -18,7 +18,7 @@ module Bodhi
     end
     
     def to_options
-      {url: true}
+      {self.to_sym => true}
     end
   end
 end

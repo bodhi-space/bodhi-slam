@@ -21,7 +21,7 @@ module Bodhi
     end
     
     def to_options
-      {max: @value}
+      {self.to_sym => @value}
     end
   end
 end

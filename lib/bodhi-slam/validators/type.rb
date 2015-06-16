@@ -27,9 +27,9 @@ module Bodhi
 
     def to_options
       if @reference.nil?
-        {type: @type}
+        {self.to_sym => @type}
       else
-        {type: @type, ref: @reference}
+        {self.to_sym => @type, ref: @reference}
       end
     end
   end
