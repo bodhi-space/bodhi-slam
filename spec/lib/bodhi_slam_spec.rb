@@ -27,7 +27,7 @@ describe BodhiSlam do
       let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
       
       before do
-        @type_names = Bodhi::TypeFactory.get_types(context).collect{ |type| type[:name] }
+        @type_names = Bodhi::Type.find_all(context).collect{ |type| type.name }
       end
       
       it "should return an array of the new type classes" do

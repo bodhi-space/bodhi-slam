@@ -7,7 +7,6 @@ require 'bodhi-slam/context'
 require 'bodhi-slam/errors'
 require 'bodhi-slam/resource'
 require 'bodhi-slam/types'
-require 'bodhi-slam/type_factory'
 require 'bodhi-slam/validations'
 require 'bodhi-slam/enumerations'
 
