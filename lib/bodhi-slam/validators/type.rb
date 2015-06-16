@@ -13,15 +13,46 @@ module Bodhi
 
     def validate(record, attribute, value)
       unless value.nil?
-        klass = Object.const_get(@type)
+
+        # Default values for comparators and messages
+        klass = nil
+        single_comparator = ->(item){ item.is_a? klass }
+        array_comparator = ->(items){ items.delete_if{ |item| item.is_a? klass }.empty? }
+
+        single_message = "must be a #{@type}"
+        array_message = "must contain only #{@type}s"
+
+        # Check what the given type is, and assign the correct comparator and messages
+        case @type
+        when "GeoJSON"
+          klass = Hash
+        when "Object"
+          klass = Hash
+        when "Real"
+          klass = Float
+        when "Boolean"
+          single_comparator = ->(item){ item.is_a?(TrueClass) || item.is_a?(FalseClass) }
+          array_comparator = ->(items){ items.delete_if{ |item| item.is_a?(TrueClass) || item.is_a?(FalseClass) }.empty? }
+        when "Enumerated"
+          klass = Object
+        else # type is an embedded type
+          klass = Object.const_get(@type)
+        end
+
+        # Do the validations and add any error messages
         if value.is_a?(Array)
-          unless value.empty?
-            record.errors.add(attribute, "must contain only #{@type}s") unless value.delete_if{ |v| v.is_a? klass }.empty?
+          if !value.empty?
+            if !array_comparator.call(value)
+              record.errors.add(attribute, array_message)
+            end
           end
         else
-          record.errors.add(attribute, "must be a #{@type}") unless value.is_a? klass
+          if !single_comparator.call(value)
+            record.errors.add(attribute, single_message)
+          end
         end
-        
+
+        # Party time, excellent!
       end
     end
 

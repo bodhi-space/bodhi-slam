@@ -38,7 +38,9 @@ describe BodhiSlam do
         expect(result).to_not be_empty
         expect(result_type_names).to match_array(@type_names)
 
-        p FactoryGirl.build(:SalesTransaction).attributes
+        test = FactoryGirl.build(:SalesTransaction)
+        puts test.attributes
+        puts test.errors.messages unless test.valid?
       end
     end
     
