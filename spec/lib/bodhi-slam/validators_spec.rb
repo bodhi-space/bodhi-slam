@@ -29,10 +29,10 @@ describe Bodhi::Validator do
   
   describe "#constantize(name)" do
     it "returns the validator class with the given name" do
-      expect(Bodhi::Validator.constantize("string")).to eq Bodhi::StringValidator
-      expect(Bodhi::Validator.constantize("String")).to eq Bodhi::StringValidator
-      expect(Bodhi::Validator.constantize(:string)).to eq Bodhi::StringValidator
-      expect(Bodhi::Validator.constantize(:String)).to eq Bodhi::StringValidator
+      expect(Bodhi::Validator.constantize("type")).to eq Bodhi::TypeValidator
+      expect(Bodhi::Validator.constantize("Type")).to eq Bodhi::TypeValidator
+      expect(Bodhi::Validator.constantize(:type)).to eq Bodhi::TypeValidator
+      expect(Bodhi::Validator.constantize(:Type)).to eq Bodhi::TypeValidator
     end
 
     it "raises NameError if validator name cannot be found" do
