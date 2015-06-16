@@ -9,7 +9,6 @@ require 'bodhi-slam/resource'
 require 'bodhi-slam/types'
 require 'bodhi-slam/type_factory'
 require 'bodhi-slam/validations'
-require 'bodhi-slam/validations_factory'
 require 'bodhi-slam/enumerations'
 
 class BodhiSlam
