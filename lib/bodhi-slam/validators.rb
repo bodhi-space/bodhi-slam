@@ -43,6 +43,12 @@ module Bodhi
       raise NotImplementedError, "Subclasses must implement a to_options method."
     end
 
+    # Returns the validator class with the given +name+
+    # Raises NameError if no validator class is found
+    # 
+    # Bodhi::Validator.constantize("type") # => Bodhi::TypeValidator
+    # Bodhi::Validator.constantize("multi") # => Bodhi::MutliValidator
+    # Bodhi::Validator.constantize("required") # => Bodhi::RequriedValidator
     def self.constantize(name)
       camelized_name = name.to_s.split('_').collect(&:capitalize).join
       full_name = "Bodhi::#{camelized_name}Validator"      

@@ -6,8 +6,8 @@ module Bodhi
     attr_reader :connection, :server, :namespace, 
       :credentials, :credentials_type, :credentials_header
     
-      validates :server, required: true, not_blank: true, url: true
-      validates :namespace, required: true, not_blank: true
+      validates :server, required: true, is_not_blank: true, url: true
+      validates :namespace, required: true, is_not_blank: true
     
     def initialize(params)
       params.symbolize_keys!

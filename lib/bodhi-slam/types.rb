@@ -10,7 +10,7 @@ module Bodhi
     attr_reader *BODHI_SYSTEM_ATTRIBUTES
     attr_reader :validations
     
-    validates :name, required: true, not_blank: true
+    validates :name, required: true, is_not_blank: true
     validates :namespace, required: true
     validates :properties, required: true
     
@@ -26,7 +26,18 @@ module Bodhi
         properties.symbolize_keys!
         properties.each_pair do |attr_name, attr_properties|
           attr_properties.symbolize_keys!
-          @validations[attr_name] = Bodhi::ValidationFactory.build(attr_properties)
+          @validations[attr_name] = []
+          attr_properties.each_pair do |option, value|
+            underscored_name = option.to_s.gsub(/::/, '/').gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').gsub(/([a-z\d])([A-Z])/,'\1_\2').tr("-", "_").downcase.to_sym
+            unless [:system, :trim, :ref, :unique, :default].include? underscored_name
+              klass = Bodhi::Validator.constantize(underscored_name)
+              if underscored_name == :type
+                @validations[attr_name] << klass.new(value)
+              else
+                @validations[attr_name] << klass.new
+              end
+            end
+          end
         end
       end
     end

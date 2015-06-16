@@ -39,7 +39,7 @@ module Bodhi
       end
       
       if attribute[:isNotBlank]
-        validations << Bodhi::NotBlankValidator.new
+        validations << Bodhi::IsNotBlankValidator.new
       end
       
       validations

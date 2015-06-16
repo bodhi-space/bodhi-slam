@@ -21,9 +21,9 @@ describe Bodhi::ValidationFactory do
       expect(Bodhi::ValidationFactory.build(properties_hash)).to include Bodhi::MultiValidator
     end
     
-    it "should include Bodhi::NotBlankValidation if property is :not_blank" do
+    it "should include Bodhi::IsNotBlankValidation if property is :is_not_blank" do
       properties_hash[:isNotBlank] = true
-      expect(Bodhi::ValidationFactory.build(properties_hash)).to include Bodhi::NotBlankValidator
+      expect(Bodhi::ValidationFactory.build(properties_hash)).to include Bodhi::IsNotBlankValidator
     end
     
     it "should include Bodhi::ObjectValidation if property is :Object" do
