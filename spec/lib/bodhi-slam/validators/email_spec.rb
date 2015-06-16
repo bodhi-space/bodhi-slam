@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Bodhi::IsEmailValidator do
-  let(:validator){ Bodhi::IsEmailValidator.new }
+  let(:validator){ Bodhi::IsEmailValidator.new(true) }
   let(:klass) do
     Class.new do
       include Bodhi::Validations

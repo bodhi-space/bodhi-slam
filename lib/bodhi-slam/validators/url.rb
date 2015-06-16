@@ -1,6 +1,8 @@
 module Bodhi
   class UrlValidator < Validator
-    
+
+    def initialize(value); end
+
     def validate(record, attribute, value)
       unless value.nil?
         

@@ -1,6 +1,8 @@
 module Bodhi
   class IsEmailValidator < Validator
-    
+
+    def initialize(value); end
+
     def validate(record, attribute, value)
       unless value.nil?
         
@@ -16,7 +18,7 @@ module Bodhi
     end
     
     def to_options
-      {not_blank: true}
+      {self.to_sym => true}
     end
   end
 end

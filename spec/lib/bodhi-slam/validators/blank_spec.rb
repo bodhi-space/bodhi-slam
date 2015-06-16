@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Bodhi::IsNotBlankValidator do
-  let(:validator){ Bodhi::IsNotBlankValidator.new }
+  let(:validator){ Bodhi::IsNotBlankValidator.new(true) }
   let(:klass) do
     Class.new do
       include Bodhi::Validations
@@ -62,7 +62,7 @@ describe Bodhi::IsNotBlankValidator do
   
   describe "#to_options" do
     it "should return the validator as an option Hash" do
-      expect(validator.to_options).to include({not_blank: true})
+      expect(validator.to_options).to include({is_not_blank: true})
     end
   end
 end

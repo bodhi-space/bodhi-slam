@@ -29,13 +29,9 @@ module Bodhi
           @validations[attr_name] = []
           attr_properties.each_pair do |option, value|
             underscored_name = option.to_s.gsub(/::/, '/').gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').gsub(/([a-z\d])([A-Z])/,'\1_\2').tr("-", "_").downcase.to_sym
-            unless [:system, :trim, :ref, :unique, :default].include? underscored_name
+            unless [:system, :trim, :ref, :unique, :default, :is_current_user].include? underscored_name
               klass = Bodhi::Validator.constantize(underscored_name)
-              if underscored_name == :type
-                @validations[attr_name] << klass.new(value)
-              else
-                @validations[attr_name] << klass.new
-              end
+              @validations[attr_name] << klass.new(value)
             end
           end
         end
@@ -78,6 +74,102 @@ module Bodhi
       end
       
       klass
+    end
+    
+    def self.create_factory_with(type, enumerations=[])
+      unless type.is_a? Bodhi::Type
+        raise ArgumentError.new("Expected #{type.class} to be a Bodhi::Type")
+      end
+
+      FactoryGirl.define do
+        factory type.name.to_sym do
+          type.properties.each_pair do |attribute, options|
+            unless options[:system]
+
+              case options[:type]
+              when "GeoJSON"
+                if options[:multi].nil?
+                  send(attribute) { {type: "Point", coordinates: [10,20]} }
+                else
+                  send(attribute) { [*0..5].sample.times.collect{ {type: "Point", coordinates: [10,20]} } }
+                end
+
+              when "Boolean"
+                if options[:multi].nil?
+                  send(attribute) { [true, false].sample }
+                else
+                  send(attribute) { [*0..5].sample.times.collect{ [true, false].sample } }
+                end
+
+              when "Enumerated"
+                reference = options[:ref].split('.')
+                name = reference[0]
+                field = reference[1]
+
+                enum = enumerations.select{ |enumeration| enumeration.name == name }[0]
+                if options[:multi].nil?
+                  if field.nil?
+                    send(attribute) { enum.values.sample }
+                  else
+                    enum.values.map!{ |value| value.symbolize_keys! }
+                    send(attribute) { enum.values.sample[field.to_sym] }
+                  end
+                else
+                  if field.nil?
+                    send(attribute) { [*0..5].sample.times.collect{ enum.values.sample } }
+                  else
+                    send(attribute) { [*0..5].sample.times.collect{ enum.values.sample[field.to_sym] } }
+                  end
+                end
+
+              when "Object"
+                if options[:multi].nil?
+                  send(attribute) { {SecureRandom.hex => SecureRandom.hex} }
+                else
+                  send(attribute) { [*0..5].sample.times.collect{ {SecureRandom.hex => SecureRandom.hex} } }
+                end
+
+              when "String"
+                if options[:multi].nil?
+                  send(attribute) { SecureRandom.hex }
+                else
+                  send(attribute) { [*0..5].sample.times.collect{ SecureRandom.hex } }
+                end
+
+              when "DateTime"
+                if options[:multi].nil?
+                  send(attribute) { Time.at(rand * Time.now.to_i).iso8601 }
+                else
+                  send(attribute) { [*0..5].sample.times.collect{ Time.at(rand * Time.now.to_i).iso8601 } }
+                end
+
+              when "Integer"
+                if options[:multi].nil?
+                  send(attribute) { SecureRandom.random_number(10000) }
+                else
+                  send(attribute) { [*0..5].sample.times.collect{ SecureRandom.random_number(100000) } }
+                end
+
+              when "Real"
+                if options[:multi].nil?
+                  send(attribute) { SecureRandom.random_number * [100,1000,10000].sample }
+                else
+                  send(attribute) { [*0..5].sample.times.collect{ SecureRandom.random_number * [100,1000,10000].sample } }
+                end
+
+              else # Its an embedded type
+                if options[:multi].nil?
+                  send(attribute) { FactoryGirl.build(options[:type]) }
+                else
+                  send(attribute) { [*0..5].sample.times.collect{ FactoryGirl.build(options[:type]) } }
+                end
+              end
+            
+            end
+          end
+        end
+      end
+
     end
   end
 end
