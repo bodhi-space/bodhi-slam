@@ -1,7 +1,7 @@
 require 'simplecov'
 SimpleCov.start do
   add_group "Errors", "lib/bodhi-slam/errors"
-  add_group "Validations", "lib/bodhi-slam/validations"
+  add_group "Validators", "lib/bodhi-slam/validators"
   add_filter "/spec/"
 end
 
