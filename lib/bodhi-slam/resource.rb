@@ -14,7 +14,8 @@ module BodhiResource
   end
   
   # - Converts all the Objects attributes to JSON
-  def to_json
+  def to_json(base=nil)
+    super if base
     attributes = Hash.new
     self.instance_variables.each do |variable|
       attribute_name = variable.to_s.delete('@').to_sym

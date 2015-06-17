@@ -7,6 +7,7 @@ module Bodhi
       
       @name = params[:name]
       @values = params[:values]
+      self.class.cache[@name.to_sym] = self
     end
     
     def self.find_all(context)
@@ -26,6 +27,9 @@ module Bodhi
     
       JSON.parse(result.body).collect{ |enum| Bodhi::Enumeration.new(enum) }
     end
-    
+
+    def self.cache
+      @cache ||= Hash.new
+    end
   end
 end

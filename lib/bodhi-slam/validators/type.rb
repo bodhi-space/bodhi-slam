@@ -8,7 +8,7 @@ module Bodhi
       end
 
       @type = type
-      @reference = reference
+      @reference = reference if reference
     end
 
     def validate(record, attribute, value)
@@ -28,13 +28,33 @@ module Bodhi
           klass = Hash
         when "Object"
           klass = Hash
+          single_message = "must be a JSON object"
+          array_message = "must contain only JSON objects"
         when "Real"
           klass = Float
         when "Boolean"
           single_comparator = ->(item){ item.is_a?(TrueClass) || item.is_a?(FalseClass) }
           array_comparator = ->(items){ items.delete_if{ |item| item.is_a?(TrueClass) || item.is_a?(FalseClass) }.empty? }
         when "Enumerated"
-          klass = Object
+          if @reference.nil?
+            raise RuntimeError.new("Enumerated reference is missing!  Cannot validate #{record.class}.#{attribute}=#{value}")
+          end
+
+          single_message = "must be a #{@reference}"
+          array_message = "must contain only #{@reference} objects"
+
+          name = @reference.split(".")[0]
+          field = @reference.split(".")[1]
+
+          enumeration = Bodhi::Enumeration.cache[name.to_sym]
+          if field.nil?
+            single_comparator = ->(item){ enumeration.values.include?(item) }
+            array_comparator = ->(items){ items.delete_if{ |item| enumeration.values.include?(item) }.empty? }
+          else
+            flattened_values = enumeration.values.map{|val| val[field.to_sym] }
+            single_comparator = ->(item){ flattened_values.include?(item) }
+            array_comparator = ->(items){ items.delete_if{ |item| flattened_values.include?(item) }.empty? }
+          end
         else # type is an embedded type
           klass = Object.const_get(@type)
         end

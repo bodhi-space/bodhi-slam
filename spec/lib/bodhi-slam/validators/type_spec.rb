@@ -120,18 +120,18 @@ describe Bodhi::TypeValidator do
         expect(record.errors.full_messages).to include("foo must be a DateTime")
 
         record.errors.clear
-        record.foo = Time.now
+        record.foo = DateTime.now
         validator.validate(record, :foo, record.foo)
         expect(record.errors.full_messages).to be_empty
       end
 
       it "should validate arrays of objects" do
-        record.foo = [Time.now, "test"]
+        record.foo = [DateTime.now, "test"]
         validator.validate(record, :foo, record.foo)
         expect(record.errors.full_messages).to include("foo must contain only DateTimes")
 
         record.errors.clear
-        record.foo = [Time.now, Time.now]
+        record.foo = [DateTime.now, DateTime.now]
         validator.validate(record, :foo, record.foo)
         expect(record.errors.full_messages).to be_empty
       end
@@ -217,9 +217,15 @@ describe Bodhi::TypeValidator do
 
     context "when :attribute is Enumerated" do
       let(:validator){ Bodhi::TypeValidator.new("Enumerated", "Currency.name") }
-      let(:enumeration){ Bodhi::Enumeration.new({name: "Currency", values:[{name: "test"}, {name: "foo"}, {name: "bar"}]}) }
+
+      before do
+        Bodhi::Enumeration.cache.clear
+      end
 
       it "should validate a single object" do
+        enum = Bodhi::Enumeration.new({name: "Currency", values:[{name: "test"}, {name: "foo"}, {name: "bar"}]})
+        puts "Enumeration cache contains: #{Bodhi::Enumeration.cache}"
+
         record.foo = "12345"
         validator.validate(record, :foo, record.foo)
         expect(record.errors.full_messages).to include("foo must be a Currency.name")
@@ -231,9 +237,12 @@ describe Bodhi::TypeValidator do
       end
 
       it "should validate arrays of objects" do
+        enum = Bodhi::Enumeration.new({name: "Currency", values:[{name: "test"}, {name: "foo"}, {name: "bar"}]})
+        puts "Enumeration cache contains: #{Bodhi::Enumeration.cache}"
+
         record.foo = ["12345", "test"]
         validator.validate(record, :foo, record.foo)
-        expect(record.errors.full_messages).to include("foo must contain only Currency.names")
+        expect(record.errors.full_messages).to include("foo must contain only Currency.name objects")
 
         record.errors.clear
         record.foo = ["test", "foo", "bar"]

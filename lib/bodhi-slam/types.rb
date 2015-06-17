@@ -31,7 +31,15 @@ module Bodhi
             underscored_name = option.to_s.gsub(/::/, '/').gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').gsub(/([a-z\d])([A-Z])/,'\1_\2').tr("-", "_").downcase.to_sym
             unless [:system, :trim, :ref, :unique, :default, :is_current_user].include? underscored_name
               klass = Bodhi::Validator.constantize(underscored_name)
-              @validations[attr_name] << klass.new(value)
+              if option == :type && value == "Enumerated"
+                if attr_properties[:ref].nil?
+                  raise RuntimeError.new("No reference property found!  Cannot build enumeration validator for #{name}.#{attr_name}")
+                end
+
+                @validations[attr_name] << klass.new(value, attr_properties[:ref])
+              else
+                @validations[attr_name] << klass.new(value)
+              end
             end
           end
         end

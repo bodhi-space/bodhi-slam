@@ -37,4 +37,14 @@ describe Bodhi::Enumeration do
       end
     end
   end
+
+  describe ".cache" do    
+    it "returns nil if :enum_name is not found" do
+      expect(Bodhi::Enumeration.cache[:test]).to be_nil
+    end
+
+    it "returns the Bodhi::Enumeration given by name" do
+      expect(Bodhi::Enumeration.cache[enum.name.to_sym]).to eq enum
+    end
+  end
 end

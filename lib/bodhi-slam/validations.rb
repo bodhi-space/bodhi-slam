@@ -49,7 +49,11 @@ module Bodhi
         @validators[attribute] = []
         options.each_pair do |key, value|
           unless [:ref].include?(key)
-            @validators[attribute] << Bodhi::Validator.constantize(key).new(value)
+            if key == :type && value == "Enumerated"
+              @validators[attribute] << Bodhi::Validator.constantize(key).new(value, options[:ref])
+            else
+              @validators[attribute] << Bodhi::Validator.constantize(key).new(value)
+            end
           end
         end
       end

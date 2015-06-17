@@ -38,9 +38,16 @@ describe BodhiSlam do
         expect(result).to_not be_empty
         expect(result_type_names).to match_array(@type_names)
 
-        test = FactoryGirl.build(:SalesTransaction)
-        puts test.attributes
-        puts test.errors.messages unless test.valid?
+        result.each do |type|
+          puts "Building: #{type}"
+          test = FactoryGirl.build(type.name)
+          puts test.to_json
+          unless test.valid?
+            puts "Errors: #{test.errors.messages}"
+          else
+            puts "Generated valid #{type}"
+          end
+        end
       end
     end
     
