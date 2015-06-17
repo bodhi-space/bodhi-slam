@@ -39,7 +39,7 @@ describe BodhiSlam do
         expect(result_type_names).to match_array(@type_names)
 
         result.each do |type|
-          unless ["Organization", "SaleTotal", "StoreSchedule"].include? type.name
+          unless ["Organization", "SaleTotal", "StoreSchedule", "BodhiType"].include? type.name
             puts "Building: #{type}"
             test = FactoryGirl.build(type.name)
             puts test.to_json

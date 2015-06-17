@@ -120,18 +120,18 @@ describe Bodhi::TypeValidator do
         expect(record.errors.full_messages).to include("foo must be a DateTime")
 
         record.errors.clear
-        record.foo = DateTime.now
+        record.foo = "1992-10-31"
         validator.validate(record, :foo, record.foo)
         expect(record.errors.full_messages).to be_empty
       end
 
       it "should validate arrays of objects" do
-        record.foo = [DateTime.now, "test"]
+        record.foo = ["1992-10-31", "test"]
         validator.validate(record, :foo, record.foo)
         expect(record.errors.full_messages).to include("foo must contain only DateTimes")
 
         record.errors.clear
-        record.foo = [DateTime.now, DateTime.now]
+        record.foo = ["1992-10-31", "1992-06-14"]
         validator.validate(record, :foo, record.foo)
         expect(record.errors.full_messages).to be_empty
       end
