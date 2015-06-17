@@ -253,9 +253,27 @@ describe Bodhi::TypeValidator do
 
     context "when :attribute is Embedded" do
       let(:validator){ Bodhi::TypeValidator.new("MyClass") }
+      let(:type){ Bodhi::Type.new({ name: "MyClass", package: "test", properties: { test:{ type: "String" } } }) }
 
       after do
         Object.send(:remove_const, :MyClass)
+      end
+
+      it "should validate the embedded objects attributes" do
+        Bodhi::Type.create_class_with(type)
+
+        record.foo = MyClass.new
+        record.foo.test = 12345
+        validator.validate(record, :foo, record.foo)
+        expect(record.errors.full_messages).to include("foo.test must be a String")
+
+        record.errors.clear
+        record.foo = [MyClass.new, MyClass.new]
+        record.foo[0].test = 12345
+        record.foo[1].test = 12345
+        validator.validate(record, :foo, record.foo)
+        expect(record.errors.full_messages).to include("foo[0].test must be a String")
+        expect(record.errors.full_messages).to include("foo[1].test must be a String")
       end
 
       it "should validate a single object" do
@@ -263,7 +281,7 @@ describe Bodhi::TypeValidator do
 
         record.foo = Class.new
         validator.validate(record, :foo, record.foo)
-        expect(record.errors.full_messages).to include("foo must be a MyClass object")
+        expect(record.errors.full_messages).to include("foo must be a MyClass")
 
         record.errors.clear
         record.foo = MyClass.new
@@ -276,7 +294,7 @@ describe Bodhi::TypeValidator do
 
         record.foo = [MyClass.new, Class.new]
         validator.validate(record, :foo, record.foo)
-        expect(record.errors.full_messages).to include("foo must contain only MyClass objects")
+        expect(record.errors.full_messages).to include("foo must contain only MyClasss")
 
         record.errors.clear
         record.foo = [MyClass.new, MyClass.new]

@@ -39,13 +39,15 @@ describe BodhiSlam do
         expect(result_type_names).to match_array(@type_names)
 
         result.each do |type|
-          puts "Building: #{type}"
-          test = FactoryGirl.build(type.name)
-          puts test.to_json
-          unless test.valid?
-            puts "Errors: #{test.errors.messages}"
-          else
-            puts "Generated valid #{type}"
+          unless ["Organization", "SaleTotal", "StoreSchedule"].include? type.name
+            puts "Building: #{type}"
+            test = FactoryGirl.build(type.name)
+            puts test.to_json
+            unless test.valid?
+              puts "Errors: #{test.errors.messages}"
+            else
+              puts "Generated valid #{type}"
+            end
           end
         end
       end
