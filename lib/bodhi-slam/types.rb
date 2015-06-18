@@ -70,8 +70,7 @@ module Bodhi
       end
       
       klass = Object.const_set(type.name, Class.new {
-        include BodhiResource
-        include Bodhi::Validations
+        include Bodhi::Resource
         attr_accessor *type.properties.keys
       })
       
