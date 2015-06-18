@@ -14,7 +14,7 @@ module Bodhi
             record.errors.add(attribute, "must only contain values less than #{@value}") unless value.delete_if{ |v| v < @value }.empty?
           end
         else
-          record.errors.add(attribute, "must be a less than #{@value}") unless value < @value
+          record.errors.add(attribute, "must be less than #{@value}") unless value < @value
         end
 
       end

@@ -14,7 +14,7 @@ module Bodhi
             record.errors.add(attribute, "must only contain values matching #{@value}") unless value.delete_if{ |v| v.match(@value) }.empty?
           end
         else
-          record.errors.add(attribute, "must be a greater than #{@value}") unless value.match(@value)
+          record.errors.add(attribute, "must match #{@value}") unless value.match(@value)
         end
 
       end
