@@ -152,17 +152,27 @@ module Bodhi
                 end
 
               when "Integer"
+                min = -10000
+                max = 10000
+                if options[:min]
+                  min = options[:min]
+                end
+
+                if options[:max]
+                  max = options[:max]
+                end
+
                 if options[:multi].nil?
-                  send(attribute) { SecureRandom.random_number(10000) }
+                  send(attribute) { rand(min..max) }
                 else
-                  send(attribute) { [*0..5].sample.times.collect{ SecureRandom.random_number(100000) } }
+                  send(attribute) { [*0..5].sample.times.collect{ rand(min..max) } }
                 end
 
               when "Real"
                 if options[:multi].nil?
-                  send(attribute) { SecureRandom.random_number * [100,1000,10000].sample }
+                  send(attribute) { SecureRandom.random_number*[-1,1,1,1].sample*[10,100,1000,10000].sample }
                 else
-                  send(attribute) { [*0..5].sample.times.collect{ SecureRandom.random_number * [100,1000,10000].sample } }
+                  send(attribute) { [*0..5].sample.times.collect{ SecureRandom.random_number*[-1,1,1,1].sample*[10,100,1000,10000].sample } }
                 end
 
               else # Its an embedded type
