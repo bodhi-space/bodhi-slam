@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
   s.license     = 'MIT'
   s.add_runtime_dependency 'factory_girl', '~> 4.5'
   s.add_runtime_dependency 'faraday', '~> 0.9'
+  s.add_runtime_dependency 'net-http-persistent'
   s.add_runtime_dependency 'json', '~> 1.7'
   s.add_development_dependency "rspec"
   s.add_development_dependency "dotenv"

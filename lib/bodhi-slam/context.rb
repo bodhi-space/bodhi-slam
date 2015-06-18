@@ -15,7 +15,8 @@ module Bodhi
       @connection = Faraday.new(url: params[:server]) do |faraday|
         faraday.request  :url_encoded             # form-encode POST params
         #faraday.response :logger                  # log requests to STDOUT
-        faraday.adapter  Faraday.default_adapter  # make requests with Net::HTTP
+        #faraday.adapter  Faraday.default_adapter  # make requests with Net::HTTP
+        faraday.adapter :net_http_persistent
       end
       @server = params[:server]
       @namespace = params[:namespace]

@@ -1,4 +1,5 @@
 require "faraday"
+require 'net/http/persistent'
 require "factory_girl"
 require "json"
 require "time"
