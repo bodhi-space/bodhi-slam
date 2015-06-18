@@ -11,10 +11,10 @@ module Bodhi
 
         if value.is_a?(Array)
           unless value.empty?
-            record.errors.add(attribute, "must only contain values greater than #{@value}") unless value.delete_if{ |v| v > @value }.empty?
+            record.errors.add(attribute, "must only contain values greater than or equal to #{@value}") unless value.delete_if{ |v| v >= @value }.empty?
           end
         else
-          record.errors.add(attribute, "must be greater than #{@value}") unless value > @value
+          record.errors.add(attribute, "must be greater than or equal to #{@value}") unless value >= @value
         end
 
       end
