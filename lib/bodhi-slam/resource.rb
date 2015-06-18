@@ -19,7 +19,7 @@ module BodhiResource
     attributes = Hash.new
     self.instance_variables.each do |variable|
       attribute_name = variable.to_s.delete('@').to_sym
-      attributes[attribute_name] = send(attribute_name)
+      attributes[attribute_name] = send(attribute_name) unless [:errors].include?(attribute_name)
     end
     attributes.to_json
   end

@@ -40,13 +40,12 @@ describe BodhiSlam do
 
         result.each do |type|
           unless ["Organization", "SaleTotal", "StoreSchedule", "BodhiType"].include? type.name
-            puts "Building: #{type}"
+            puts "\033[32m--------------------------------------------------------\033[0m"
+            puts "\033[33mBuilding\033[0m: \033[36m#{type}\033[0m"
             test = FactoryGirl.build(type.name)
-            puts test.to_json
+            puts "\033[33mAttributes\033[0m: #{test.to_json}"
             unless test.valid?
-              puts "Errors: #{test.errors.messages}"
-            else
-              puts "Generated valid #{type}"
+              puts "\033[31mErrors Detected\033[0m: #{test.errors.messages}"
             end
           end
         end
