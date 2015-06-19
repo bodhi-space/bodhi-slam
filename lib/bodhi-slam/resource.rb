@@ -67,6 +67,28 @@ module Bodhi
         self.build(context, resource_attributes)
       end
 
+      def aggregate(context, pipeline)
+        raise context.errors unless context.valid?
+
+        unless pipeline.is_a? String
+          raise ArgumentError.new("Expected 'pipeline' to be a String. 'pipeline' #=> #{pipeline.class}")
+        end
+
+        result = context.connection.get do |request|
+          request.url "/#{context.namespace}/resources/#{name}/aggregate?pipeline=#{pipeline}"
+          request.headers[context.credentials_header] = context.credentials
+        end
+
+        if result.status != 200
+          errors = JSON.parse result.body
+          errors.each{|error| error['status'] = result.status } if errors.is_a? Array
+          errors["status"] = result.status if errors.is_a? Hash
+          raise errors.to_s
+        end
+
+        JSON.parse(result.body)
+      end
+
       def where(context, query)
         raise context.errors unless context.valid?
 

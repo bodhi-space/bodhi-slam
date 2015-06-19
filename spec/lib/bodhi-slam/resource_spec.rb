@@ -104,9 +104,30 @@ describe Bodhi::Resource do
   end
 
   describe ".aggregate(context, pipeline)" do
-    it "should raise error if context is not valid"
-    it "should raise api error if the pipeline is not valid"
-    it "should return the aggregation as json"
+    it "should raise error if context is not valid" do
+      bad_context = Bodhi::Context.new({})
+      expect{ Test.aggregate(bad_context, "12345") }.to raise_error(ArgumentError, "something bad happened")
+    end
+
+    it "should raise api error if the pipeline is not valid" do
+      expect{ Test.aggregate(context, "12345") }.to raise_error(ArgumentError, "something bad happened")
+    end
+
+    it "should return the aggregation as json" do
+      records = Test.create_list(context, 10, {Olia: 20})
+      other_records = Test.create_list(context, 5, {Olia: 10})
+      pipeline = "[
+        { $match: { Olia: { $gte: 20 } } },
+        { $group: { _id: 'count_olias_greater_than_20', Olia:{ $sum: 1 } } }
+      ]"
+      results = Test.aggregate(context, pipeline)
+
+      puts "\033[33mAggregate Result\033[0m: #{results}"
+      expect(results).to be_a Array
+      results.each{ |obj| expect(obj).to be_a Hash }
+      expect(results[0]["_id"]).to eq "count_olias_greater_than_20"
+      expect(results[0]["Olia"]).to eq 10
+    end
   end
 
   describe ".delete_all(context)" do
