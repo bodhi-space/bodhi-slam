@@ -61,16 +61,42 @@ describe Bodhi::Resource do
     end
   end
 
+  describe ".find(context, id)" do
+    it "should raise error if context is not valid" do
+      bad_context = Bodhi::Context.new({})
+      expect{ Test.find(bad_context, "12345") }.to raise_error(ArgumentError, "something bad happened")
+    end
+
+    it "should raise api error if id is not present" do
+      expect{ Test.find(context, "12345") }.to raise_error(ArgumentError, "something bad happened")
+    end
+
+    it "should return the resource with the given id" do
+      record = Test.create(context)
+      result = Test.find(context, record.sys_id)
+      expect(result).to be_a Test
+
+      puts "\033[33mFound Resource\033[0m: #{result.attributes}"
+      expect(result.attributes).to eq record.attributes
+    end
+  end
+
+  describe ".where(context, query)" do
+    it "should raise error if context is not valid"
+    it "should raise api error if the query is not valid"
+    it "should return an array of resources that match the query"
+  end
+
   describe ".delete_all(context)" do
     it "raises error if context is invalid" do
       bad_context = Bodhi::Context.new({})
       expect{ Test.delete_all(bad_context) }.to raise_error(ArgumentError, "something bad happened")
     end
 
-    it "deletes all of the classes records in the cloud"
+    it "deletes all resources from the cloud within the given context"
   end
 
-  describe ".build(params={})" do
+  describe ".build(context, params={})" do
     it "should return a new resource" do
       expect(TestResource.build(context)).to be_instance_of TestResource
     end
@@ -81,7 +107,7 @@ describe Bodhi::Resource do
     end
   end
 
-  describe ".build_list(amount, params={})" do
+  describe ".build_list(context, amount, params={})" do
     it "should return an array of new resources" do
       records = TestResource.build_list(context, 10)
       expect(records.count).to eq 10
@@ -95,7 +121,7 @@ describe Bodhi::Resource do
     end
   end
 
-  describe ".create(params={})" do
+  describe ".create(context, params={})" do
     it "should create a new resource" do
       expect(Test.create(context)).to be_instance_of Test
     end
@@ -112,7 +138,7 @@ describe Bodhi::Resource do
     end
   end
 
-  describe ".create_list(amount, params={})" do
+  describe ".create_list(context, amount, params={})" do
     it "should return an array of the created resources" do
       records = Test.create_list(context, 10)
       expect(records.count).to eq 10
