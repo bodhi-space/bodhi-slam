@@ -162,7 +162,7 @@ describe Bodhi::Type do
           obj = FactoryGirl.build(:TestType)
           expect(obj.foo).to be_a Array
           expect(obj.foo.size).to be_between(0,5)
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
 
@@ -178,7 +178,7 @@ describe Bodhi::Type do
           expect(obj.foo).to have_key :type
           expect(obj.foo).to have_key :coordinates
           expect(obj.foo[:coordinates]).to be_a Array
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
     end
@@ -194,7 +194,7 @@ describe Bodhi::Type do
           obj = FactoryGirl.build(:TestType)
           expect(obj.foo).to be_a Array
           expect(obj.foo.size).to be_between(0,5)
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
 
@@ -207,7 +207,7 @@ describe Bodhi::Type do
 
           obj = FactoryGirl.build(:TestType)
           expect(obj.foo).to_not be_nil
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
     end
@@ -237,7 +237,7 @@ describe Bodhi::Type do
           obj.foo.each do |value|
             expect(values).to include value
           end
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
 
           obj = FactoryGirl.build(:TestType2)
           expect(obj.foo).to be_a Array
@@ -245,7 +245,7 @@ describe Bodhi::Type do
           obj.foo.each do |value|
             expect(enum2.values).to include value
           end
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
 
@@ -262,11 +262,11 @@ describe Bodhi::Type do
           obj = FactoryGirl.build(:TestType)
           values = enum.values.collect{|value| value[:name] }
           expect(values).to include obj.foo
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
 
           obj = FactoryGirl.build(:TestType2)
           expect(enum2.values).to include obj.foo
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
     end
@@ -283,7 +283,7 @@ describe Bodhi::Type do
           expect(obj.foo).to be_a Array
           expect(obj.foo.size).to be_between(0,5)
           expect(obj.foo[0]).to be_a Hash if obj.foo.size > 0
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
 
@@ -296,7 +296,7 @@ describe Bodhi::Type do
 
           obj = FactoryGirl.build(:TestType)
           expect(obj.foo).to be_a Hash
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
     end
@@ -313,7 +313,7 @@ describe Bodhi::Type do
           expect(obj.foo).to be_a Array
           expect(obj.foo.size).to be_between(0,5)
           expect(obj.foo[0]).to be_a String if obj.foo.size > 0
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
 
@@ -326,7 +326,7 @@ describe Bodhi::Type do
 
           obj = FactoryGirl.build(:TestType)
           expect(obj.foo).to be_a String
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
     end
@@ -343,7 +343,7 @@ describe Bodhi::Type do
           expect(obj.foo).to be_a Array
           expect(obj.foo.size).to be_between(0,5)
           expect(Time.parse(obj.foo[0])).to be_a Time if obj.foo.size > 0
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
 
@@ -356,7 +356,7 @@ describe Bodhi::Type do
 
           obj = FactoryGirl.build(:TestType)
           expect(Time.parse(obj.foo)).to be_a Time
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
     end
@@ -373,7 +373,7 @@ describe Bodhi::Type do
           expect(obj.foo).to be_a Array
           expect(obj.foo.size).to be_between(0,5)
           expect(obj.foo[0]).to be_a Integer if obj.foo.size > 0
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
 
@@ -386,7 +386,7 @@ describe Bodhi::Type do
 
           obj = FactoryGirl.build(:TestType)
           expect(obj.foo).to be_a Integer
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
     end
@@ -403,7 +403,7 @@ describe Bodhi::Type do
           expect(obj.foo).to be_a Array
           expect(obj.foo.size).to be_between(0,5)
           expect(obj.foo[0]).to be_a Float if obj.foo.size > 0
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
 
@@ -416,7 +416,7 @@ describe Bodhi::Type do
 
           obj = FactoryGirl.build(:TestType)
           expect(obj.foo).to be_a Float
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
     end
@@ -445,7 +445,7 @@ describe Bodhi::Type do
           expect(obj.foo.size).to be_between(0,5)
           obj.foo.each{ |value| expect(value).to be_instance_of(TestEmbedded) } if obj.foo.size > 0
 
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
 
@@ -458,7 +458,7 @@ describe Bodhi::Type do
 
           expect(obj.foo).to be_a TestEmbedded
 
-          puts "Generated object was: #{obj.attributes}"
+          puts "\033[33mGenerated\033[0m: #{obj.attributes}"
         end
       end
     end
