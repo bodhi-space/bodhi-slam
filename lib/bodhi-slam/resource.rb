@@ -5,20 +5,59 @@ module Bodhi
     attr_accessor *SYSTEM_ATTRIBUTES
 
     module ClassMethods
-      def build(params={})
+      def build(context, params={})
+        params.merge!({bodhi_context: context})
         FactoryGirl.build(name, params)
       end
 
-      def build_list(amount, params={})
+      def build_list(context, amount, params={})
+        params.merge!({bodhi_context: context})
         FactoryGirl.build_list(name, amount, params)
       end
 
-      def create(params={})
-        
+      def create(context, params={})
+        params.merge!({bodhi_context: context})
+        FactoryGirl.create(name, params)
       end
 
-      def create_list(amount, params={})
-        
+      def create_list(context, amount, params={})
+        params.merge!({bodhi_context: context})
+        records = FactoryGirl.build_list(name, amount, params)
+        result = context.connection.post do |request|
+          request.url "/#{context.namespace}/resources/#{name}"
+          request.headers['Content-Type'] = 'application/json'
+          request.headers[context.credentials_header] = context.credentials
+          request.body = records.to_json
+        end
+
+        puts "\033[33mResult Body\033[0m: #{result.body}"
+
+        if result.status != 200
+          errors = JSON.parse result.body
+          errors.each{|error| error['status'] = result.status } if errors.is_a? Array
+          errors["status"] = result.status if errors.is_a? Hash
+          raise errors.to_s
+        end
+
+        puts "\033[33mRecords\033[0m: #{records.map(&:attributes)}"
+
+        records
+      end
+
+      def delete_all(context)
+        raise context.errors unless context.valid?
+
+        result = context.connection.delete do |request|
+          request.url "/#{context.namespace}/resources/#{name}"
+          request.headers[context.credentials_header] = context.credentials
+        end
+
+        if result.status != 204
+          errors = JSON.parse result.body
+          errors.each{|error| error['status'] = result.status } if errors.is_a? Array
+          errors["status"] = result.status if errors.is_a? Hash
+          raise errors.to_s
+        end
       end
     end
 
@@ -43,11 +82,6 @@ module Bodhi
       # s.to_json # => { "foo":"test", "bar":12345 }
       def to_json(base=nil)
         super if base
-        attributes = Hash.new
-        self.instance_variables.each do |variable|
-          attribute_name = variable.to_s.delete('@').to_sym
-          attributes[attribute_name] = send(attribute_name) unless [:errors].include?(attribute_name)
-        end
         attributes.to_json
       end
 
@@ -65,9 +99,9 @@ module Bodhi
           errors["status"] = result.status if errors.is_a? Hash
           raise errors.to_s
         end
-  
+
         if result.headers['location']
-          @sys_id = result.headers['location'].match(/(?<id>[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12})/)[:id]
+          @sys_id = result.headers['location'].match(/(?<id>[a-zA-Z0-9]{24})/)[:id]
         end
       end
 
