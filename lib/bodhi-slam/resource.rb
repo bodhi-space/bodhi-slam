@@ -46,7 +46,10 @@ module Bodhi
 
       def find(context, id)
         raise context.errors unless context.valid?
-        raise ArgumentError.new("Expected 'id' to be a String. 'id' #=> #{id.class}") unless id.is_a? String
+
+        unless id.is_a? String
+          raise ArgumentError.new("Expected 'id' to be a String. 'id' #=> #{id.class}")
+        end
 
         result = context.connection.get do |request|
           request.url "/#{context.namespace}/resources/#{name}/#{id}"
@@ -62,6 +65,29 @@ module Bodhi
 
         resource_attributes = JSON.parse(result.body)
         self.build(context, resource_attributes)
+      end
+
+      def where(context, query)
+        raise context.errors unless context.valid?
+
+        unless query.is_a? String
+          raise ArgumentError.new("Expected 'query' to be a String. 'query' #=> #{query.class}")
+        end
+
+        result = context.connection.get do |request|
+          request.url "/#{context.namespace}/resources/#{name}?where=#{query}"
+          request.headers[context.credentials_header] = context.credentials
+        end
+
+        if result.status != 200
+          errors = JSON.parse result.body
+          errors.each{|error| error['status'] = result.status } if errors.is_a? Array
+          errors["status"] = result.status if errors.is_a? Hash
+          raise errors.to_s
+        end
+
+        resources = JSON.parse(result.body)
+        resources.map{ |attributes| self.build(context, attributes) }
       end
 
       def delete_all(context)

@@ -82,9 +82,31 @@ describe Bodhi::Resource do
   end
 
   describe ".where(context, query)" do
+    it "should raise error if context is not valid" do
+      bad_context = Bodhi::Context.new({})
+      expect{ Test.where(bad_context, "12345") }.to raise_error(ArgumentError, "something bad happened")
+    end
+
+    it "should raise api error if the query is not valid" do
+      expect{ Test.where(context, "12345") }.to raise_error(ArgumentError, "something bad happened")
+    end
+
+    it "should return an array of resources that match the query" do
+      records = Test.create_list(context, 5, {Olia: 20})
+      other_records = Test.create_list(context, 5, {Olia: 10})
+      results = Test.where(context, "{Olia: 20}")
+
+      puts "\033[33mFound Resources\033[0m: #{results.map(&:attributes)}"
+      expect(results.count).to eq 5
+      results.each{ |obj| expect(obj).to be_a Test }
+      expect(results.to_json).to eq records.to_json
+    end
+  end
+
+  describe ".aggregate(context, pipeline)" do
     it "should raise error if context is not valid"
-    it "should raise api error if the query is not valid"
-    it "should return an array of resources that match the query"
+    it "should raise api error if the pipeline is not valid"
+    it "should return the aggregation as json"
   end
 
   describe ".delete_all(context)" do
