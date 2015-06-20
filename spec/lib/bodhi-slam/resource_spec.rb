@@ -76,7 +76,7 @@ describe Bodhi::Resource do
       result = Test.find(context, record.sys_id)
       expect(result).to be_a Test
 
-      puts "\033[33mFound Resource\033[0m: #{result.attributes}"
+      puts "\033[33mFound Resource\033[0m: \033[36m#{result.attributes}\033[0m"
       expect(result.attributes).to eq record.attributes
     end
   end
@@ -96,7 +96,7 @@ describe Bodhi::Resource do
       other_records = Test.create_list(context, 5, {Olia: 10})
       results = Test.where(context, "{Olia: 20}")
 
-      puts "\033[33mFound Resources\033[0m: #{results.map(&:attributes)}"
+      puts "\033[33mFound Resources\033[0m: \033[36m#{results.map(&:attributes)}\033[0m"
       expect(results.count).to eq 5
       results.each{ |obj| expect(obj).to be_a Test }
       expect(results.to_json).to eq records.to_json
@@ -122,7 +122,7 @@ describe Bodhi::Resource do
       ]"
       results = Test.aggregate(context, pipeline)
 
-      puts "\033[33mAggregate Result\033[0m: #{results}"
+      puts "\033[33mAggregate Result\033[0m: \033[36m#{results}\033[0m"
       expect(results).to be_a Array
       results.each{ |obj| expect(obj).to be_a Hash }
       expect(results[0]["_id"]).to eq "count_olias_greater_than_20"

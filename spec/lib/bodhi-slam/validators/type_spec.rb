@@ -224,7 +224,7 @@ describe Bodhi::TypeValidator do
 
       it "should validate a single object" do
         enum = Bodhi::Enumeration.new({name: "Currency", values:[{name: "test"}, {name: "foo"}, {name: "bar"}]})
-        puts "Enumeration cache contains: #{Bodhi::Enumeration.cache}"
+        puts "\033[33mEnumeration Cache\033[0m: \033[36m#{Bodhi::Enumeration.cache}\033[0m"
 
         record.foo = "12345"
         validator.validate(record, :foo, record.foo)
@@ -238,7 +238,7 @@ describe Bodhi::TypeValidator do
 
       it "should validate arrays of objects" do
         enum = Bodhi::Enumeration.new({name: "Currency", values:[{name: "test"}, {name: "foo"}, {name: "bar"}]})
-        puts "Enumeration cache contains: #{Bodhi::Enumeration.cache}"
+        puts "\033[33mEnumeration Cache\033[0m: \033[36m#{Bodhi::Enumeration.cache}\033[0m"
 
         record.foo = ["12345", "test"]
         validator.validate(record, :foo, record.foo)

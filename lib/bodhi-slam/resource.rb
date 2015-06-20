@@ -30,7 +30,7 @@ module Bodhi
           request.body = records.to_json
         end
 
-        puts "\033[33mResult Body\033[0m: #{result.body}"
+        puts "\033[33mResult Body\033[0m: \033[36m#{result.body}\033[0m"
 
         if result.status != 200
           errors = JSON.parse result.body
@@ -39,7 +39,7 @@ module Bodhi
           raise errors.to_s
         end
 
-        puts "\033[33mRecords\033[0m: #{records.map(&:attributes)}"
+        puts "\033[33mRecords\033[0m: \033[36m#{records.map(&:attributes)}\033[0m"
 
         records
       end
