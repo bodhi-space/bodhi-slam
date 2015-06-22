@@ -213,11 +213,14 @@ describe Bodhi::Type do
     end
 
     context "with Enumerated properties" do
-      let(:enum){ Bodhi::Enumeration.new({ name: "TestEnum", values: [{name: "foo"}, {name: "bar"}, {name: "test"}, {name: "awesome"}, {name: "!@$*&^%"}] }) }
-      let(:enum2){ Bodhi::Enumeration.new({ name: "TestEnum2", values: [10, 20, 40, 50, 100, 300, 700, 2] }) }
+      before do
+        Bodhi::Enumeration.new({ name: "TestEnum", values: [{name: "foo"}, {name: "bar"}, {name: "test"}, {name: "awesome"}, {name: "!@$*&^%"}] })
+        Bodhi::Enumeration.new({ name: "TestEnum2", values: [10, 20, 40, 50, 100, 300, 700, 2] })
+      end
 
       after do
         Object.send(:remove_const, :TestType2)
+        Bodhi::Enumeration.cache.clear
       end
 
       context "and multi=true" do
@@ -227,13 +230,13 @@ describe Bodhi::Type do
         it "should return 0..5 random Embedded values in an Array" do
           Bodhi::Type.create_class_with(type)
           Bodhi::Type.create_class_with(type2)
-          Bodhi::Type.create_factory_with(type, [enum, enum2])
-          Bodhi::Type.create_factory_with(type2, [enum, enum2])
+          Bodhi::Type.create_factory_with(type)
+          Bodhi::Type.create_factory_with(type2)
 
           obj = FactoryGirl.build(:TestType)
           expect(obj.foo).to be_a Array
           expect(obj.foo.size).to be_between(0,5)
-          values = enum.values.collect{|value| value[:name] }
+          values = Bodhi::Enumeration.cache[:TestEnum].values.collect{|value| value[:name] }
           obj.foo.each do |value|
             expect(values).to include value
           end
@@ -243,7 +246,7 @@ describe Bodhi::Type do
           expect(obj.foo).to be_a Array
           expect(obj.foo.size).to be_between(0,5)
           obj.foo.each do |value|
-            expect(enum2.values).to include value
+            expect(Bodhi::Enumeration.cache[:TestEnum2].values).to include value
           end
           puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
         end
@@ -256,16 +259,16 @@ describe Bodhi::Type do
         it "should return a random Enumerated value" do
           Bodhi::Type.create_class_with(type)
           Bodhi::Type.create_class_with(type2)
-          Bodhi::Type.create_factory_with(type, [enum, enum2])
-          Bodhi::Type.create_factory_with(type2, [enum, enum2])
+          Bodhi::Type.create_factory_with(type)
+          Bodhi::Type.create_factory_with(type2)
 
           obj = FactoryGirl.build(:TestType)
-          values = enum.values.collect{|value| value[:name] }
+          values = Bodhi::Enumeration.cache[:TestEnum].values.collect{|value| value[:name] }
           expect(values).to include obj.foo
           puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
 
           obj = FactoryGirl.build(:TestType2)
-          expect(enum2.values).to include obj.foo
+          expect(Bodhi::Enumeration.cache[:TestEnum2].values).to include obj.foo
           puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
         end
       end

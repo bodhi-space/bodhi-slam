@@ -31,8 +31,8 @@ class BodhiSlam
     embedded_types = all_types.select{ |type| type.embedded }
     normal_types = all_types.select{ |type| !type.embedded }
 
-    embedded_factories = embedded_types.each{ |type| Bodhi::Type.create_factory_with(type, all_enums) }
-    normal_factories = normal_types.each{ |type| Bodhi::Type.create_factory_with(type, all_enums) }
+    embedded_factories = embedded_types.each{ |type| Bodhi::Type.create_factory_with(type) }
+    normal_factories = normal_types.each{ |type| Bodhi::Type.create_factory_with(type) }
     klasses
   end
 end

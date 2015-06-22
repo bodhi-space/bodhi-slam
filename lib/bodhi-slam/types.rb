@@ -83,7 +83,7 @@ module Bodhi
       klass
     end
     
-    def self.create_factory_with(type, enumerations=[])
+    def self.create_factory_with(type)
       unless type.is_a? Bodhi::Type
         raise ArgumentError.new("Expected #{type.class} to be a Bodhi::Type")
       end
@@ -113,19 +113,18 @@ module Bodhi
                 name = reference[0]
                 field = reference[1]
 
-                enum = enumerations.select{ |enumeration| enumeration.name == name }[0]
                 if options[:multi].nil?
                   if field.nil?
-                    send(attribute) { enum.values.sample }
+                    send(attribute) { Bodhi::Enumeration.cache[name.to_sym].values.sample }
                   else
-                    enum.values.map!{ |value| value.symbolize_keys! }
-                    send(attribute) { enum.values.sample[field.to_sym] }
+                    Bodhi::Enumeration.cache[name.to_sym].values.map!{ |value| value.symbolize_keys! }
+                    send(attribute) { Bodhi::Enumeration.cache[name.to_sym].values.sample[field.to_sym] }
                   end
                 else
                   if field.nil?
-                    send(attribute) { [*0..5].sample.times.collect{ enum.values.sample } }
+                    send(attribute) { [*0..5].sample.times.collect{ Bodhi::Enumeration.cache[name.to_sym].values.sample } }
                   else
-                    send(attribute) { [*0..5].sample.times.collect{ enum.values.sample[field.to_sym] } }
+                    send(attribute) { [*0..5].sample.times.collect{ Bodhi::Enumeration.cache[name.to_sym].values.sample[field.to_sym] } }
                   end
                 end
 
