@@ -155,12 +155,14 @@ describe Bodhi::Resource do
       records = TestResource.build_list(context, 10)
       expect(records.count).to eq 10
       records.each{ |item| expect(item).to be_a TestResource }
+      puts "\033[33mGenerated\033[0m: \033[36m#{records.map(&:attributes).to_s}\033[0m"
     end
 
     it "should override attributes for each resource from the supplied params hash" do
       records = TestResource.build_list(context, 10, { foo: "12345" })
       expect(records.count).to eq 10
       records.each{ |item| expect(item.foo).to eq "12345" }
+      puts "\033[33mGenerated\033[0m: \033[36m#{records.map(&:attributes).to_s}\033[0m"
     end
   end
 
@@ -170,9 +172,9 @@ describe Bodhi::Resource do
     end
 
     it "should override any attributes with the supplied params hash" do
-      record = Test.create(context, {Brandon: false})
-      expect(record.Brandon).to eq false
-      expect(record.Olia).to eq 1
+      record = Test.create(context, {Olia: 100})
+      expect(record.Brandon).to eq true
+      expect(record.Olia).to eq 100
       expect(record.Alisa).to eq "test"
     end
 
@@ -186,17 +188,19 @@ describe Bodhi::Resource do
       records = Test.create_list(context, 10)
       expect(records.count).to eq 10
       records.each{ |item| expect(item).to be_a Test }
+      puts "\033[33mCreated\033[0m: \033[36m#{records.map(&:attributes).to_s}\033[0m"
     end
 
     it "should override attributes for each resource from the supplied params hash" do
-      records = Test.create_list(context, 10, {Brandon: false})
+      records = Test.create_list(context, 10, {Olia: 100})
       expect(records.count).to eq 10
       records.each do |item|
         expect(item).to be_a Test
-        expect(item.Brandon).to eq false
-        expect(item.Olia).to eq 1
+        expect(item.Brandon).to eq true
+        expect(item.Olia).to eq 100
         expect(item.Alisa).to eq "test"
       end
+      puts "\033[33mCreated\033[0m: \033[36m#{records.map(&:attributes).to_s}\033[0m"
     end
 
     it "raise RuntimeError if any resource could not be created" do
