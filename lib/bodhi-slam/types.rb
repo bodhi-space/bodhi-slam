@@ -32,7 +32,7 @@ module Bodhi
           @validations[attr_name.to_sym] = []
           attr_properties.each_pair do |option, value|
             underscored_name = option.to_s.gsub(/::/, '/').gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').gsub(/([a-z\d])([A-Z])/,'\1_\2').tr("-", "_").downcase.to_sym
-            unless [:system, :trim, :ref, :unique, :default, :is_current_user].include? underscored_name
+            unless [:system, :trim, :ref, :unique, :default, :is_current_user, :to_lower].include? underscored_name
               klass = Bodhi::Validator.constantize(underscored_name)
               if option.to_s == "type" && value == "Enumerated"
                 if attr_properties["ref"].nil?
@@ -47,25 +47,33 @@ module Bodhi
         end
       end
     end
-    
+
     def self.find_all(context)
       raise context.errors unless context.valid?
-      
-      result = context.connection.get do |request|
-        request.url "/#{context.namespace}/types"
-        request.headers[context.credentials_header] = context.credentials
-      end
-    
-      if result.status != 200
-        errors = JSON.parse result.body
-        errors.each{|error| error['status'] = result.status } if errors.is_a? Array
-        errors["status"] = result.status if errors.is_a? Hash
-        raise errors.to_s
-      end
-    
-      JSON.parse(result.body).collect{ |type| Bodhi::Type.new(type) }
+      page = 1
+      all_records = []
+
+      begin
+        result = context.connection.get do |request|
+          request.url "/#{context.namespace}/types?paging=page:#{page}"
+          request.headers[context.credentials_header] = context.credentials
+        end
+
+        if result.status != 200
+          errors = JSON.parse result.body
+          errors.each{|error| error['status'] = result.status } if errors.is_a? Array
+          errors["status"] = result.status if errors.is_a? Hash
+          raise errors.to_s
+        end
+
+        page += 1
+        records = JSON.parse(result.body)
+        all_records << records
+      end while records.size == 100
+
+      all_records.flatten.collect{ |type| Bodhi::Type.new(type) }
     end
-    
+
     def self.create_class_with(type)
       unless type.is_a? Bodhi::Type
         raise ArgumentError.new("Expected #{type.class} to be a Bodhi::Type")
