@@ -1,6 +1,5 @@
 require "faraday"
 require 'net/http/persistent'
-require "factory_girl"
 require "json"
 require "time"
 
@@ -10,6 +9,7 @@ require 'bodhi-slam/resource'
 require 'bodhi-slam/types'
 require 'bodhi-slam/validations'
 require 'bodhi-slam/enumerations'
+require 'bodhi-slam/factory'
 
 class BodhiSlam
   def self.context(params, &block)
@@ -23,16 +23,9 @@ class BodhiSlam
   
   def self.analyze(context)
     raise context.errors unless context.valid?
-    
+
     all_types = Bodhi::Type.find_all(context)
     all_enums = Bodhi::Enumeration.find_all(context)
-    klasses = all_types.collect{ |type| Bodhi::Type.create_class_with(type) }
-
-    embedded_types = all_types.select{ |type| type.embedded }
-    normal_types = all_types.select{ |type| !type.embedded }
-
-    embedded_factories = embedded_types.each{ |type| Bodhi::Type.create_factory_with(type) }
-    normal_factories = normal_types.each{ |type| Bodhi::Type.create_factory_with(type) }
-    klasses
+    all_types.collect{ |type| Bodhi::Type.create_class_with(type) }
   end
 end

@@ -19,7 +19,7 @@ module Bodhi
 
       end
     end
-    
+
     def to_options
       {self.to_sym => @value}
     end

@@ -10,8 +10,6 @@ module Bodhi
       validates :namespace, required: true, is_not_blank: true
     
     def initialize(params)
-      params.symbolize_keys!
-    
       @connection = Faraday.new(url: params[:server]) do |faraday|
         faraday.request  :url_encoded             # form-encode POST params
         #faraday.response :logger                  # log requests to STDOUT

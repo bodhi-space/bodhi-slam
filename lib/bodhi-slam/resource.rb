@@ -1,48 +1,11 @@
 module Bodhi
   module Resource
     SYSTEM_ATTRIBUTES = [:bodhi_context, :sys_created_at, :sys_version, :sys_modified_at, :sys_modified_by,
-      :sys_namespace, :sys_created_by, :sys_type_version, :sys_id]
+      :sys_namespace, :sys_created_by, :sys_type_version, :sys_id, :sys_embeddedType]
     attr_accessor *SYSTEM_ATTRIBUTES
 
     module ClassMethods
-      def build(context, params={})
-        params.merge!({bodhi_context: context})
-        FactoryGirl.build(name, params)
-      end
-
-      def build_list(context, amount, params={})
-        params.merge!({bodhi_context: context})
-        FactoryGirl.build_list(name, amount, params)
-      end
-
-      def create(context, params={})
-        params.merge!({bodhi_context: context})
-        FactoryGirl.create(name, params)
-      end
-
-      def create_list(context, amount, params={})
-        params.merge!({bodhi_context: context})
-        records = FactoryGirl.build_list(name, amount, params)
-        result = context.connection.post do |request|
-          request.url "/#{context.namespace}/resources/#{name}"
-          request.headers['Content-Type'] = 'application/json'
-          request.headers[context.credentials_header] = context.credentials
-          request.body = records.to_json
-        end
-
-        #puts "\033[33mResult Body\033[0m: \033[36m#{result.body}\033[0m"
-
-        if result.status != 200
-          errors = JSON.parse result.body
-          errors.each{|error| error['status'] = result.status } if errors.is_a? Array
-          errors["status"] = result.status if errors.is_a? Hash
-          raise errors.to_s
-        end
-
-        #puts "\033[33mRecords\033[0m: \033[36m#{records.map(&:attributes)}\033[0m"
-
-        records
-      end
+      def factory; @factory; end
 
       def find(context, id)
         raise context.errors unless context.valid?
@@ -64,7 +27,7 @@ module Bodhi
         end
 
         resource_attributes = JSON.parse(result.body)
-        self.build(context, resource_attributes)
+        factory.build(context, resource_attributes)
       end
 
       def aggregate(context, pipeline)
@@ -109,7 +72,7 @@ module Bodhi
         end
 
         resources = JSON.parse(result.body)
-        resources.map{ |attributes| self.build(context, attributes) }
+        resources.map{ |attributes| factory.build(context, attributes) }
       end
 
       def delete_all(context)
@@ -207,6 +170,7 @@ module Bodhi
     def self.included(base)
       base.extend(ClassMethods)
       base.include(InstanceMethods, Bodhi::Validations)
+      base.instance_variable_set(:@factory, Bodhi::Factory.new(base))
     end
   end
 end
