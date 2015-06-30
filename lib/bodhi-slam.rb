@@ -2,6 +2,7 @@ require "faraday"
 require 'net/http/persistent'
 require "json"
 require "time"
+require "SecureRandom"
 
 require 'bodhi-slam/context'
 require 'bodhi-slam/errors'
