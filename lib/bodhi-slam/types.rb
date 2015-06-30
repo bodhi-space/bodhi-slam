@@ -25,6 +25,10 @@ module Bodhi
         send("#{attribute}=", params[attribute])
       end
 
+      if !name.nil? && name[0] == name[0].downcase
+        name.capitalize!
+      end
+
       # build validator objects
       @validations = {}
       if properties
