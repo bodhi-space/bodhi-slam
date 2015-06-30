@@ -2,8 +2,7 @@ Gem::Specification.new do |s|
   s.name        = 'bodhi-slam'
   s.version     = '0.2.0'
   s.date        = '2015-06-29'
-  s.summary     = "Ruby bindings for the Bodhi API"
-  s.description = "BodhiSlam is an ORM for the Bodhi API and helps with randomly generating."
+  s.summary     = "Ruby bindings for the Bodhi API + factories for random data generation"
   s.authors     = ["willdavis"]
   s.email       = 'will.davis@hotschedules.com'
   s.files       = Dir['lib/**/*']
