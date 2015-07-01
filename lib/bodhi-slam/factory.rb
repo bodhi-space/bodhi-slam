@@ -132,20 +132,24 @@ module Bodhi
       when "Enumerated"
         generator = lambda do
           ref = options[:ref].split('.')
-          name = ref[0]
+          enum_name = ref[0]
           field = ref[1]
+
+          if Bodhi::Enumeration.cache[enum_name.to_sym].nil?
+            raise RuntimeError.new("Cannot add generator for attribute: #{name}.  #{enum_name} enumeration not found")
+          end
 
           if options[:multi]
             if field.nil?
-              [*0..5].sample.times.collect{ Bodhi::Enumeration.cache[name.to_sym].values.sample }
+              [*0..5].sample.times.collect{ Bodhi::Enumeration.cache[enum_name.to_sym].values.sample }
             else
-              [*0..5].sample.times.collect{ Bodhi::Enumeration.cache[name.to_sym].values.sample[field.to_sym] }
+              [*0..5].sample.times.collect{ Bodhi::Enumeration.cache[enum_name.to_sym].values.sample[field.to_sym] }
             end
           else
             if field.nil?
-              Bodhi::Enumeration.cache[name.to_sym].values.sample
+              Bodhi::Enumeration.cache[enum_name.to_sym].values.sample
             else
-              Bodhi::Enumeration.cache[name.to_sym].values.sample[field.to_sym]
+              Bodhi::Enumeration.cache[enum_name.to_sym].values.sample[field.to_sym]
             end
           end
         end

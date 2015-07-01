@@ -25,8 +25,8 @@ class BodhiSlam
   def self.analyze(context)
     raise context.errors unless context.valid?
 
-    all_types = Bodhi::Type.find_all(context)
     all_enums = Bodhi::Enumeration.find_all(context)
+    all_types = Bodhi::Type.find_all(context)
     all_types.collect{ |type| Bodhi::Type.create_class_with(type) }
   end
 end
