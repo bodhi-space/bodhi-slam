@@ -19,7 +19,7 @@ module Bodhi
 
       object = klass.new
       @generators.each_pair do |attribute, generator|
-        if params[attribute]
+        if params.has_key?(attribute)
           object.send("#{attribute}=", params[attribute])
         else
           object.send("#{attribute}=", generator.call)
