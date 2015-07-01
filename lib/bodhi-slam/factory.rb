@@ -78,9 +78,9 @@ module Bodhi
 
         generator = lambda do
           if options[:multi]
-            [*0..5].sample.times.collect{ [*0..50].sample.times.map{ characters[rand(characters.length)] }.join }
+            [*0..5].sample.times.collect{ [*0..100].sample.times.map{ characters[rand(characters.length)] }.join }
           else
-            [*0..50].sample.times.map{ characters[rand(characters.length)] }.join
+            [*0..100].sample.times.map{ characters[rand(characters.length)] }.join
           end
         end
 
