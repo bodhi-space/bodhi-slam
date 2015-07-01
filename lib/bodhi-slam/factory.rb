@@ -102,10 +102,13 @@ module Bodhi
         end
 
       when "Real"
+        options[:min].nil? ? min = -1483647.0 : min = options[:min]
+        options[:max].nil? ? max = 1483647.0 : max = options[:max]
+
         if options[:multi]
-          generator = lambda { [*0..5].sample.times.collect{ SecureRandom.random_number*[-1,1,1,1].sample*[10,100,1000,10000].sample } }
+          generator = lambda { [*0..5].sample.times.collect{ rand(min..max) } }
         else
-          generator = lambda { SecureRandom.random_number*[-1,1,1,1].sample*[10,100,1000,10000].sample }
+          generator = lambda { rand(min..max) }
         end
 
       when "Boolean"
