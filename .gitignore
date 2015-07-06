@@ -41,3 +41,7 @@ coverage
 
 #Exclude .env file from dotenv gem
 .env
+
+#Exclude RVM dotfiles
+.ruby-version
+.ruby-gemset

@@ -30,6 +30,31 @@ module Bodhi
         factory.build(context, resource_attributes)
       end
 
+      def find_all(context)
+        raise context.errors unless context.valid?
+        page = 1
+        records = []
+
+        begin
+          result = context.connection.get do |request|
+            request.url "/#{context.namespace}/resources/#{name}?paging=page:#{page}"
+            request.headers[context.credentials_header] = context.credentials
+          end
+
+          if result.status != 200
+            errors = JSON.parse result.body
+            errors.each{|error| error['status'] = result.status } if errors.is_a? Array
+            errors["status"] = result.status if errors.is_a? Hash
+            raise errors.to_s
+          end
+
+          page += 1
+          records << JSON.parse(result.body)
+        end while records.size == 100
+
+        records.flatten.collect{ |record| factory.build(record) }
+      end
+
       def aggregate(context, pipeline)
         raise context.errors unless context.valid?
 
