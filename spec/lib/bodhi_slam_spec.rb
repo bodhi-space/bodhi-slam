@@ -39,14 +39,12 @@ describe BodhiSlam do
         expect(result_type_names).to match_array(@type_names)
 
         result.each do |type|
-          unless ["Organization", "SaleTotal", "StoreSchedule", "BodhiType"].include? type.name
-            puts "\033[32m--------------------------------------------------------\033[0m"
-            puts "\033[33mBuilding\033[0m: \033[36m#{type}\033[0m"
-            test = type.factory.build
-            puts "\033[33mAttributes\033[0m: #{test.to_json}"
-            unless test.valid?
-              puts "\033[31mErrors Detected\033[0m: #{test.errors.messages}"
-            end
+          puts "\033[32m--------------------------------------------------------\033[0m"
+          puts "\033[33mBuilding\033[0m: \033[36m#{type}\033[0m"
+          test = type.factory.build
+          puts "\033[33mAttributes\033[0m: #{test.to_json}"
+          unless test.valid?
+            puts "\033[31mErrors Detected\033[0m: #{test.errors.messages}"
           end
         end
       end

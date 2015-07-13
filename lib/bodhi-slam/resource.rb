@@ -7,6 +7,28 @@ module Bodhi
     module ClassMethods
       def factory; @factory; end
 
+      def save_batch(context, objects)
+        if context.invalid?
+          raise context.errors
+        end
+
+        result = context.connection.post do |request|
+          request.url "/#{context.namespace}/resources/#{name}"
+          request.headers['Content-Type'] = 'application/json'
+          request.headers[context.credentials_header] = context.credentials
+          request.body = objects.to_json
+        end
+
+        if result.status != 200
+          errors = JSON.parse result.body
+          errors.each{|error| error['status'] = result.status } if errors.is_a? Array
+          errors["status"] = result.status if errors.is_a? Hash
+          raise errors.to_s
+        end
+
+        objects
+      end
+
       def find(context, id)
         raise context.errors unless context.valid?
 

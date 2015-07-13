@@ -25,6 +25,8 @@ module Bodhi
         case @type
         when "GeoJSON"
           klass = Hash
+        when "Link"
+          klass = Hash
         when "DateTime"
           single_comparator = lambda do |item|
             begin

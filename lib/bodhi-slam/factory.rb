@@ -132,6 +132,13 @@ module Bodhi
           generator = lambda { {SecureRandom.hex => SecureRandom.hex} }
         end
 
+      when "Link"
+        if options[:multi]
+          generator = lambda { [*0..5].sample.times.collect{ Hash.new } }
+        else
+          generator = lambda { Hash.new }
+        end
+
       when "Enumerated"
         generator = lambda do
           ref = options[:ref].split('.')
