@@ -1,8 +1,8 @@
 Gem::Specification.new do |s|
   s.name        = 'bodhi-slam'
-  s.version     = '0.2.4'
-  s.date        = '2015-04-09'
-  s.summary     = "Ruby bindings for the Bodhi API + factories for random data generation"
+  s.version     = '0.2.5'
+  s.date        = '2015-07-17'
+  s.summary     = "Ruby bindings for the Bodhi API & factories for random data generation"
   s.authors     = ["willdavis"]
   s.email       = 'will.davis@hotschedules.com'
   s.files       = Dir['lib/**/*']

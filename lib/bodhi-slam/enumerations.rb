@@ -23,7 +23,11 @@ module Bodhi
         end
       end
     end
-    
+
+    # Gets all Bodhi::Enumerations from a given +context+
+    # and adds them to the Bodhi::Enumeration cache
+    #
+    #   Bodhi::Enumeration.find_all(context) # => [#<Bodhi::Enumeration:0x007fbff403e808>, #<Bodhi::Enumeration:0x007fbff403e808>, ...]
     def self.find_all(context)
       raise context.errors unless context.valid?
       
@@ -42,6 +46,9 @@ module Bodhi
       JSON.parse(result.body).collect{ |enum| Bodhi::Enumeration.new(enum) }
     end
 
+    # Returns a Hash of all Bodhi::Enumerations in the cache
+    # 
+    #   Bodhi::Enumerations.cache # => [#<Bodhi::Enumeration:0x007fbff403e808>, #<Bodhi::Enumeration:0x007fbff403e808>, ...]
     def self.cache
       @cache ||= Hash.new
     end

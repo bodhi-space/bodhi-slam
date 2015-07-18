@@ -9,22 +9,27 @@ module Bodhi
     
     # Adds the given +message+ to the errors hash under the +name+ key
     #
-    # user.errors.add(:test, "has bad value")
-    # user.errors.any?  # => true
+    #   user.errors.add(:test, "has bad value")
+    #   user.errors.any?  # => true
     def add(name, message)
       @messages.has_key?(name) ? @messages[name].push(message) : @messages[name] = [message]
     end
     
-    # Clears all error messages
+    # Clears all current error messages
     #
-    # user.errors.add(:name, "is wrong")
-    # user.errors.clear # => nil
-    # user.errors.any?  # => false
+    #   user.errors.add(:name, "is wrong")
+    #   user.errors.any?  # => true
+    #   user.errors.clear # => nil
+    #   user.errors.any?  # => false
     def clear
       @messages.clear
     end
     
     # Returns an array of all error messages
+    # 
+    #   user.errors.add(:name, "is wrong")
+    #   user.errors.add(:address, "is not valid")
+    #   user.errors.full_messages # => ["name is wrong", "address is not valid"]
     def full_messages
       results = []
       @messages.each{ |key, values| values.each{ |value| results.push("#{key} #{value}") }}
@@ -41,16 +46,16 @@ module Bodhi
     # Yields the attribute and the error for that attribute. If the attribute
     # has more than one error message, yields once for each error message.
     # 
-    # user.errors.add(:test, "is required")
-    # user.errors.each do |attribute, error|
-    #   # yields :test and "is required"
-    # end
+    #   user.errors.add(:test, "is required")
+    #   user.errors.each do |attribute, error|
+    #     # yields :test and "is required"
+    #   end
     # 
-    # user.errors.add(:foo, "is awesome!")
-    # user.errors.each do |attribute, error|
-    #   # yields :test and "is required"
-    #   # then yields :foo and "is awesome!"
-    # end
+    #   user.errors.add(:foo, "is awesome!")
+    #   user.errors.each do |attribute, error|
+    #     # yields :test and "is required"
+    #     # then yields :foo and "is awesome!"
+    #   end
     def each
       @messages.each_key do |attribute|
         @messages[attribute].each{ |error| yield attribute, error }
@@ -82,6 +87,7 @@ module Bodhi
     #
     #   user.errors.add(:name, "is required")
     #   user.errors.size # => 1
+    #   
     #   user.errors.add(:name, "can not be blank")
     #   user.errors.size # => 2
     def size
@@ -91,8 +97,8 @@ module Bodhi
     
     # Returns +true+ if no errors are present, +false+ otherwise.
     #
-    # user.errors.add(:name, "test error")
-    # user.errors.empty?  # => false
+    #   user.errors.add(:name, "test error")
+    #   user.errors.empty?  # => false
     def empty?
       size == 0
     end

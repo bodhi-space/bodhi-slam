@@ -7,12 +7,14 @@ module Bodhi
       raise NotImplementedError, "Subclasses must implement a validate(record, attribute, value) method."
     end
     
-    # Calls +underscore+ on the validation and returns it's class name as a symbol.
-    # Namespaces and the trailing "_validation" text will be trimmed
+    # Calls +underscore+ on the validator and returns it's class name as a symbol.
+    # Namespaces and the trailing "_validator" text will be trimmed
     # 
-    # BaseValidation.to_sym # => :base
-    # StringValidation.to_sym # => :string
-    # NotBlankValidation.to_sym # => :not_blank
+    #   type = Bodhi::TypeValidator.new("String")
+    #   is_not_blank = Bodhi::IsNotBlankValidator.new(true)
+    #
+    #   type.to_sym # => :type
+    #   is_not_blank.to_sym # => :is_not_blank
     def to_sym
       underscore.
       gsub("bodhi/", "").
@@ -22,9 +24,11 @@ module Bodhi
     
     # Returns the validation's class name in snake_case.
     #
-    # BaseValidation.underscore # => "bodhi/base_validation"
-    # StringValidation.underscore # => "bodhi/string_validation"
-    # NotBlankValidation.underscore # => "bodhi/not_blank_validation"
+    #   type = Bodhi::TypeValidator.new("String")
+    #   is_not_blank = Bodhi::IsNotBlankValidator.new(true)
+    #
+    #   type.underscore # => "bodhi/type_validator"
+    #   is_not_blank.underscore # => "bodhi/is_not_blank_validator"
     def underscore
       self.class.name.gsub(/::/, '/').
       gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
@@ -36,9 +40,11 @@ module Bodhi
     # Returns the validation as an options Hash.
     # The options hash is suitable to be used in the Bodhi::Validations.valdiates method
     #
-    # StringValidation.to_options # => { string: true }
-    # EmbeddedValidation.to_options # => { embedded: "ClassName" }
-    # EnumeratedValidation.to_options # => { enumerated: "Country.name" }
+    #   type = Bodhi::TypeValidator.new("String")
+    #   is_not_blank = Bodhi::IsNotBlankValidator.new(true)
+    #
+    #   type_validation.to_options # => { type: "String" }
+    #   is_not_blank_validation.to_options # => { is_not_blank: true }
     def to_options
       raise NotImplementedError, "Subclasses must implement a to_options method."
     end
@@ -46,12 +52,11 @@ module Bodhi
     # Returns the validator class with the given +name+
     # Raises NameError if no validator class is found
     # 
-    # Bodhi::Validator.constantize("type") # => Bodhi::TypeValidator
-    # Bodhi::Validator.constantize("multi") # => Bodhi::MutliValidator
-    # Bodhi::Validator.constantize("required") # => Bodhi::RequriedValidator
+    #   Bodhi::Validator.constantize("type") # => #<Bodhi::TypeValidator:0x007fbff403e808>
+    #   Bodhi::Validator.constantize("is_not_blank") # => #<Bodhi::IsNotBlankValidator:0x007fbff403e808>
     def self.constantize(name)
       camelized_name = name.to_s.split('_').collect(&:capitalize).join
-      full_name = "Bodhi::#{camelized_name}Validator"      
+      full_name = "Bodhi::#{camelized_name}Validator"
       Object.const_get(full_name)
     end
   end

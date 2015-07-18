@@ -12,16 +12,15 @@ module Bodhi
       #     validates :tags, requried: true, multi: true
       #     validates :name, required: true
       #
-      #   User.validations
-      #   # => {
-      #   #      tags: [
-      #   #        #<RequiredValidator:0x007fbff403e808 @options={}>,
-      #   #        #<MultiValidator:0x007fbff403e808 @options={}>
-      #   #      ],
-      #   #      name: [
-      #   #        #<RequiredValidator:0x007fbff403e808 @options={}>
-      #   #      ]
-      #   #    }
+      #   User.validations # => {
+      #     tags: [
+      #       #<RequiredValidator:0x007fbff403e808 @options={}>,
+      #       #<MultiValidator:0x007fbff403e808 @options={}>
+      #     ],
+      #     name: [
+      #       #<RequiredValidator:0x007fbff403e808 @options={}>
+      #     ]
+      #   }
       def validators; @validators; end
       
       # Creates a new validation on the given +attribute+ using the supplied +options+

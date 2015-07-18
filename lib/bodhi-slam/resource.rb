@@ -7,6 +7,12 @@ module Bodhi
     module ClassMethods
       def factory; @factory; end
 
+      # Saves a batch of resources to the Bodhi Cloud in the given +context+
+      # Returns an array of JSON objects describing the results for each record in the batch
+      # 
+      #   context = Bodhi::Context.new
+      #   list = Resource.factory.build_list(10)
+      #   Resource.save_batch(context, list)
       def save_batch(context, objects)
         if context.invalid?
           raise context.errors
@@ -29,6 +35,11 @@ module Bodhi
         objects
       end
 
+      # Returns a single resource from the Bodhi Cloud that matches the given +id+
+      # 
+      #   context = Bodhi::Context.new
+      #   id = Resource.factory.create(context).sys_id
+      #   obj = Resource.find(context, id)
       def find(context, id)
         raise context.errors unless context.valid?
 
@@ -52,6 +63,10 @@ module Bodhi
         factory.build(context, resource_attributes)
       end
 
+      # Returns all records of the given resource from the Bodhi Cloud.
+      # 
+      #   context = Bodhi::Context.new
+      #   Resource.find_all(context) # => [#<Resource:0x007fbff403e808>, #<Resource:0x007fbff403e808>, ...]
       def find_all(context)
         raise context.errors unless context.valid?
         page = 1
@@ -77,6 +92,10 @@ module Bodhi
         records.flatten.collect{ |record| factory.build(record) }
       end
 
+      # Aggregates the given resource based on the supplied +pipeline+
+      # 
+      #   context = Bodhi::Context.new
+      #   Resource.aggregate(context, "[{ $match: { property: { $gte: 20 }}}]")
       def aggregate(context, pipeline)
         raise context.errors unless context.valid?
 
@@ -99,6 +118,10 @@ module Bodhi
         JSON.parse(result.body)
       end
 
+      # Returns all records for a resource which match the given +query+
+      # 
+      #   context = Bodhi::Context.new
+      #   Resource.where(context, "{property: 'value'}")
       def where(context, query)
         raise context.errors unless context.valid?
 
@@ -122,6 +145,10 @@ module Bodhi
         resources.map{ |attributes| factory.build(context, attributes) }
       end
 
+      # Deletes all records from a resource in the given +context+
+      # 
+      #   context = Bodhi::Context.new
+      #   Resource.delete_all(context)
       def delete_all(context)
         raise context.errors unless context.valid?
 
@@ -142,8 +169,8 @@ module Bodhi
     module InstanceMethods
       # Returns a Hash of the Objects form attributes
       # 
-      # s = SomeResource.build({foo:"test", bar:12345})
-      # s.attributes # => { foo: "test", bar: 12345 }
+      #   s = SomeResource.build({foo:"test", bar:12345})
+      #   s.attributes # => { foo: "test", bar: 12345 }
       def attributes
         attributes = Hash.new
         self.instance_variables.each do |variable|
@@ -154,15 +181,20 @@ module Bodhi
       end
   
       # Returns all the Objects attributes as JSON.
-      # Will convert any nested Objects to JSON if they respond to :to_json
+      # It converts any nested Objects to JSON if they respond to +to_json+
       # 
-      # s = SomeResource.build({foo:"test", bar:12345})
-      # s.to_json # => { "foo":"test", "bar":12345 }
+      #   s = SomeResource.build({foo:"test", bar:12345})
+      #   s.to_json # => { "foo":"test", "bar":12345 }
       def to_json(base=nil)
         super if base
         attributes.to_json
       end
 
+      # Saves the resource to the Bodhi Cloud.  Raises ArgumentError if record could not be saved.
+      # 
+      #   obj = Resouce.new
+      #   obj.save!
+      #   obj.persisted? # => true
       def save!
         result = bodhi_context.connection.post do |request|
           request.url "/#{bodhi_context.namespace}/resources/#{self.class}"

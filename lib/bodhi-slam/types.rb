@@ -52,6 +52,12 @@ module Bodhi
       end
     end
 
+    # Queries the Bodhi API for all types within the given +context+
+    # Returns an array of Bodhi::Type objects
+    # 
+    #   context = BodhiContext.new(valid_params)
+    #   types = Bodhi::Type.find_all(context)
+    #   types # => [#<Bodhi::Type:0x007fbff403e808 @name="MyType">, #<Bodhi::Type:0x007fbff403e808 @name="MyType2">, ...]
     def self.find_all(context)
       raise context.errors unless context.valid?
       page = 1
@@ -78,6 +84,16 @@ module Bodhi
       all_records.flatten.collect{ |type| Bodhi::Type.new(type) }
     end
 
+    # Dynamically defines a new Ruby class for the given +type+
+    # Class validations, factory, and helper methods will also be added
+    # 
+    #   type = Bodhi::Type.new({name: "TestType", properties: { foo:{ type:"String" }}})
+    #   klass = Bodhi::Type.create_class_with(type)
+    #   klass # => #<Class:0x007fbff403e808 @name="TestType">
+    #
+    #   # Additional class methods
+    #   klass.validations # => { foo: [#<TypeValidator:0x007fbff403e808 @type="String">] }
+    #   klass.factory # => #<Bodhi::Factory:0x007fbff403e808 @klass="TestType", @generators=[]>
     def self.create_class_with(type)
       unless type.is_a? Bodhi::Type
         raise ArgumentError.new("Expected #{type.class} to be a Bodhi::Type")

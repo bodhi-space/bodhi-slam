@@ -8,6 +8,11 @@ module Bodhi
       @generators = Hash.new
     end
 
+    # Returns a new randomly generated resource.
+    # Accepts an options hash to override specified values.
+    # 
+    #   Resource.factory.build # => #<Resource:0x007fbff403e808 @name="2-3lmwp^oef@245">
+    #   Resource.factory.build(name: "test") # => #<Resource:0x007fbff403e808 @name="test">
     def build(*args)
       if args.last.is_a?(Hash)
         params = args.last.reduce({}) do |memo, (k, v)| 
@@ -28,10 +33,20 @@ module Bodhi
       object
     end
 
+    # Returns an array of randomly generated resources
+    # 
+    #   Resource.factory.build_list(10) # => [#<Resource:0x007fbff403e808 @name="2-3lmwp^oef@245">, #<Resource:0x007fbff403e808 @name="p7:n#$903<u1">, ...]
+    #   Resource.factory.build_list(10, name: "test") # => [#<Resource:0x007fbff403e808 @name="test">, #<Resource:0x007fbff403e808 @name="test">, ...]
     def build_list(size, *args)
       size.times.collect{ build(*args) }
     end
 
+    # Builds and saves a new resource to the given +context+
+    # Accepts an options hash to override specified values.
+    # 
+    #   context = Bodhi::Context.new
+    #   Resource.factory.create(context) # => #<Resource:0x007fbff403e808 @name="2-3lmwp^oef@245">
+    #   Resource.factory.create(context, name: "test") # => #<Resource:0x007fbff403e808 @name="test">
     def create(context, params={})
       if context.invalid?
         raise context.errors
@@ -43,6 +58,11 @@ module Bodhi
       object
     end
 
+    # Builds and saves a list of resources to the given +context+
+    # Accepts an options hash to override specified values.
+    # 
+    #   Resource.factory.create_list(10, context) # => [#<Resource:0x007fbff403e808 @name="2-3lmwp^oef@245">, #<Resource:0x007fbff403e808 @name="p7:n#$903<u1">, ...]
+    #   Resource.factory.create_list(10, context, name: "test") # => [#<Resource:0x007fbff403e808 @name="test">, #<Resource:0x007fbff403e808 @name="test">, ...]
     def create_list(size, context, params={})
       if context.invalid?
         raise context.errors
@@ -70,6 +90,10 @@ module Bodhi
       resources
     end
 
+    # Adds a new generator to the class with the specified +name+ and +options+
+    # 
+    #   Resource.factory.add_generator("name", type: "String")
+    #   Resource.factory.add_generator("test", type: "Integer", multi: true, required: true)
     def add_generator(name, options)
       case options[:type]
       when "String"
