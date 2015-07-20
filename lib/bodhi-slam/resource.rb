@@ -15,7 +15,7 @@ module Bodhi
       #   Resource.save_batch(context, list)
       def save_batch(context, objects)
         if context.invalid?
-          raise context.errors
+          raise context.errors, context.errors.to_a.to_s
         end
 
         result = context.connection.post do |request|
@@ -26,10 +26,7 @@ module Bodhi
         end
 
         if result.status != 200
-          errors = JSON.parse result.body
-          errors.each{|error| error['status'] = result.status } if errors.is_a? Array
-          errors["status"] = result.status if errors.is_a? Hash
-          raise errors.to_s
+          raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
         end
 
         objects
@@ -41,7 +38,9 @@ module Bodhi
       #   id = Resource.factory.create(context).sys_id
       #   obj = Resource.find(context, id)
       def find(context, id)
-        raise context.errors unless context.valid?
+        if context.invalid?
+          raise context.errors, context.errors.to_a.to_s
+        end
 
         unless id.is_a? String
           raise ArgumentError.new("Expected 'id' to be a String. 'id' #=> #{id.class}")
@@ -53,10 +52,7 @@ module Bodhi
         end
 
         if result.status != 200
-          errors = JSON.parse result.body
-          errors.each{|error| error['status'] = result.status } if errors.is_a? Array
-          errors["status"] = result.status if errors.is_a? Hash
-          raise errors.to_s
+          raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
         end
 
         resource_attributes = JSON.parse(result.body)
@@ -68,7 +64,10 @@ module Bodhi
       #   context = Bodhi::Context.new
       #   Resource.find_all(context) # => [#<Resource:0x007fbff403e808>, #<Resource:0x007fbff403e808>, ...]
       def find_all(context)
-        raise context.errors unless context.valid?
+        if context.invalid?
+          raise context.errors, context.errors.to_a.to_s
+        end
+
         page = 1
         records = []
 
@@ -79,10 +78,7 @@ module Bodhi
           end
 
           if result.status != 200
-            errors = JSON.parse result.body
-            errors.each{|error| error['status'] = result.status } if errors.is_a? Array
-            errors["status"] = result.status if errors.is_a? Hash
-            raise errors.to_s
+            raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
           end
 
           page += 1
@@ -97,7 +93,9 @@ module Bodhi
       #   context = Bodhi::Context.new
       #   Resource.aggregate(context, "[{ $match: { property: { $gte: 20 }}}]")
       def aggregate(context, pipeline)
-        raise context.errors unless context.valid?
+        if context.invalid?
+          raise context.errors, context.errors.to_a.to_s
+        end
 
         unless pipeline.is_a? String
           raise ArgumentError.new("Expected 'pipeline' to be a String. 'pipeline' #=> #{pipeline.class}")
@@ -109,10 +107,7 @@ module Bodhi
         end
 
         if result.status != 200
-          errors = JSON.parse result.body
-          errors.each{|error| error['status'] = result.status } if errors.is_a? Array
-          errors["status"] = result.status if errors.is_a? Hash
-          raise errors.to_s
+          raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
         end
 
         JSON.parse(result.body)
@@ -123,7 +118,9 @@ module Bodhi
       #   context = Bodhi::Context.new
       #   Resource.where(context, "{property: 'value'}")
       def where(context, query)
-        raise context.errors unless context.valid?
+        if context.invalid?
+          raise context.errors, context.errors.to_a.to_s
+        end
 
         unless query.is_a? String
           raise ArgumentError.new("Expected 'query' to be a String. 'query' #=> #{query.class}")
@@ -135,10 +132,7 @@ module Bodhi
         end
 
         if result.status != 200
-          errors = JSON.parse result.body
-          errors.each{|error| error['status'] = result.status } if errors.is_a? Array
-          errors["status"] = result.status if errors.is_a? Hash
-          raise errors.to_s
+          raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
         end
 
         resources = JSON.parse(result.body)
@@ -150,7 +144,9 @@ module Bodhi
       #   context = Bodhi::Context.new
       #   Resource.delete_all(context)
       def delete_all(context)
-        raise context.errors unless context.valid?
+        if context.invalid?
+          raise context.errors, context.errors.to_a.to_s
+        end
 
         result = context.connection.delete do |request|
           request.url "/#{context.namespace}/resources/#{name}"
@@ -158,10 +154,7 @@ module Bodhi
         end
 
         if result.status != 204
-          errors = JSON.parse result.body
-          errors.each{|error| error['status'] = result.status } if errors.is_a? Array
-          errors["status"] = result.status if errors.is_a? Hash
-          raise errors.to_s
+          raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
         end
       end
     end
@@ -204,10 +197,7 @@ module Bodhi
         end
   
         if result.status != 201
-          errors = JSON.parse result.body
-          errors.each{|error| error['status'] = result.status } if errors.is_a? Array
-          errors["status"] = result.status if errors.is_a? Hash
-          raise errors.to_s
+          raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
         end
 
         if result.headers['location']
@@ -222,10 +212,7 @@ module Bodhi
         end
   
         if result.status != 204
-          errors = JSON.parse result.body
-          errors.each{|error| error['status'] = result.status } if errors.is_a? Array
-          errors["status"] = result.status if errors.is_a? Hash
-          raise errors.to_s
+          raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
         end
       end
 
@@ -238,10 +225,7 @@ module Bodhi
         end
   
         if result.status != 204
-          errors = JSON.parse result.body
-          errors.each{|error| error['status'] = result.status } if errors.is_a? Array
-          errors["status"] = result.status if errors.is_a? Hash
-          raise errors.to_s
+          raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
         end
       end
     end

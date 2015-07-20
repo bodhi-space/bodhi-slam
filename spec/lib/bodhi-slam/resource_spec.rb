@@ -37,7 +37,11 @@ describe Bodhi::Resource do
   end
 
   describe "#save!" do
-    it "should raise error if the object could not be saved"
+    it "should raise Bodhi::ApiErrors if the object could not be saved" do
+      test = Test.factory.build(Brandon: 12345)
+      test.bodhi_context = context
+      expect{ test.save! }.to raise_error(Bodhi::ApiErrors)
+    end
 
     it "should POST the objects attributes to the cloud" do
       test = Test.factory.build
@@ -47,17 +51,27 @@ describe Bodhi::Resource do
   end
 
   describe "#delete!" do
-    it "raises error if the object could not be deleted"
+    it "raises Bodhi::ApiErrors if the object could not be deleted" do
+      record = Test.factory.create(context)
+      record.sys_id = nil
+      expect{ record.delete! }.to raise_error(Bodhi::ApiErrors)
+    end
 
-    it "should DELETE the object from the could" do
+    it "should DELETE the object from the cloud" do
       record = Test.factory.create(context)
       expect{ record.delete! }.to_not raise_error
     end
   end
 
   describe ".find(context, id)" do
-    it "should raise error if context is not valid"
-    it "should raise api error if id is not present"
+    it "should raise Bodhi::Error if context is not valid" do
+      bad_context = Bodhi::Context.new({})
+      expect{ Test.find(bad_context, 1234) }.to raise_error(Bodhi::Errors, '["server is required", "namespace is required"]')
+    end
+
+    it "should raise api error if id is not present" do
+      expect{ Test.find(context, "12345") }.to raise_error(Bodhi::ApiErrors)
+    end
 
     it "should return the resource with the given id" do
       record = Test.factory.create(context)
@@ -70,8 +84,14 @@ describe Bodhi::Resource do
   end
 
   describe ".where(context, query)" do
-    it "should raise error if context is not valid"
-    it "should raise api error if the query is not valid"
+    it "should raise error if context is not valid" do
+      bad_context = Bodhi::Context.new({})
+      expect{ Test.where(bad_context, "test") }.to raise_error(Bodhi::Errors, '["server is required", "namespace is required"]')
+    end
+
+    it "should raise api error if the query is not valid" do
+      expect{ Test.where(context, "12345") }.to raise_error(Bodhi::ApiErrors)
+    end
 
     it "should return an array of resources that match the query" do
       records = Test.factory.create_list(5, context, Olia: 20)
@@ -86,8 +106,14 @@ describe Bodhi::Resource do
   end
 
   describe ".aggregate(context, pipeline)" do
-    it "should raise error if context is not valid"
-    it "should raise api error if the pipeline is not valid"
+    it "should raise error if context is not valid" do
+      bad_context = Bodhi::Context.new({})
+      expect{ Test.aggregate(bad_context, "test") }.to raise_error(Bodhi::Errors, '["server is required", "namespace is required"]')
+    end
+
+    it "should raise api error if the pipeline is not valid" do
+      expect{ Test.aggregate(context, "12345") }.to raise_error(Bodhi::ApiErrors)
+    end
 
     it "should return the aggregation as json" do
       records = Test.factory.create_list(10, context, Olia: 20)
@@ -107,7 +133,17 @@ describe Bodhi::Resource do
   end
 
   describe ".delete_all(context)" do
-    it "raises error if context is invalid"
-    it "deletes all resources from the cloud within the given context"
+    it "raises Bodhi::Errors if context is invalid" do
+      bad_context = Bodhi::Context.new({})
+      expect{ Test.delete_all(bad_context) }.to raise_error(Bodhi::Errors, '["server is required", "namespace is required"]')
+    end
+
+    it "deletes all resources from the cloud in the given context" do
+      Test.factory.create_list(10, context)
+      expect(Test.find_all(context).size).to eq 10
+
+      expect{ Test.delete_all(context) }.to_not raise_error
+      expect(Test.find_all(context).size).to eq 0
+    end
   end
 end

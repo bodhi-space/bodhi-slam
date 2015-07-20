@@ -6,6 +6,7 @@ require "SecureRandom"
 
 require 'bodhi-slam/context'
 require 'bodhi-slam/errors'
+require 'bodhi-slam/api_errors'
 require 'bodhi-slam/resource'
 require 'bodhi-slam/types'
 require 'bodhi-slam/validations'

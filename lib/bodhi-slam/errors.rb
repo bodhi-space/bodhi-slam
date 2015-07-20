@@ -1,5 +1,5 @@
 module Bodhi
-  class Errors < Exception
+  class Errors < StandardError
     include Enumerable
     attr_accessor :messages
     

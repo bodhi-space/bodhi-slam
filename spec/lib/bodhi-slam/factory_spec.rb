@@ -99,8 +99,14 @@ describe Bodhi::Factory do
       expect(obj.Olia).to eq 125
     end
 
-    it "should raise Bodhi::Errors if the context is not valid"
-    it "should raise Bodhi::Errors if the resource could not be saved"
+    it "should raise Bodhi::Errors if the context is not valid" do
+      bad_context = Bodhi::Context.new({})
+      expect{ factory.create(bad_context, Olia: 125) }.to raise_error(Bodhi::Errors, '["server is required", "namespace is required"]')
+    end
+
+    it "should raise Bodhi::ApiErrors if the resource could not be saved" do
+      expect{ factory.create(context, Olia: "test") }.to raise_error(Bodhi::ApiErrors)
+    end
   end
 
   describe "#create_list(size, context, params={})" do
@@ -139,8 +145,14 @@ describe Bodhi::Factory do
       end
     end
 
-    it "should raise Bodhi::Errors if the context is not valid"
-    it "should raise Bodhi::Errors if any resource could not be saved"
+    it "should raise Bodhi::Errors if the context is not valid" do
+      bad_context = Bodhi::Context.new({})
+      expect{ factory.create_list(5, bad_context, Olia: 125) }.to raise_error(Bodhi::Errors, '["server is required", "namespace is required"]')
+    end
+
+    it "should raise Bodhi::ApiErrors if the resource could not be saved" do
+      expect{ factory.create_list(5, context, Olia: "test") }.to raise_error(Bodhi::ApiErrors)
+    end
   end
 
 

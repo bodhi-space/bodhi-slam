@@ -49,7 +49,7 @@ module Bodhi
     #   Resource.factory.create(context, name: "test") # => #<Resource:0x007fbff403e808 @name="test">
     def create(context, params={})
       if context.invalid?
-        raise context.errors
+        raise context.errors, context.errors.to_a.to_s
       end
 
       object = build(params)
@@ -65,7 +65,7 @@ module Bodhi
     #   Resource.factory.create_list(10, context, name: "test") # => [#<Resource:0x007fbff403e808 @name="test">, #<Resource:0x007fbff403e808 @name="test">, ...]
     def create_list(size, context, params={})
       if context.invalid?
-        raise context.errors
+        raise context.errors, context.errors.to_a.to_s
       end
 
       resources = build_list(size, params)
@@ -79,10 +79,7 @@ module Bodhi
       #puts "\033[33mResult Body\033[0m: \033[36m#{result.body}\033[0m"
 
       if result.status != 200
-        errors = JSON.parse result.body
-        errors.each{|error| error['status'] = result.status } if errors.is_a? Array
-        errors["status"] = result.status if errors.is_a? Hash
-        raise errors.to_s
+        raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
 
       #puts "\033[33mRecords\033[0m: \033[36m#{records.map(&:attributes)}\033[0m"
