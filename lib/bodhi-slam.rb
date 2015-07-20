@@ -6,7 +6,6 @@ require "SecureRandom"
 
 require 'bodhi-slam/context'
 require 'bodhi-slam/errors'
-require 'bodhi-slam/api_errors'
 require 'bodhi-slam/resource'
 require 'bodhi-slam/types'
 require 'bodhi-slam/validations'
@@ -14,17 +13,29 @@ require 'bodhi-slam/enumerations'
 require 'bodhi-slam/factory'
 
 class BodhiSlam
+  # Defines a context to interact with the Bodhi API
+  # Including a +server+, +namespace+, +username+, +password+ or +cookie+
+  #
+  #   context = Bodhi::Context.new(server: "https://test.com", namespace: "MyNamespace", username: "MyUser", password: "MyPassword")
+  #   context = Bodhi::Context.new(server: "https://test.com", namespace: "MyNamespace", username: "MyUser", cookie: "MyAuthCookie")
   def self.context(params, &block)
     bodhi_context = Bodhi::Context.new params
-    raise bodhi_context.errors unless bodhi_context.valid?
 
-    #puts "Switching context to: #{bodhi_context.attributes}"
+    if bodhi_context.invalid?
+      raise Bodhi::ContextErrors.new(bodhi_context.errors.messages), bodhi_context.errors.to_a.to_s
+    end
+
     yield bodhi_context
-    #puts "Exiting context: #{bodhi_context.attributes}"
   end
-  
+
+  # Dynamically creates Ruby Classes for each type in the given +context+
+  # 
+  #   context = Bodhi::Context.new(valid_params)
+  #   BodhiSlam.analyze(context) # => [#<Class:0x007fbff403e808 @name="TestType">, #<Class:0x007fbff403e808 @name="TestType2">, ...]
   def self.analyze(context)
-    raise context.errors unless context.valid?
+    if context.invalid?
+      raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
+    end
 
     all_enums = Bodhi::Enumeration.find_all(context)
     all_types = Bodhi::Type.find_all(context)

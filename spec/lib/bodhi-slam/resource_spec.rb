@@ -66,7 +66,7 @@ describe Bodhi::Resource do
   describe ".find(context, id)" do
     it "should raise Bodhi::Error if context is not valid" do
       bad_context = Bodhi::Context.new({})
-      expect{ Test.find(bad_context, 1234) }.to raise_error(Bodhi::Errors, '["server is required", "namespace is required"]')
+      expect{ Test.find(bad_context, 1234) }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
     end
 
     it "should raise api error if id is not present" do
@@ -86,7 +86,7 @@ describe Bodhi::Resource do
   describe ".where(context, query)" do
     it "should raise error if context is not valid" do
       bad_context = Bodhi::Context.new({})
-      expect{ Test.where(bad_context, "test") }.to raise_error(Bodhi::Errors, '["server is required", "namespace is required"]')
+      expect{ Test.where(bad_context, "test") }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
     end
 
     it "should raise api error if the query is not valid" do
@@ -108,7 +108,7 @@ describe Bodhi::Resource do
   describe ".aggregate(context, pipeline)" do
     it "should raise error if context is not valid" do
       bad_context = Bodhi::Context.new({})
-      expect{ Test.aggregate(bad_context, "test") }.to raise_error(Bodhi::Errors, '["server is required", "namespace is required"]')
+      expect{ Test.aggregate(bad_context, "test") }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
     end
 
     it "should raise api error if the pipeline is not valid" do
@@ -135,7 +135,7 @@ describe Bodhi::Resource do
   describe ".delete_all(context)" do
     it "raises Bodhi::Errors if context is invalid" do
       bad_context = Bodhi::Context.new({})
-      expect{ Test.delete_all(bad_context) }.to raise_error(Bodhi::Errors, '["server is required", "namespace is required"]')
+      expect{ Test.delete_all(bad_context) }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
     end
 
     it "deletes all resources from the cloud in the given context" do

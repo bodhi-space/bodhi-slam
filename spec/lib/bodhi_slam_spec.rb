@@ -9,14 +9,13 @@ describe BodhiSlam do
     end
     
     context "with invalid params" do
-      it "should raise a Bodhi::Errors" do
-        expect{ BodhiSlam.context({ server: "test", namespace: "test" }){|context|} }.to raise_error(Bodhi::Errors)
+      it "should raise Bodhi::ContextErrors" do
+        expect{ BodhiSlam.context({ server: "test", namespace: "test" }){|context|} }.to raise_error(Bodhi::ContextErrors)
         
         begin
           BodhiSlam.context({ server: "test", namespace: nil }){|context|}
-        rescue Exception => e
-          expect(e.messages[:server]).to match_array(["must be a valid URL"])
-          expect(e.messages[:namespace]).to match_array(["is required"])
+        rescue Bodhi::ContextErrors => e
+          expect(e.full_messages).to match_array(["server must be a valid URL", "namespace is required"])
         end
       end
     end
@@ -53,8 +52,8 @@ describe BodhiSlam do
     context "with invalid context" do
       let(:context){ Bodhi::Context.new({ server: nil, namespace: nil }) }
       
-      it "should raise a Bodhi::Errors" do
-        expect{ BodhiSlam.analyze(context) }.to raise_error(Bodhi::Errors)
+      it "should raise Bodhi::ContextErrors" do
+        expect{ BodhiSlam.analyze(context) }.to raise_error(Bodhi::ContextErrors)
       end
     end
   end

@@ -15,7 +15,7 @@ module Bodhi
       #   Resource.save_batch(context, list)
       def save_batch(context, objects)
         if context.invalid?
-          raise context.errors, context.errors.to_a.to_s
+          raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
         end
 
         result = context.connection.post do |request|
@@ -39,7 +39,7 @@ module Bodhi
       #   obj = Resource.find(context, id)
       def find(context, id)
         if context.invalid?
-          raise context.errors, context.errors.to_a.to_s
+          raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
         end
 
         unless id.is_a? String
@@ -65,7 +65,7 @@ module Bodhi
       #   Resource.find_all(context) # => [#<Resource:0x007fbff403e808>, #<Resource:0x007fbff403e808>, ...]
       def find_all(context)
         if context.invalid?
-          raise context.errors, context.errors.to_a.to_s
+          raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
         end
 
         page = 1
@@ -94,7 +94,7 @@ module Bodhi
       #   Resource.aggregate(context, "[{ $match: { property: { $gte: 20 }}}]")
       def aggregate(context, pipeline)
         if context.invalid?
-          raise context.errors, context.errors.to_a.to_s
+          raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
         end
 
         unless pipeline.is_a? String
@@ -119,7 +119,7 @@ module Bodhi
       #   Resource.where(context, "{property: 'value'}")
       def where(context, query)
         if context.invalid?
-          raise context.errors, context.errors.to_a.to_s
+          raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
         end
 
         unless query.is_a? String
@@ -145,7 +145,7 @@ module Bodhi
       #   Resource.delete_all(context)
       def delete_all(context)
         if context.invalid?
-          raise context.errors, context.errors.to_a.to_s
+          raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
         end
 
         result = context.connection.delete do |request|
