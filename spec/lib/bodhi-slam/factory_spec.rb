@@ -150,8 +150,8 @@ describe Bodhi::Factory do
       expect{ factory.create_list(5, bad_context, Olia: 125) }.to raise_error(Bodhi::Errors, '["server is required", "namespace is required"]')
     end
 
-    it "should raise Bodhi::ApiErrors if the resource could not be saved" do
-      expect{ factory.create_list(5, context, Olia: "test") }.to raise_error(Bodhi::ApiErrors)
+    it "should raise Bodhi::ApiErrors if the batch encountered problems" do
+      expect{ factory.create_list(-5, context, Olia: "test") }.to raise_error(Bodhi::ApiErrors)
     end
   end
 
