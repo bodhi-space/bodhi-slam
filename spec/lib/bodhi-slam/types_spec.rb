@@ -100,6 +100,19 @@ describe Bodhi::Type do
         puts "\033[33mGenerated\033[0m: \033[36m#{Bodhi::Type.factory.build.attributes}\033[0m"
       end
     end
+
+    describe "#create" do
+      let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
+
+      it "saves a type to the cloud and returns Bodhi::Type" do
+        type = Bodhi::Type.factory.create(context, namespace: context.namespace, name: "AutoTest_Type1", properties: { foo: { type: "String", required: true }, bar: { type: "Integer", required: true, multi: true } } )
+        expect(type).to be_a Bodhi::Type
+        expect(type.name).to eq "AutoTest_Type1"
+
+        puts "\033[33mGenerated\033[0m: \033[36m#{type.attributes}\033[0m"
+        type.delete!
+      end
+    end
   end
 
   describe ".find_all(context)" do

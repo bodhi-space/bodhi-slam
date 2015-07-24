@@ -9,6 +9,7 @@ module Bodhi
     attr_accessor *ATTRIBUTES
     attr_reader *SYSTEM_ATTRIBUTES
     attr_reader :validations
+    attr_accessor :bodhi_context
 
     validates :name, required: true, is_not_blank: true
     validates :namespace, required: true
@@ -22,7 +23,7 @@ module Bodhi
         factory.add_generator(:properties, type: "Object", required: true)
         factory.add_generator(:package, type: "String")
         factory.add_generator(:embedded, type: "Boolean")
-        factory.add_generator(:version, type: "Integer")
+        factory.add_generator(:version, type: "String")
       end
     end
 
@@ -84,6 +85,35 @@ module Bodhi
     def to_json(base=nil)
       super if base
       attributes.to_json
+    end
+
+    # Saves the resource to the Bodhi Cloud.  Raises ArgumentError if record could not be saved.
+    # 
+    #   obj = Resouce.new
+    #   obj.save!
+    #   obj.persisted? # => true
+    def save!
+      result = bodhi_context.connection.post do |request|
+        request.url "/#{bodhi_context.namespace}/types"
+        request.headers['Content-Type'] = 'application/json'
+        request.headers[bodhi_context.credentials_header] = bodhi_context.credentials
+        request.body = attributes.to_json
+      end
+
+      if result.status != 201
+        raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
+      end
+    end
+
+    def delete!
+      result = bodhi_context.connection.delete do |request|
+        request.url "/#{bodhi_context.namespace}/types/#{name}"
+        request.headers[bodhi_context.credentials_header] = bodhi_context.credentials
+      end
+
+      if result.status != 204
+        raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
+      end
     end
 
     # Queries the Bodhi API for all types within the given +context+
