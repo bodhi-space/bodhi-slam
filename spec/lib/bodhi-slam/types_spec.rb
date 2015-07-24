@@ -87,7 +87,23 @@ describe Bodhi::Type do
       expect(type.validations[:bar]).to match_array [Bodhi::TypeValidator, Bodhi::RequiredValidator, Bodhi::MultiValidator]
     end
   end
-  
+
+  describe ".factory" do
+    let(:type){ Bodhi::Type.new({ properties: { foo: { type: "String", required: true } } }) }
+
+    it "returns a Bodhi::Factory for creating Bodhi::Types" do
+      expect(Bodhi::Type.factory).to be_a Bodhi::Factory
+    end
+
+    describe "#build" do
+      it "returns a valid Bodhi::Type" do
+        expect(Bodhi::Type.factory.build).to be_a Bodhi::Type
+        expect(Bodhi::Type.factory.build.valid?).to be true
+        puts "\033[33mGenerated\033[0m: \033[36m#{Bodhi::Type.factory.build.attributes}\033[0m"
+      end
+    end
+  end
+
   describe ".find_all(context)" do
     let(:context){ Bodhi::Context.new({ server: nil, namespace: nil, cookie: nil }) }
     

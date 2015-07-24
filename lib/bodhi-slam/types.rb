@@ -2,17 +2,29 @@ module Bodhi
   class Type
     include Bodhi::Validations
 
-    BODHI_SYSTEM_ATTRIBUTES = [:sys_created_at, :sys_version, :sys_modified_at, :sys_modified_by,
+    SYSTEM_ATTRIBUTES = [:sys_created_at, :sys_version, :sys_modified_at, :sys_modified_by,
       :sys_namespace, :sys_created_by, :sys_type_version, :sys_id, :sys_embeddedType]
-    BODHI_TYPE_ATTRIBUTES = [:name, :namespace, :package, :embedded, :properties]
+    ATTRIBUTES = [:name, :namespace, :package, :embedded, :properties, :version]
 
-    attr_accessor *BODHI_TYPE_ATTRIBUTES
-    attr_reader *BODHI_SYSTEM_ATTRIBUTES
+    attr_accessor *ATTRIBUTES
+    attr_reader *SYSTEM_ATTRIBUTES
     attr_reader :validations
 
     validates :name, required: true, is_not_blank: true
     validates :namespace, required: true
     validates :properties, required: true
+
+    # Returns a factory for the Bodhi::Type class
+    def self.factory
+      @factory ||= Bodhi::Factory.new(Bodhi::Type).tap do |factory|
+        factory.add_generator(:name, type: "String", required: true, is_not_blank: true)
+        factory.add_generator(:namespace, type: "String", required: true)
+        factory.add_generator(:properties, type: "Object", required: true)
+        factory.add_generator(:package, type: "String")
+        factory.add_generator(:embedded, type: "Boolean")
+        factory.add_generator(:version, type: "Integer")
+      end
+    end
 
     def initialize(params={})
       # same as symbolize_keys!
@@ -21,7 +33,7 @@ module Bodhi
       end
 
       # set attributes
-      BODHI_TYPE_ATTRIBUTES.each do |attribute|
+      ATTRIBUTES.each do |attribute|
         send("#{attribute}=", params[attribute])
       end
 
@@ -50,6 +62,28 @@ module Bodhi
           end
         end
       end
+    end
+
+    # Returns a Hash of the Objects form attributes
+    # 
+    #   s = SomeResource.factory.build({foo:"test", bar:12345})
+    #   s.attributes # => { foo: "test", bar: 12345 }
+    def attributes
+      result = Hash.new
+      ATTRIBUTES.each do |attribute|
+        result[attribute] = send(attribute)
+      end
+      result
+    end
+
+    # Returns all the Objects attributes as JSON.
+    # It converts any nested Objects to JSON if they respond to +to_json+
+    # 
+    #   s = SomeResource.factory.build({foo:"test", bar:12345})
+    #   s.to_json # => "{ 'foo':'test', 'bar':12345 }"
+    def to_json(base=nil)
+      super if base
+      attributes.to_json
     end
 
     # Queries the Bodhi API for all types within the given +context+
