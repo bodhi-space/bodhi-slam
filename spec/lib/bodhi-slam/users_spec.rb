@@ -25,6 +25,7 @@ describe Bodhi::User do
 
       it "saves a user to the cloud and returns Bodhi::User" do
         user = Bodhi::User.factory.create(context, username: "AutoTest_24601", password: "12345", email: "test@email.com", profiles: ["user"])
+        puts "\033[33mGenerated\033[0m: \033[36m#{user.attributes}\033[0m"
         expect(user.username).to eq "AutoTest_24601"
 
         user_context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], username: "AutoTest_24601", password: "12345" })
