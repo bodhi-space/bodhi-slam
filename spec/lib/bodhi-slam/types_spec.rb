@@ -89,8 +89,6 @@ describe Bodhi::Type do
   end
 
   describe ".factory" do
-    let(:type){ Bodhi::Type.new({ properties: { foo: { type: "String", required: true } } }) }
-
     it "returns a Bodhi::Factory for creating Bodhi::Types" do
       expect(Bodhi::Type.factory).to be_a Bodhi::Factory
     end
