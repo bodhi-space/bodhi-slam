@@ -4,14 +4,16 @@ require "json"
 require "time"
 require "SecureRandom"
 
-require 'bodhi-slam/context'
+require 'bodhi-slam/validations'
 require 'bodhi-slam/errors'
+
+require 'bodhi-slam/batches'
+require 'bodhi-slam/context'
+require 'bodhi-slam/enumerations'
+require 'bodhi-slam/factory'
 require 'bodhi-slam/resource'
 require 'bodhi-slam/types'
 require 'bodhi-slam/users'
-require 'bodhi-slam/validations'
-require 'bodhi-slam/enumerations'
-require 'bodhi-slam/factory'
 
 class BodhiSlam
   # Defines a context to interact with the Bodhi API

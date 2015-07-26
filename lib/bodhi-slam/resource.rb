@@ -1,8 +1,10 @@
 module Bodhi
   module Resource
-    SYSTEM_ATTRIBUTES = [:bodhi_context, :sys_created_at, :sys_version, :sys_modified_at, :sys_modified_by,
+    SYSTEM_ATTRIBUTES = [:sys_created_at, :sys_version, :sys_modified_at, :sys_modified_by,
       :sys_namespace, :sys_created_by, :sys_type_version, :sys_id, :sys_embeddedType]
+    SUPPORT_ATTRIBUTES = [:bodhi_context, :errors]
     attr_accessor *SYSTEM_ATTRIBUTES
+    attr_accessor *SUPPORT_ATTRIBUTES
 
     module ClassMethods
       def factory; @factory; end
@@ -14,22 +16,9 @@ module Bodhi
       #   list = Resource.factory.build_list(10)
       #   Resource.save_batch(context, list)
       def save_batch(context, objects)
-        if context.invalid?
-          raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
-        end
-
-        result = context.connection.post do |request|
-          request.url "/#{context.namespace}/resources/#{name}"
-          request.headers['Content-Type'] = 'application/json'
-          request.headers[context.credentials_header] = context.credentials
-          request.body = objects.to_json
-        end
-
-        if result.status != 200
-          raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
-        end
-
-        objects
+        batch = Bodhi::Batch.new(objects)
+        batch.save!(context)
+        batch.created
       end
 
       # Returns a single resource from the Bodhi Cloud that matches the given +id+
@@ -168,7 +157,9 @@ module Bodhi
         attributes = Hash.new
         self.instance_variables.each do |variable|
           attribute_name = variable.to_s.delete('@').to_sym
-          attributes[attribute_name] = send(attribute_name) unless SYSTEM_ATTRIBUTES.include?(attribute_name)
+          unless SYSTEM_ATTRIBUTES.include?(attribute_name) || SUPPORT_ATTRIBUTES.include?(attribute_name)
+            attributes[attribute_name] = send(attribute_name)
+          end
         end
         attributes
       end
