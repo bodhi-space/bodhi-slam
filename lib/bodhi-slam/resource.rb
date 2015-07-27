@@ -16,9 +16,9 @@ module Bodhi
       #   list = Resource.factory.build_list(10)
       #   Resource.save_batch(context, list)
       def save_batch(context, objects)
-        batch = Bodhi::Batch.new(objects)
+        batch = Bodhi::ResourceBatch.new(name, objects)
         batch.save!(context)
-        batch.created
+        batch
       end
 
       # Returns a single resource from the Bodhi Cloud that matches the given +id+

@@ -63,6 +63,16 @@ describe Bodhi::Resource do
     end
   end
 
+  describe ".save_batch(context, records)" do
+    it "saves and returns a batch of the records" do
+      records = [Test.factory.build, Test.factory.build]
+      result = Test.save_batch(context, records)
+      expect(result).to be_a Bodhi::ResourceBatch
+      expect(result.failed).to be_empty
+      expect(result.created).to match_array(records)
+    end
+  end
+
   describe ".find(context, id)" do
     it "should raise Bodhi::Error if context is not valid" do
       bad_context = Bodhi::Context.new({})

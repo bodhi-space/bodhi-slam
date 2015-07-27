@@ -54,6 +54,11 @@ describe Bodhi::ResourceBatch do
         expect(record.sys_id).to be_a String
         expect(record.errors.any?).to be false
       end
+
+      batch.records.each do |record|
+        expect(record.sys_id).to be_a String
+        expect(record.errors.any?).to be false
+      end
     end
   end
 
@@ -68,6 +73,11 @@ describe Bodhi::ResourceBatch do
       expect(batch.failed.size).to eq 2
 
       batch.failed.each do |record|
+        expect(record.sys_id).to be_nil
+        expect(record.errors.any?).to be true
+      end
+
+      batch.records.each do |record|
         expect(record.sys_id).to be_nil
         expect(record.errors.any?).to be true
       end
