@@ -136,7 +136,9 @@ module Bodhi
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
 
-      Bodhi::Type.new(result)
+      type = Bodhi::Type.new(result)
+      type.bodhi_context = context
+      type
     end
 
     # Queries the Bodhi API for all types within the given +context+ and
@@ -165,7 +167,11 @@ module Bodhi
         all_records << records
       end while records.size == 100
 
-      all_records.flatten.collect{ |type| Bodhi::Type.new(type) }
+      all_records.flatten.collect do |type|
+        record = Bodhi::Type.new(type)
+        record.bodhi_context = context
+        record
+      end
     end
 
     # Dynamically defines a new Ruby class for the given +type+

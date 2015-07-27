@@ -110,7 +110,9 @@ module Bodhi
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
 
-      Bodhi::User.new(result)
+      user = Bodhi::User.new(result)
+      user.bodhi_context = context
+      user
     end
 
     # Queries the Bodhi API for the users account info
