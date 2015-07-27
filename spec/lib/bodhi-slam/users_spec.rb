@@ -35,6 +35,41 @@ describe Bodhi::User do
     end
   end
 
+  describe ".find(context, user_name)" do
+    let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
+
+    it "returns Bodhi::ContextErrors if context is invalid" do
+      bad_context = Bodhi::Context.new({ server: nil, namespace: nil, cookie: nil })
+      expect{ Bodhi::User.find(bad_context, "test") }.to raise_error(Bodhi::ContextErrors)
+    end
+
+    it "returns a Bodhi::User for the given user_name" do
+      Bodhi::User.factory.create(context, username: "autotest_user1", password: "12345", email: "test@email.com", profiles: ["user"])
+      user = Bodhi::User.find(context, "autotest_user1")
+      expect(user).to be_a Bodhi::User
+
+      # Clean up the created user
+      user_context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], username: "autotest_user1", password: "12345" })
+      user.bodhi_context = user_context
+      user.delete!
+    end
+  end
+
+  describe ".find_me(context)" do
+    let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
+
+    it "returns Bodhi::ContextErrors if context is invalid" do
+      bad_context = Bodhi::Context.new({ server: nil, namespace: nil, cookie: nil })
+      expect{ Bodhi::User.find_me(bad_context) }.to raise_error(Bodhi::ContextErrors)
+    end
+
+    it "returns JSON for the given user context" do
+      user = Bodhi::User.find_me(context)
+      expect(user).to be_a Hash
+      puts "\033[33mReturned\033[0m: \033[36m#{user}\033[0m"
+    end
+  end
+
   describe "#username" do
     let(:user){ Bodhi::User.new({ username: "test" }) }
 

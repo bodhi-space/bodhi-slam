@@ -115,12 +115,26 @@ describe Bodhi::Type do
     end
   end
 
+  describe ".find(context, type_name)" do
+    let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
+
+    it "returns Bodhi::ContextErrors if context is invalid" do
+      bad_context = Bodhi::Context.new({ server: nil, namespace: nil, cookie: nil })
+      expect{ Bodhi::Type.find(bad_context, "test") }.to raise_error(Bodhi::ContextErrors)
+    end
+
+    it "returns a Bodhi::Type for the given type_name" do
+      type = Bodhi::Type.find(context, "Store")
+      expect(type).to be_a Bodhi::Type
+    end
+  end
+
   describe ".find_all(context)" do
     let(:context){ Bodhi::Context.new({ server: nil, namespace: nil, cookie: nil }) }
     
     context "with invalid context" do
       it "returns Bodhi::Errors" do
-        expect{ Bodhi::Type.find_all(context) }.to raise_error(Bodhi::Errors)
+        expect{ Bodhi::Type.find_all(context) }.to raise_error(Bodhi::ContextErrors)
       end
     end
     
@@ -131,7 +145,6 @@ describe Bodhi::Type do
         types = Bodhi::Type.find_all(context)
         expect(types).to be_a Array
         types.each{ |type| expect(type).to be_a Bodhi::Type }
-        #puts types.to_s
       end
     end
   end

@@ -124,7 +124,7 @@ module Bodhi
     #   type # => #<Bodhi::Type:0x007fbff403e808 @name="MyTypeName">
     def self.find(context, type_name)
       if context.invalid?
-        raise context.errors, context.errors.to_a.to_s
+        raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
       end
 
       result = context.connection.get do |request|
@@ -136,7 +136,7 @@ module Bodhi
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
 
-      type = Bodhi::Type.new(result)
+      type = Bodhi::Type.new(JSON.parse(result.body))
       type.bodhi_context = context
       type
     end
@@ -148,7 +148,10 @@ module Bodhi
     #   types = Bodhi::Type.find_all(context)
     #   types # => [#<Bodhi::Type:0x007fbff403e808 @name="MyType">, #<Bodhi::Type:0x007fbff403e808 @name="MyType2">, ...]
     def self.find_all(context)
-      raise context.errors unless context.valid?
+      if context.invalid?
+        raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
+      end
+
       page = 1
       all_records = []
 

@@ -1,18 +1,14 @@
 module Bodhi
-  class User
+  class Profile
     include Bodhi::Validations
 
-    ATTRIBUTES = [:username, :password, :profiles, :email, :firstName, :lastName, :phone]
+    ATTRIBUTES = [:name, :namespace, :dml, :subspace, :parent, :invoke]
     attr_accessor *ATTRIBUTES
     attr_accessor :bodhi_context
 
-    validates :username, type: "String", required: true, is_not_blank: true
-    validates :password, type: "String", required: true, is_not_blank: true
-    validates :profiles, type: "String", required: true, multi: true
-    validates :email, type: "String", is_email: true
-    validates :firstName, type: "String"
-    validates :lastName, type: "String"
-    validates :phone, type: "String"
+    validates :name, type: "String", required: true, is_not_blank: true
+    validates :namespace, type: "String", required: true
+    validates :dml, type: "Object", required: true
 
     def initialize(params={})
       # same as symbolize_keys!
@@ -55,7 +51,7 @@ module Bodhi
     #   obj.persisted? # => true
     def save!
       result = bodhi_context.connection.post do |request|
-        request.url "/#{bodhi_context.namespace}/users"
+        request.url "/#{bodhi_context.namespace}/profiles"
         request.headers['Content-Type'] = 'application/json'
         request.headers[bodhi_context.credentials_header] = bodhi_context.credentials
         request.body = attributes.to_json
@@ -68,7 +64,7 @@ module Bodhi
 
     def delete!
       result = bodhi_context.connection.delete do |request|
-        request.url "/#{bodhi_context.namespace}/users/#{username}"
+        request.url "/#{bodhi_context.namespace}/profiles/#{name}"
         request.headers[bodhi_context.credentials_header] = bodhi_context.credentials
       end
 
@@ -79,30 +75,26 @@ module Bodhi
 
     # Returns a factory for the Bodhi::User class
     def self.factory
-      @factory ||= Bodhi::Factory.new(Bodhi::User).tap do |factory|
-        factory.add_generator(:username, type: "String", required: true, is_not_blank: true)
-        factory.add_generator(:password, type: "String", required: true, is_not_blank: true)
-        factory.add_generator(:profiles, type: "String", required: true, multi: true)
-        factory.add_generator(:email, type: "String", is_email: true)
-        factory.add_generator(:firstName, type: "String")
-        factory.add_generator(:lastName, type: "String")
-        factory.add_generator(:phone, type: "String")
+      @factory ||= Bodhi::Factory.new(Bodhi::Profile).tap do |factory|
+        factory.add_generator(:name, type: "String", required: true, is_not_blank: true)
+        factory.add_generator(:namespace, type: "String", required: true)
+        factory.add_generator(:dml, type: "Object", required: true)
       end
     end
 
     # Queries the Bodhi API for the given +user_name+ and
-    # returns a Bodhi::User
+    # returns a Bodhi::Profile
     # 
     #   context = BodhiContext.new(valid_params)
-    #   user = Bodhi::User.find(context, "User1")
-    #   user # => #<Bodhi::User:0x007fbff403e808 @username="User1">
-    def self.find(context, user_name)
+    #   profile = Bodhi::Profile.find(context, "Profile1")
+    #   profile # => #<Bodhi::Profile:0x007fbff403e808 @name="Profile1">
+    def self.find(context, profile_name)
       if context.invalid?
         raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
       end
 
       result = context.connection.get do |request|
-        request.url "/#{context.namespace}/users/#{user_name}"
+        request.url "/#{context.namespace}/profiles/#{profile_name}"
         request.headers[context.credentials_header] = context.credentials
       end
 
@@ -110,30 +102,9 @@ module Bodhi
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
 
-      user = Bodhi::User.new(JSON.parse(result.body))
-      user.bodhi_context = context
-      user
-    end
-
-    # Queries the Bodhi API for the users account info
-    # 
-    #   context = BodhiContext.new(valid_params)
-    #   user_properties = Bodhi::User.find_me(context)
-    def self.find_me(context)
-      if context.invalid?
-        raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
-      end
-
-      result = context.connection.get do |request|
-        request.url "/me"
-        request.headers[context.credentials_header] = context.credentials
-      end
-
-      if result.status != 200
-        raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
-      end
-
-      JSON.parse(result.body)
+      profile = Bodhi::Profile.new(JSON.parse(result.body))
+      profile.bodhi_context = context
+      profile
     end
   end
 end
