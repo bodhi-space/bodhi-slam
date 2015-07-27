@@ -89,5 +89,49 @@ module Bodhi
         factory.add_generator(:phone, type: "String")
       end
     end
+
+    # Queries the Bodhi API for the given +user_name+ and
+    # returns a Bodhi::User
+    # 
+    #   context = BodhiContext.new(valid_params)
+    #   user = Bodhi::User.find(context, "User1")
+    #   user # => #<Bodhi::User:0x007fbff403e808 @username="User1">
+    def self.find(context, user_name)
+      if context.invalid?
+        raise context.errors, context.errors.to_a.to_s
+      end
+
+      result = context.connection.get do |request|
+        request.url "/#{context.namespace}/users/#{user_name}"
+        request.headers[context.credentials_header] = context.credentials
+      end
+
+      if result.status != 200
+        raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
+      end
+
+      Bodhi::User.new(result)
+    end
+
+    # Queries the Bodhi API for the users account info
+    # 
+    #   context = BodhiContext.new(valid_params)
+    #   user_properties = Bodhi::User.find_me(context)
+    def self.find_me(context)
+      if context.invalid?
+        raise context.errors, context.errors.to_a.to_s
+      end
+
+      result = context.connection.get do |request|
+        request.url "/me"
+        request.headers[context.credentials_header] = context.credentials
+      end
+
+      if result.status != 200
+        raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
+      end
+
+      result
+    end
   end
 end

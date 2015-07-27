@@ -116,8 +116,31 @@ module Bodhi
       end
     end
 
-    # Queries the Bodhi API for all types within the given +context+
-    # Returns an array of Bodhi::Type objects
+    # Queries the Bodhi API for the given +type_name+ and
+    # returns a Bodhi::Type
+    # 
+    #   context = BodhiContext.new(valid_params)
+    #   type = Bodhi::Type.find(context, "MyTypeName")
+    #   type # => #<Bodhi::Type:0x007fbff403e808 @name="MyTypeName">
+    def self.find(context, type_name)
+      if context.invalid?
+        raise context.errors, context.errors.to_a.to_s
+      end
+
+      result = context.connection.get do |request|
+        request.url "/#{context.namespace}/types/#{type_name}"
+        request.headers[context.credentials_header] = context.credentials
+      end
+
+      if result.status != 200
+        raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
+      end
+
+      Bodhi::Type.new(result)
+    end
+
+    # Queries the Bodhi API for all types within the given +context+ and
+    # returns an array of Bodhi::Type objects
     # 
     #   context = BodhiContext.new(valid_params)
     #   types = Bodhi::Type.find_all(context)
@@ -134,10 +157,7 @@ module Bodhi
         end
 
         if result.status != 200
-          errors = JSON.parse result.body
-          errors.each{|error| error['status'] = result.status } if errors.is_a? Array
-          errors["status"] = result.status if errors.is_a? Hash
-          raise errors.to_s
+          raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
         end
 
         page += 1
