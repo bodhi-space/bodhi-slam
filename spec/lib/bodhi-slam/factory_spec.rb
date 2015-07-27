@@ -145,13 +145,9 @@ describe Bodhi::Factory do
       end
     end
 
-    it "should raise Bodhi::Errors if the context is not valid" do
+    it "should raise Bodhi::ContextErrors if the context is invalid" do
       bad_context = Bodhi::Context.new({})
       expect{ factory.create_list(5, bad_context, Olia: 125) }.to raise_error(Bodhi::Errors, '["server is required", "namespace is required"]')
-    end
-
-    it "should raise Bodhi::ApiErrors if the batch encountered problems" do
-      expect{ factory.create_list(-5, context, Olia: "test") }.to raise_error(Bodhi::ApiErrors)
     end
   end
 

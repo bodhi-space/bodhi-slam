@@ -69,20 +69,10 @@ module Bodhi
       end
 
       resources = build_list(size, params)
-      result = context.connection.post do |request|
-        request.url "/#{context.namespace}/resources/#{klass}"
-        request.headers['Content-Type'] = 'application/json'
-        request.headers[context.credentials_header] = context.credentials
-        request.body = resources.to_json
+      resources.each do |resource|
+        resource.bodhi_context = context
+        resource.save!
       end
-
-      #puts "\033[33mResult Body\033[0m: \033[36m#{result.body}\033[0m"
-
-      if result.status != 200
-        raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
-      end
-
-      #puts "\033[33mRecords\033[0m: \033[36m#{records.map(&:attributes)}\033[0m"
 
       resources
     end
