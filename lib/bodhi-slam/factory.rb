@@ -82,6 +82,10 @@ module Bodhi
     #   Resource.factory.add_generator("name", type: "String")
     #   Resource.factory.add_generator("test", type: "Integer", multi: true, required: true)
     def add_generator(name, options)
+      options = options.reduce({}) do |memo, (k, v)| 
+        memo.merge({ k.to_sym => v})
+      end
+
       case options[:type]
       when "String"
         characters = [('a'..'z'), ('A'..'Z'), ('0'..'9')].map { |i| i.to_a }.flatten

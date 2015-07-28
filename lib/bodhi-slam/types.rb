@@ -8,7 +8,6 @@ module Bodhi
 
     attr_accessor *ATTRIBUTES
     attr_reader *SYSTEM_ATTRIBUTES
-    attr_reader :validations
     attr_accessor :bodhi_context
 
     validates :name, required: true, is_not_blank: true
@@ -38,30 +37,9 @@ module Bodhi
         send("#{attribute}=", params[attribute])
       end
 
+      # Format type name to be compatible with Ruby Constants
       if !name.nil? && name[0] == name[0].downcase
         name.capitalize!
-      end
-
-      # build validator objects
-      @validations = {}
-      if properties
-        properties.each_pair do |attr_name, attr_properties|
-          @validations[attr_name.to_sym] = []
-          attr_properties.each_pair do |option, value|
-            underscored_name = option.to_s.gsub(/::/, '/').gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').gsub(/([a-z\d])([A-Z])/,'\1_\2').tr("-", "_").downcase.to_sym
-            unless [:system, :trim, :ref, :unique, :default, :is_current_user, :to_lower].include? underscored_name
-              klass = Bodhi::Validator.constantize(underscored_name)
-              if option.to_s == "type" && value == "Enumerated"
-                if attr_properties["ref"].nil?
-                  raise RuntimeError.new("No reference property found!  Cannot build enumeration validator for #{name}.#{attr_name}")
-                end
-                @validations[attr_name.to_sym] << klass.new(value, attr_properties["ref"])
-              else
-                @validations[attr_name.to_sym] << klass.new(value)
-              end
-            end
-          end
-        end
       end
     end
 
@@ -183,8 +161,6 @@ module Bodhi
     #   type = Bodhi::Type.new({name: "TestType", properties: { foo:{ type:"String" }}})
     #   klass = Bodhi::Type.create_class_with(type)
     #   klass # => #<Class:0x007fbff403e808 @name="TestType">
-    #
-    #   # Additional class methods
     #   klass.validations # => { foo: [#<TypeValidator:0x007fbff403e808 @type="String">] }
     #   klass.factory # => #<Bodhi::Factory:0x007fbff403e808 @klass="TestType", @generators=[]>
     def self.create_class_with(type)
@@ -197,11 +173,10 @@ module Bodhi
         attr_accessor *type.properties.keys
       })
 
-      type.validations.each_pair do |attribute, validations|
-        attr_options = Hash.new
-        validations.each{ |validation| attr_options.merge!(validation.to_options) }
-        klass.validates(attribute, attr_options)
-        klass.factory.add_generator(attribute, attr_options)
+      type.properties.each_pair do |attr_name, attr_properties|
+        attr_properties.delete_if{ |key, value| ["system", "trim", "unique", "default", "isCurrentUser"].include?(key) }
+        klass.validates(attr_name.to_sym, attr_properties)
+        klass.factory.add_generator(attr_name.to_sym, attr_properties)
       end
 
       klass

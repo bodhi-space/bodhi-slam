@@ -74,19 +74,6 @@ describe Bodhi::Type do
       expect(type.errors[:properties]).to include "is required"
     end
   end
-  
-  describe "#validations" do
-    let(:type){ Bodhi::Type.new({ properties: { foo: { type: "String", required: true }, bar: { type: "Integer", required: true, multi: true } } }) }
-    
-    it "is a hash" do
-      expect(type.validations).to be_a Hash
-    end
-    
-    it "contains all validations for the type keyed by attribute name" do
-      expect(type.validations[:foo]).to match_array [Bodhi::TypeValidator, Bodhi::RequiredValidator]
-      expect(type.validations[:bar]).to match_array [Bodhi::TypeValidator, Bodhi::RequiredValidator, Bodhi::MultiValidator]
-    end
-  end
 
   describe ".factory" do
     it "returns a Bodhi::Factory for creating Bodhi::Types" do

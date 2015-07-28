@@ -45,8 +45,14 @@ module Bodhi
           raise ArgumentError.new("Invalid :options argument. Options can not be empty")
         end
 
+        options = options.reduce({}) do |memo, (k, v)| 
+          memo.merge({ k.to_sym => v})
+        end
+
         @validators[attribute] = []
         options.each_pair do |key, value|
+          key = key.to_s.gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').gsub(/([a-z\d])([A-Z])/,'\1_\2').tr("-", "_").downcase.to_sym
+          
           unless [:ref].include?(key)
             if key == :type && value == "Enumerated"
               @validators[attribute] << Bodhi::Validator.constantize(key).new(value, options[:ref])
