@@ -288,6 +288,28 @@ describe Bodhi::Factory do
     end
 
     context "with String" do
+      context "and is_email=true" do
+        it "returns a random email address" do
+          factory.add_generator("foo", type: "String", is_email: true)
+
+          obj = factory.build
+          expect(obj.foo).to be_a String
+          expect(obj.foo).to match(/\p{Alnum}{5,10}@\p{Alnum}{5,10}\.\p{Alnum}{2,3}/i)
+          puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
+        end
+      end
+
+      context "and is_not_blank=true" do
+        it "returns random non-blank Strings" do
+          factory.add_generator("foo", type: "String", is_not_blank: true)
+
+          obj = factory.build
+          expect(obj.foo).to be_a String
+          expect(obj.foo).to_not match(/^\s+$/)
+          puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
+        end
+      end
+
       context "and multi=true" do
         it "returns 0..5 random Strings in an Array" do
           factory.add_generator("foo", type: "String", multi: true)

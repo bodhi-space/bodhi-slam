@@ -83,7 +83,7 @@ module Bodhi
     #   Resource.factory.add_generator("test", type: "Integer", multi: true, required: true)
     def add_generator(name, options)
       options = options.reduce({}) do |memo, (k, v)| 
-        memo.merge({ k.to_sym => v})
+        memo.merge({ k.to_s.gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').gsub(/([a-z\d])([A-Z])/,'\1_\2').tr("-", "_").downcase.to_sym => v})
       end
 
       case options[:type]
@@ -91,19 +91,25 @@ module Bodhi
         characters = [('a'..'z'), ('A'..'Z'), ('0'..'9')].map { |i| i.to_a }.flatten
         "~!@#$%^&*()_+-=:;<>?,./ ".each_char{ |c| characters.push(c) }
 
-        generator = lambda do
-          if options[:multi]
-            if options[:is_not_blank]
-              [*0..5].sample.times.collect{ [*1..100].sample.times.map{ characters[rand(characters.length)] }.join }
-            else
-              [*0..5].sample.times.collect{ [*0..100].sample.times.map{ characters[rand(characters.length)] }.join }
-            end
+        if options[:multi]
+          if options[:is_not_blank]
+            generator = lambda{ [*0..5].sample.times.collect{ [*1..100].sample.times.map{ characters[rand(characters.length)] }.join } }
+          elsif options[:is_email]
+            generator = lambda{ [*0..5].sample.times.collect{ /\p{Alnum}{5,10}@\p{Alnum}{5,10}\.\p{Alnum}{2,3}/i.random_example } }
+          elsif options[:matches]
+            generator = lambda{ [*0..5].sample.times.collect{ Regexp.new(options[:matches]).random_example } }
           else
-            if options[:is_not_blank]
-              [*1..100].sample.times.map{ characters[rand(characters.length)] }.join
-            else
-              [*0..100].sample.times.map{ characters[rand(characters.length)] }.join
-            end
+            generator = lambda{ [*0..5].sample.times.collect{ [*0..100].sample.times.map{ characters[rand(characters.length)] }.join } }
+          end
+        else
+          if options[:is_not_blank]
+            generator = lambda{ [*1..100].sample.times.map{ characters[rand(characters.length)] }.join }
+          elsif options[:is_email]
+            generator = lambda{ /\p{Alnum}{5,10}@\p{Alnum}{5,10}\.\p{Alnum}{2,3}/i.random_example }
+          elsif options[:matches]
+            generator = lambda{ Regexp.new(options[:matches]).random_example }
+          else
+            generator = lambda{ [*0..100].sample.times.map{ characters[rand(characters.length)] }.join }
           end
         end
 

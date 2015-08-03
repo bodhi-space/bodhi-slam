@@ -3,6 +3,7 @@ require 'net/http/persistent'
 require "json"
 require "time"
 require "SecureRandom"
+require 'regexp-examples'
 
 require 'bodhi-slam/validations'
 require 'bodhi-slam/errors'
