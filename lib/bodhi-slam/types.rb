@@ -17,7 +17,7 @@ module Bodhi
     # Returns a factory for the Bodhi::Type class
     def self.factory
       @factory ||= Bodhi::Factory.new(Bodhi::Type).tap do |factory|
-        factory.add_generator(:extends, type: "String", matches: "[a-zA-Z\\-_]{5,25}")
+        factory.add_generator(:extends, type: "String", matches: "[a-zA-Z_-]{10,20}")
         factory.add_generator(:name, type: "String", required: true, is_not_blank: true)
         factory.add_generator(:namespace, type: "String", required: true)
         factory.add_generator(:properties, type: "Object", required: true)
