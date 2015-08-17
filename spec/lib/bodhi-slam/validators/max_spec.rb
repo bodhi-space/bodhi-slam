@@ -60,7 +60,7 @@ describe Bodhi::MaxValidator do
   
   describe "#to_options" do
     it "should return a Hash" do
-      expect(validator.to_options).to be { length:"10".to_i }
+      expect(validator.to_options).to be { max:"10".to_i }
     end
   end
 end
