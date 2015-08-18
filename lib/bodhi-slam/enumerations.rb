@@ -29,20 +29,19 @@ module Bodhi
     #
     #   Bodhi::Enumeration.find_all(context) # => [#<Bodhi::Enumeration:0x007fbff403e808>, #<Bodhi::Enumeration:0x007fbff403e808>, ...]
     def self.find_all(context)
-      raise context.errors unless context.valid?
-      
+      if context.invalid?
+        raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
+      end
+
       result = context.connection.get do |request|
         request.url "/#{context.namespace}/enums"
         request.headers[context.credentials_header] = context.credentials
       end
-    
+
       if result.status != 200
-        errors = JSON.parse result.body
-        errors.each{|error| error['status'] = result.status } if errors.is_a? Array
-        errors["status"] = result.status if errors.is_a? Hash
-        raise errors.to_s
+        raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
-    
+
       JSON.parse(result.body).collect{ |enum| Bodhi::Enumeration.new(enum) }
     end
 

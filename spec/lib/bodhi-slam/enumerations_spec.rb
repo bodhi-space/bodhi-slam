@@ -25,15 +25,18 @@ describe Bodhi::Enumeration do
         enums = Bodhi::Enumeration.find_all(context)
         expect(enums).to be_a Array
         enums.each{ |enumeration| expect(enumeration).to be_a Bodhi::Enumeration }
-        #puts enums.to_s
       end
     end
     
     context "with invalid context" do
-      let(:context){ Bodhi::Context.new({ server: nil, namespace: nil, cookie: nil }) }
-      
-      it "should return a Bodhi::Errors" do
-        expect{ Bodhi::Enumeration.find_all(context) }.to raise_error(Bodhi::Errors)
+      it "should return Bodhi::Errors" do
+        bodhi_context = Bodhi::Context.new({ server: nil, namespace: nil, cookie: nil })
+        expect{ Bodhi::Enumeration.find_all(bodhi_context) }.to raise_error(Bodhi::ContextErrors)
+      end
+
+      it "should return Bodhi::ApiErrors if unauthorized" do
+        bodhi_context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: nil })
+        expect{ Bodhi::Enumeration.find_all(bodhi_context) }.to raise_error(Bodhi::ApiErrors)
       end
     end
   end
