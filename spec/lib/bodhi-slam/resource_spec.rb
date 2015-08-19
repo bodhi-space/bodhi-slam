@@ -79,7 +79,7 @@ describe Bodhi::Resource do
       expect{ Test.find(bad_context, 1234) }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
     end
 
-    it "should raise api error if id is not present" do
+    it "should raise Bodhi::ApiErrors if :id is not present" do
       expect{ Test.find(context, "12345") }.to raise_error(Bodhi::ApiErrors)
     end
 
@@ -143,17 +143,37 @@ describe Bodhi::Resource do
   end
 
   describe ".delete_all(context)" do
-    it "raises Bodhi::Errors if context is invalid" do
+    it "raises Bodhi::ContextErrors if context is invalid" do
       bad_context = Bodhi::Context.new({})
       expect{ Test.delete_all(bad_context) }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
     end
 
     it "deletes all resources from the cloud in the given context" do
-      Test.factory.create_list(10, context)
-      expect(Test.find_all(context).size).to eq 10
+      Test.factory.create_list(5, context)
+      expect(Test.find_all(context).size).to eq 5
 
       expect{ Test.delete_all(context) }.to_not raise_error
       expect(Test.find_all(context).size).to eq 0
+    end
+  end
+
+  describe ".count(context)" do
+    it "raises Bodhi::ContextErrors if context is invalid" do
+      bad_context = Bodhi::Context.new({})
+      expect{ Test.count(bad_context) }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
+    end
+
+    it "raises Bodhi::ApiErrors if not authorized" do
+      bad_context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: nil })
+      expect{ Test.count(bad_context) }.to raise_error(Bodhi::ApiErrors, 'status: 401, body: {"authentication.credentials.required":"Authentication failed","authentication.supported.types":"HTTP_COOKIE, HTTP_BASIC"}')
+    end
+
+    it "returns a JSON object with the record count" do
+      Test.factory.create_list(5, context)
+      result = Test.count(context)
+
+      expect(result).to be_a Hash
+      expect(result["count"]).to eq 5
     end
   end
 end
