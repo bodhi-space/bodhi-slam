@@ -63,6 +63,21 @@ describe Bodhi::Resource do
     end
   end
 
+  describe "#patch!(params)" do
+    it "raises Bodhi::ApiErrors if the object could not be patched" do
+      record = Test.factory.create(context)
+      expect{ record.patch!("[{}]") }.to raise_error(Bodhi::ApiErrors)
+    end
+
+    it "updates the record with the given patch arguments" do
+      record = Test.factory.create(context)
+      record.patch!([{ op: "replace", path: "/Alisa", value: "hello world" }])
+
+      result = Test.find(context, record.sys_id)
+      expect(result.Alisa).to eq "hello world"
+    end
+  end
+
   describe ".save_batch(context, records)" do
     it "saves and returns a batch of the records" do
       records = [Test.factory.build, Test.factory.build]

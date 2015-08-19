@@ -230,7 +230,7 @@ module Bodhi
           request.url "/#{bodhi_context.namespace}/resources/#{self.class}/#{sys_id}"
           request.headers['Content-Type'] = 'application/json'
           request.headers[bodhi_context.credentials_header] = bodhi_context.credentials
-          request.body = params
+          request.body = params.to_json
         end
   
         if result.status != 204
