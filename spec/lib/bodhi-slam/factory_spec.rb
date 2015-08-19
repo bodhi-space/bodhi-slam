@@ -153,8 +153,6 @@ describe Bodhi::Factory do
 
 
   describe "#add_generator(name, validations)" do
-    it "should raise ArgumentError if :name does not exist for the class"
-
     it "should add the given validations under the :name key" do
       factory.add_generator("foo", type: "Integer")
 
@@ -288,28 +286,6 @@ describe Bodhi::Factory do
     end
 
     context "with String" do
-      context "and is_email=true" do
-        it "returns a random email address" do
-          factory.add_generator("foo", type: "String", is_email: true)
-
-          obj = factory.build
-          expect(obj.foo).to be_a String
-          expect(obj.foo).to match(/\p{Alnum}{5,10}@\p{Alnum}{5,10}\.\p{Alnum}{2,3}/i)
-          puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
-        end
-      end
-
-      context "and is_not_blank=true" do
-        it "returns random non-blank Strings" do
-          factory.add_generator("foo", type: "String", is_not_blank: true)
-
-          obj = factory.build
-          expect(obj.foo).to be_a String
-          expect(obj.foo).to_not match(/^\s+$/)
-          puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
-        end
-      end
-
       context "and multi=true" do
         it "returns 0..5 random Strings in an Array" do
           factory.add_generator("foo", type: "String", multi: true)
@@ -320,6 +296,58 @@ describe Bodhi::Factory do
           expect(obj.foo[0]).to be_a String if obj.foo.size > 0
           puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
         end
+
+        context "and length=true" do
+          it "returns a string with the defined length" do
+            factory.add_generator("foo", type: "String", length: "[5,10]", multi: true)
+
+            obj = factory.build
+            expect(obj.foo).to be_a Array
+            expect(obj.foo.size).to be_between(0,5)
+            expect(obj.foo[0]).to be_a String if obj.foo.size > 0
+            obj.foo.each{ |item| expect(item.length).to be_between(5,10) }
+            puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
+          end
+        end
+
+        context "and matches=true" do
+          it "returns a string which matches the regexp" do
+            factory.add_generator("foo", type: "String", matches: "[a-z]{5}", multi: true)
+
+            obj = factory.build
+            expect(obj.foo).to be_a Array
+            expect(obj.foo.size).to be_between(0,5)
+            expect(obj.foo[0]).to be_a String if obj.foo.size > 0
+            obj.foo.each{ |item| expect(item).to match(/[a-z]{5}/) }
+            puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
+          end
+        end
+
+        context "and is_email=true" do
+          it "returns a random email address" do
+            factory.add_generator("foo", type: "String", is_email: true, multi: true)
+
+            obj = factory.build
+            expect(obj.foo).to be_a Array
+            expect(obj.foo.size).to be_between(0,5)
+            expect(obj.foo[0]).to be_a String if obj.foo.size > 0
+            obj.foo.each{ |item| expect(item).to match(/\p{Alnum}{5,10}@\p{Alnum}{5,10}\.\p{Alnum}{2,3}/i) }
+            puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
+          end
+        end
+
+        context "and is_not_blank=true" do
+          it "returns random non-blank Strings" do
+            factory.add_generator("foo", type: "String", is_not_blank: true, multi: true)
+
+            obj = factory.build
+            expect(obj.foo).to be_a Array
+            expect(obj.foo.size).to be_between(0,5)
+            expect(obj.foo[0]).to be_a String if obj.foo.size > 0
+            obj.foo.each{ |item| expect(item).to_not match(/^\s+$/) }
+            puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
+          end
+        end
       end
 
       context "and multi=false" do
@@ -329,6 +357,50 @@ describe Bodhi::Factory do
           obj = factory.build
           expect(obj.foo).to be_a String
           puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
+        end
+
+        context "and length=true" do
+          it "returns a string with the defined length" do
+            factory.add_generator("foo", type: "String", length: "[5,10]")
+
+            obj = factory.build
+            expect(obj.foo).to be_a String
+            expect(obj.foo.length).to be_between(5,10)
+            puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
+          end
+        end
+
+        context "and matches=true" do
+          it "returns a string which matches the regexp" do
+            factory.add_generator("foo", type: "String", matches: "[a-z]{5}")
+
+            obj = factory.build
+            expect(obj.foo).to be_a String
+            expect(obj.foo).to match(/[a-z]{5}/)
+            puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
+          end
+        end
+
+        context "and is_email=true" do
+          it "returns a random email address" do
+            factory.add_generator("foo", type: "String", is_email: true)
+
+            obj = factory.build
+            expect(obj.foo).to be_a String
+            expect(obj.foo).to match(/\p{Alnum}{5,10}@\p{Alnum}{5,10}\.\p{Alnum}{2,3}/i)
+            puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
+          end
+        end
+
+        context "and is_not_blank=true" do
+          it "returns random non-blank Strings" do
+            factory.add_generator("foo", type: "String", is_not_blank: true)
+
+            obj = factory.build
+            expect(obj.foo).to be_a String
+            expect(obj.foo).to_not match(/^\s+$/)
+            puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
+          end
         end
       end
     end

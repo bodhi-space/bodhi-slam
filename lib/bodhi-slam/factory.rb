@@ -98,6 +98,10 @@ module Bodhi
             generator = lambda{ [*0..5].sample.times.collect{ /\p{Alnum}{5,10}@\p{Alnum}{5,10}\.\p{Alnum}{2,3}/i.random_example } }
           elsif options[:matches]
             generator = lambda{ [*0..5].sample.times.collect{ Regexp.new(options[:matches]).random_example } }
+          elsif options[:length]
+            min = JSON.parse(options[:length]).first
+            max = JSON.parse(options[:length]).last
+            generator = lambda{ [*0..5].sample.times.collect{ [*min..max].sample.times.map{ characters[rand(characters.length)] }.join } }
           else
             generator = lambda{ [*0..5].sample.times.collect{ [*0..100].sample.times.map{ characters[rand(characters.length)] }.join } }
           end
@@ -108,6 +112,10 @@ module Bodhi
             generator = lambda{ /\p{Alnum}{5,10}@\p{Alnum}{5,10}\.\p{Alnum}{2,3}/i.random_example }
           elsif options[:matches]
             generator = lambda{ Regexp.new(options[:matches]).random_example }
+          elsif options[:length]
+            min = JSON.parse(options[:length]).first
+            max = JSON.parse(options[:length]).last
+            generator = lambda{ [*min..max].sample.times.map{ characters[rand(characters.length)] }.join }
           else
             generator = lambda{ [*0..100].sample.times.map{ characters[rand(characters.length)] }.join }
           end
