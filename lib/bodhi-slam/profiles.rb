@@ -2,7 +2,7 @@ module Bodhi
   class Profile
     include Bodhi::Validations
 
-    ATTRIBUTES = [:name, :namespace, :dml, :subspace, :parent, :invoke]
+    ATTRIBUTES = [:name, :namespace, :dml, :subspace, :parent]
     attr_accessor *ATTRIBUTES
     attr_accessor :bodhi_context
 
