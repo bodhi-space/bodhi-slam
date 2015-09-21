@@ -11,10 +11,12 @@ module Bodhi
     
     def initialize(params)
       @connection = Faraday.new(url: params[:server]) do |faraday|
-        faraday.request  :url_encoded             # form-encode POST params
-        #faraday.response :logger                  # log requests to STDOUT
-        #faraday.adapter  Faraday.default_adapter  # make requests with Net::HTTP
+        faraday.request :multipart
+        faraday.request :url_encoded
         faraday.adapter :net_http_persistent
+
+        #faraday.adapter  Faraday.default_adapter
+        #faraday.response :logger
       end
       @server = params[:server]
       @namespace = params[:namespace]
