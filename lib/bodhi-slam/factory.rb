@@ -202,13 +202,25 @@ module Bodhi
         end
 
       else
-        generator = lambda do
-          embedded_klass = Object.const_get(options[:type])
+        if options[:multi]
+          generator = lambda do
+            embedded_klass = Object.const_get(options[:type])
 
-          if options[:multi]
-            [*0..5].sample.times.collect{ embedded_klass.factory.build }
-          else
-            embedded_klass.factory.build
+            if embedded_klass == klass
+              nil
+            else
+              [*0..5].sample.times.collect{ embedded_klass.factory.build }
+            end
+          end
+        else
+          generator = lambda do
+            embedded_klass = Object.const_get(options[:type])
+
+            if embedded_klass == klass
+              nil
+            else
+              embedded_klass.factory.build
+            end
           end
         end
       end
