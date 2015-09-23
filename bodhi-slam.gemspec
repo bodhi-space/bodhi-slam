@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = 'bodhi-slam'
   s.version     = '0.3.4'
-  s.date        = '2015-08-03'
+  s.date        = '2015-09-23'
   s.summary     = "Ruby bindings for the Bodhi API & factories for random data generation"
   s.authors     = ["willdavis"]
   s.email       = 'will.davis@hotschedules.com'
