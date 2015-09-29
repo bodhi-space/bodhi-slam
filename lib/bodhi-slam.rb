@@ -16,6 +16,7 @@ require 'bodhi-slam/resource'
 require 'bodhi-slam/types'
 require 'bodhi-slam/users'
 require 'bodhi-slam/profiles'
+require 'bodhi-slam/queries'
 
 class BodhiSlam
   # Defines a context to interact with the Bodhi API
