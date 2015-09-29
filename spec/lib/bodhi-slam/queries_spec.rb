@@ -29,19 +29,19 @@ describe Bodhi::Query do
     end
 
     describe "#fields" do
-      it "is a comma separated Array of attributes to filter the query result by" do
+      it "is an Array of attributes to filter the query result by" do
         expect(@query.fields).to be_a Array
       end
     end
 
     describe "#paging" do
-      it "is a Hash" do
+      it "is a Hash containing :limit and :page values" do
         expect(@query.paging).to be_a Hash
       end
     end
 
     describe "#sorting" do
-      it "is a Hash" do
+      it "is a Hash containing :fields and :order values" do
         expect(@query.sorting).to be_a Hash
       end
     end
@@ -52,22 +52,27 @@ describe Bodhi::Query do
         expect(@query.context).to eq context
       end
     end
+  end
 
+  describe "Instance Methods" do
     describe "#url" do
       it "formats a basic url string for the query" do
         @query.from(context)
         expect(@query.url).to eq "/#{ENV['QA_TEST_NAMESPACE']}/resources/Store?"
+        puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
       end
 
       context "with criteria" do
         it "adds single mongodb where query" do
           @query.where("{test: { $exists: true }}")
           expect(@query.url).to eq "/resources/Store?where={test:{$exists:true}}"
+          puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
 
         it "joins multiple criteria into an $and mongodb query" do
           @query.where("{test: { $exists: true }}").and("{foo: 'bar'}").and("{test: 10}")
           expect(@query.url).to eq "/resources/Store?where={$and:[{test:{$exists:true}},{foo:'bar'},{test:10}]}"
+          puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
       end
 
@@ -75,11 +80,13 @@ describe Bodhi::Query do
         it "joins all fields into the query" do
           @query.select("name,foo,bar")
           expect(@query.url).to eq "/resources/Store?fields=name,foo,bar"
+          puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
 
         it "ignores empty fields (,,,,)" do
           @query.select("name,foo,bar,,,,,")
           expect(@query.url).to eq "/resources/Store?fields=name,foo,bar"
+          puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
       end
 
@@ -87,11 +94,13 @@ describe Bodhi::Query do
         it "adds the field to the query" do
           @query.sort("foo")
           expect(@query.url).to eq "/resources/Store?sort=foo"
+          puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
 
         it "adds the sort order to the query" do
           @query.sort("foo", :desc)
           expect(@query.url).to eq "/resources/Store?sort=foo:desc"
+          puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
       end
 
@@ -99,40 +108,23 @@ describe Bodhi::Query do
         it "adds the page number to the query" do
           @query.page(2)
           expect(@query.url).to eq "/resources/Store?paging=page:2"
+          puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
 
         it "adds the limit to the query" do
           @query.limit(10)
           expect(@query.url).to eq "/resources/Store?paging=limit:10"
+          puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
 
         it "displays both paging and limit" do
           @query.page(2).limit(10)
           expect(@query.url).to eq "/resources/Store?paging=page:2,limit:10"
+          puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
       end
-
-      it "returns the query in url format" do
-        @query.from(context).where("{test: { $exists: true }}")
-        expect(@query.url).to eq "/#{ENV['QA_TEST_NAMESPACE']}/resources/Store?where={test:{$exists:true}}"
-        puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
-
-        @query.where("{test: 10}").and("{foo: 'bar'}")
-        expect(@query.url).to eq "/#{ENV['QA_TEST_NAMESPACE']}/resources/Store?where={$and:[{test:{$exists:true}},{test:10},{foo:'bar'}]}"
-        puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
-
-        @query.select("name,foo,bar")
-        expect(@query.url).to eq "/#{ENV['QA_TEST_NAMESPACE']}/resources/Store?where={$and:[{test:{$exists:true}},{test:10},{foo:'bar'}]}&fields=name,foo,bar"
-        puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
-
-        @query.limit(10).page(2).sort("foo", :desc)
-        expect(@query.url).to eq "/#{ENV['QA_TEST_NAMESPACE']}/resources/Store?where={$and:[{test:{$exists:true}},{test:10},{foo:'bar'}]}&fields=name,foo,bar&paging=page:2,limit:10&sort=foo:desc"
-        puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
-      end
     end
-  end
-
-  describe "Instance Methods" do
+    
     describe "#clear!" do
       it "resets all attributes in the Bodhi::Query object" do
         @query.from(context).where("{test}").select("foo").limit(10).page(2).sort("foo", :desc)
