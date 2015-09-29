@@ -108,20 +108,18 @@ describe Bodhi::Resource do
     end
   end
 
-  describe ".where(context, query)" do
-    it "should raise error if context is not valid" do
-      bad_context = Bodhi::Context.new({})
-      expect{ Test.where(bad_context, "test") }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
+  describe ".where(query)" do
+    it "returns a Bodhi::Query object for querying Test resources" do
+      query = Test.where("{test}")
+
+      expect(query).to be_a Bodhi::Query
+      expect(query.criteria).to include "{test}"
     end
 
-    it "should raise api error if the query is not valid" do
-      expect{ Test.where(context, "12345") }.to raise_error(Bodhi::ApiErrors)
-    end
-
-    it "should return an array of resources that match the query" do
+    it "returns an Array of resources when called" do
       records = Test.factory.create_list(5, context, Olia: 20)
       other_records = Test.factory.create_list(5, context, Olia: 10)
-      results = Test.where(context, "{Olia: 20}")
+      results = Test.where("{Olia: 20}").from(context).all
 
       puts "\033[33mFound Resources\033[0m: \033[36m#{results.map(&:attributes)}\033[0m"
       expect(results.count).to eq 5

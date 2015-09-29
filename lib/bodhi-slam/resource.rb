@@ -120,30 +120,15 @@ module Bodhi
         JSON.parse(result.body)
       end
 
-      # Returns all records for a resource which match the given +query+
+      # Returns a Bodhi::Query object for quering the given Resource
       # 
       #   context = Bodhi::Context.new
-      #   Resource.where(context, "{property: 'value'}")
-      def where(context, query)
-        if context.invalid?
-          raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
-        end
-
-        unless query.is_a? String
-          raise ArgumentError.new("Expected 'query' to be a String. 'query' #=> #{query.class}")
-        end
-
-        result = context.connection.get do |request|
-          request.url "/#{context.namespace}/resources/#{name}?where=#{query}"
-          request.headers[context.credentials_header] = context.credentials
-        end
-
-        if result.status != 200
-          raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
-        end
-
-        resources = JSON.parse(result.body)
-        resources.map{ |attributes| factory.build(context, attributes) }
+      #   Resource.where("{property: 'value'}").from(context).all
+      #   Resource.where("{conditions}").and("{more conditions}").limit(10).from(context).all
+      def where(query)
+        query_obj = Bodhi::Query.new(name)
+        query_obj.where(query)
+        query_obj
       end
 
       # Deletes all records from a resource in the given +context+

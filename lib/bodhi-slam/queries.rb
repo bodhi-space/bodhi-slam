@@ -3,7 +3,7 @@ module Bodhi
     attr_reader :klass, :url, :context, :criteria, :fields, :paging, :sorting
 
     def initialize(klass)
-      @klass = klass
+      @klass = Object.const_get(klass.to_s)
       @criteria = []
       @fields = []
       @paging = {}
