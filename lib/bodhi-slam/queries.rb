@@ -153,6 +153,7 @@ module Bodhi
       end
 
       @criteria << query
+      @criteria.uniq!
       self
     end
     alias :and :where
@@ -165,6 +166,7 @@ module Bodhi
       fields_array = field_names.split(',')
       @fields << fields_array
       @fields.flatten!
+      @fields.uniq!
       self
     end
 

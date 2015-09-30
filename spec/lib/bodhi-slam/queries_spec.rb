@@ -173,6 +173,11 @@ describe Bodhi::Query do
         @query.where("{test}")
         expect(@query.criteria).to include "{test}"
       end
+
+      it "does not add duplicate criteria" do
+        @query.where("{test}").where("{test}")
+        expect(@query.criteria).to contain_exactly("{test}")
+      end
     end
 
     describe "#select(comma_separated_string)" do
@@ -187,6 +192,11 @@ describe Bodhi::Query do
       it "adds each attribute to the read only :fields array on the Bodhi::Query object" do
         @query.select("test,foo,bar")
         expect(@query.fields).to match_array ["test", "foo", "bar"]
+      end
+
+      it "does not add duplicate field names" do
+        @query.select("test,test,test")
+        expect(@query.fields).to contain_exactly("test")
       end
     end
 
