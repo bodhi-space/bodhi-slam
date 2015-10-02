@@ -1,5 +1,6 @@
 module Bodhi
   module Resource
+
     SYSTEM_ATTRIBUTES = [:sys_created_at, :sys_version, :sys_modified_at, :sys_modified_by,
       :sys_namespace, :sys_created_by, :sys_type_version, :sys_id, :sys_embeddedType]
     SUPPORT_ATTRIBUTES = [:bodhi_context, :errors]
@@ -62,8 +63,9 @@ module Bodhi
           raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
         end
 
-        resource_attributes = JSON.parse(result.body)
-        factory.build(context, resource_attributes)
+        record = Object.const_get(name).new(JSON.parse(result.body))
+        record.bodhi_context = context
+        record
       end
 
       # Returns all records of the given resource from the Bodhi Cloud.
@@ -92,7 +94,7 @@ module Bodhi
           records << JSON.parse(result.body)
         end while records.size == 100
 
-        records.flatten.collect{ |record| factory.build(record) }
+        records.flatten.collect{ |record| Object.const_get(name).new(record) }
       end
 
       # Aggregates the given resource based on the supplied +pipeline+
@@ -152,6 +154,9 @@ module Bodhi
     end
 
     module InstanceMethods
+      def id; @sys_id; end
+      def persisted?; !@sys_id.nil?; end
+
       # Returns a Hash of the Objects form attributes
       # 
       #   s = SomeResource.build({foo:"test", bar:12345})
@@ -166,7 +171,22 @@ module Bodhi
         end
         attributes
       end
-  
+
+      # Updates the resource with the given attributes Hash
+      # 
+      #   s = SomeResource.factory.build(foo:"test", bar:12345)
+      #   s.attributes # => { foo: "test", bar: 12345 }
+      #   s.update_attributes(foo:"12345", bar:10)
+      #   s.attributes # => { foo: "12345", bar: 10 }
+      def update_attributes(params)
+        self.instance_variables.each do |variable|
+          attribute_name = variable.to_s.delete('@').to_sym
+          unless SYSTEM_ATTRIBUTES.include?(attribute_name) || SUPPORT_ATTRIBUTES.include?(attribute_name)
+            send("#{attribute_name}=", params[attribute_name])
+          end
+        end
+      end
+
       # Returns all the Objects attributes as JSON.
       # It converts any nested Objects to JSON if they respond to +to_json+
       # 
@@ -175,6 +195,34 @@ module Bodhi
       def to_json(base=nil)
         super if base
         attributes.to_json
+      end
+
+      # Saves the resource to the Bodhi Cloud.  Returns true if record was saved
+      # 
+      #   obj = Resource.new
+      #   obj.save # => true
+      #   obj.persisted? # => true
+      def save
+        if self.invalid?
+          return false
+        end
+
+        result = bodhi_context.connection.post do |request|
+          request.url "/#{bodhi_context.namespace}/resources/#{self.class}"
+          request.headers['Content-Type'] = 'application/json'
+          request.headers[bodhi_context.credentials_header] = bodhi_context.credentials
+          request.body = attributes.to_json
+        end
+  
+        if result.status != 201
+          raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
+        end
+
+        if result.headers['location']
+          @sys_id = result.headers['location'].match(/(?<id>[a-zA-Z0-9]{24})/)[:id]
+        end
+
+        true
       end
 
       # Saves the resource to the Bodhi Cloud.  Raises ArgumentError if record could not be saved.
@@ -209,6 +257,29 @@ module Bodhi
           raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
         end
       end
+      alias :destroy :delete!
+
+      def update!(params)
+        update_attributes(params)
+
+        if invalid?
+          return false
+        end
+
+        result = bodhi_context.connection.put do |request|
+          request.url "/#{bodhi_context.namespace}/resources/#{self.class}/#{sys_id}"
+          request.headers['Content-Type'] = 'application/json'
+          request.headers[bodhi_context.credentials_header] = bodhi_context.credentials
+          request.body = params.to_json
+        end
+
+        if result.status != 204
+          raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
+        end
+
+        true
+      end
+      alias :update :update!
 
       def patch!(params)
         result = bodhi_context.connection.patch do |request|
@@ -226,7 +297,7 @@ module Bodhi
 
     def self.included(base)
       base.extend(ClassMethods)
-      base.include(InstanceMethods, Bodhi::Validations)
+      base.include(InstanceMethods, Bodhi::Validations, ActiveModel::Model)
       base.instance_variable_set(:@factory, Bodhi::Factory.new(base))
     end
   end

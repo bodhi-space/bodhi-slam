@@ -4,6 +4,7 @@ require "json"
 require "time"
 require "SecureRandom"
 require 'regexp-examples'
+require 'active_model'
 
 require 'bodhi-slam/validations'
 require 'bodhi-slam/errors'

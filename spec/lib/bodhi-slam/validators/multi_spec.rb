@@ -13,12 +13,19 @@ describe Bodhi::MultiValidator do
   
   describe "#validate(record, attribute, value)" do
     it "should add error if :value is not an array" do
+      record.foo = "test"
       validator.validate(record, :foo, record.foo)
       expect(record.errors.full_messages).to include("foo must be an array")
     end
     
     it "should not add error if :value is an array" do
       record.foo = []
+      validator.validate(record, :foo, record.foo)
+      expect(record.errors.full_messages).to_not include("foo must be an array")
+    end
+
+    it "should not add error if the :value is nil" do
+      record.foo = nil
       validator.validate(record, :foo, record.foo)
       expect(record.errors.full_messages).to_not include("foo must be an array")
     end
