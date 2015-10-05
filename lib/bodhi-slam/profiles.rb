@@ -102,7 +102,7 @@ module Bodhi
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
 
-      profile = Bodhi::Profile.new(JSON.parse(result.body))
+      profile = Bodhi::Profile.new(result.body)
       profile.bodhi_context = context
       profile
     end

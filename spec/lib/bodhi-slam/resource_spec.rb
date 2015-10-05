@@ -66,7 +66,7 @@ describe Bodhi::Resource do
   describe "#patch!(params)" do
     it "raises Bodhi::ApiErrors if the object could not be patched" do
       record = Test.factory.create(context)
-      expect{ record.patch!("[{}]") }.to raise_error(Bodhi::ApiErrors)
+      expect{ record.patch!([{}]) }.to raise_error(Bodhi::ApiErrors)
     end
 
     it "updates the record with the given patch arguments" do
@@ -178,7 +178,7 @@ describe Bodhi::Resource do
 
     it "raises Bodhi::ApiErrors if not authorized" do
       bad_context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: nil })
-      expect{ Test.count(bad_context) }.to raise_error(Bodhi::ApiErrors, 'status: 401, body: {"authentication.credentials.required":"Authentication failed","authentication.supported.types":"HTTP_COOKIE, HTTP_BASIC"}')
+      expect{ Test.count(bad_context) }.to raise_error(Bodhi::ApiErrors)
     end
 
     it "returns a JSON object with the record count" do

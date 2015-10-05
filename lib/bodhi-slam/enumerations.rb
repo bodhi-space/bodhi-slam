@@ -42,7 +42,7 @@ module Bodhi
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
 
-      JSON.parse(result.body).collect{ |enum| Bodhi::Enumeration.new(enum) }
+      result.body.collect{ |enum| Bodhi::Enumeration.new(enum) }
     end
 
     # Returns a Hash of all Bodhi::Enumerations in the cache

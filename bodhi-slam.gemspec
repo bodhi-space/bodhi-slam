@@ -7,8 +7,9 @@ Gem::Specification.new do |s|
   s.email       = 'will.davis@hotschedules.com'
   s.files       = Dir['lib/**/*']
   s.license     = 'MIT'
-  s.add_runtime_dependency 'net-http-persistent', '~> 2.9'
   s.add_runtime_dependency 'faraday', '~> 0.9'
+  s.add_runtime_dependency 'faraday_middleware', '~> 0.10'
+  s.add_runtime_dependency 'net-http-persistent', '~> 2.9'
   s.add_runtime_dependency 'json', '~> 1.7'
   s.add_runtime_dependency 'regexp-examples', '~> 1.1'
   s.add_runtime_dependency 'activemodel', '~> 4.2'

@@ -37,7 +37,7 @@ module Bodhi
           raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
         end
 
-        JSON.parse(result.body)
+        result.body
       end
 
       # Returns a single resource from the Bodhi Cloud that matches the given +id+
@@ -63,7 +63,7 @@ module Bodhi
           raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
         end
 
-        record = Object.const_get(name).new(JSON.parse(result.body))
+        record = Object.const_get(name).new(result.body)
         record.bodhi_context = context
         record
       end
@@ -91,7 +91,7 @@ module Bodhi
           end
 
           page += 1
-          records << JSON.parse(result.body)
+          records << result.body
         end while records.size == 100
 
         records.flatten.collect{ |record| Object.const_get(name).new(record) }
@@ -119,7 +119,7 @@ module Bodhi
           raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
         end
 
-        JSON.parse(result.body)
+        result.body
       end
 
       # Returns a Bodhi::Query object for quering the given Resource

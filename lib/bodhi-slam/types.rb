@@ -116,7 +116,7 @@ module Bodhi
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
 
-      type = Bodhi::Type.new(JSON.parse(result.body))
+      type = Bodhi::Type.new(result.body)
       type.bodhi_context = context
       type
     end
@@ -146,7 +146,7 @@ module Bodhi
         end
 
         page += 1
-        records = JSON.parse(result.body)
+        records = result.body
         all_records << records
       end while records.size == 100
 

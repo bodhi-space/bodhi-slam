@@ -110,7 +110,7 @@ module Bodhi
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
 
-      user = Bodhi::User.new(JSON.parse(result.body))
+      user = Bodhi::User.new(result.body)
       user.bodhi_context = context
       user
     end
@@ -133,7 +133,7 @@ module Bodhi
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
 
-      JSON.parse(result.body)
+      result.body
     end
   end
 end

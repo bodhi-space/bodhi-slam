@@ -1,5 +1,7 @@
-require "faraday"
+require 'faraday'
+require 'faraday_middleware'
 require 'net/http/persistent'
+
 require "json"
 require "time"
 require "SecureRandom"

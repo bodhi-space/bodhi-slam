@@ -90,8 +90,7 @@ module Bodhi
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
 
-      resources = JSON.parse(result.body)
-      resources.map{ |attributes| klass.factory.build(context, attributes) }
+      result.body.map{ |attributes| klass.factory.build(context, attributes) }
     end
 
     def first
@@ -112,8 +111,7 @@ module Bodhi
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
 
-      resources = JSON.parse(result.body)
-      resources.map{ |attributes| klass.factory.build(context, attributes) }.first
+      result.body.map{ |attributes| klass.factory.build(context, attributes) }.first
     end
 
     def last
@@ -134,8 +132,7 @@ module Bodhi
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
 
-      resources = JSON.parse(result.body)
-      resources.map{ |attributes| klass.factory.build(context, attributes) }.last
+      result.body.map{ |attributes| klass.factory.build(context, attributes) }.last
     end
 
     def from(context)

@@ -13,9 +13,11 @@ module Bodhi
       @connection = Faraday.new(url: params[:server]) do |faraday|
         faraday.request :multipart
         faraday.request :url_encoded
-        faraday.adapter :net_http_persistent
 
+        faraday.adapter :net_http_persistent
         #faraday.adapter  Faraday.default_adapter
+
+        faraday.response :json, :content_type => /\bjson$/
         #faraday.response :logger
       end
       @server = params[:server]

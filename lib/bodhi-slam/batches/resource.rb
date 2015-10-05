@@ -32,9 +32,7 @@ module Bodhi
         raise Bodhi::ApiErrors.new(body: response.body, status: response.status), "status: #{response.status}, body: #{response.body}"
       end
 
-      # Parse the result body and update records with their sys_id
-      response_body = JSON.parse(response.body)
-      results = response_body.zip(records)
+      results = response.body.zip(records)
       results.each do |response, record|
         if response["location"]
           record.sys_id = response["location"].match(/(?<id>[a-zA-Z0-9]{24})/)[:id]
