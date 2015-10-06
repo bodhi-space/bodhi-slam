@@ -3,7 +3,7 @@ module Bodhi
     attr_reader :value
 
     def initialize(value)
-      @value = JSON.parse(value)
+      @value = value
     end
 
     def validate(record, attribute, value)

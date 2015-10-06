@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Bodhi::LengthValidator do
-  let(:validator){ Bodhi::LengthValidator.new("[10,20]") }
+  let(:validator){ Bodhi::LengthValidator.new([10,20]) }
   let(:klass) do
     Class.new do
       include Bodhi::Validations
