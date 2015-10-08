@@ -157,6 +157,21 @@ module Bodhi
       def id; @sys_id; end
       def persisted?; !@sys_id.nil?; end
 
+      def initialize(params={})
+        super(params)
+
+        # Build any embedded objects
+        params.each do |param_key, param_value|
+          if self.class.validators.has_key?(param_key.to_sym)
+            type_validator = self.class.validators[param_key.to_sym].find{ |validator| validator.is_a? Bodhi::TypeValidator }
+            klass = Object.const_get(type_validator.type)
+            if klass.ancestors.include?(Bodhi::Resource)
+              send("#{param_key}=", klass.new(param_value))
+            end
+          end
+        end
+      end
+
       # Returns a Hash of the Objects form attributes
       # 
       #   s = SomeResource.build({foo:"test", bar:12345})

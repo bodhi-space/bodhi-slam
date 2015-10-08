@@ -1,22 +1,31 @@
 require 'spec_helper'
 
 describe Bodhi::Resource do
-  let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
+  before(:all) do
+    @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
+    @type = Bodhi::Type.new(name: "TestResource", properties: { foo: { type: "String" }, bar: { type: "TestEmbeddedResource" }, baz: { type: "Integer" } })
+    @embedded_type = Bodhi::Type.new(name: "TestEmbeddedResource", properties: { test: { type: "String" } }, embedded: true)
 
-  before do
-    Object.const_set("TestResource", Class.new{ include Bodhi::Resource; attr_accessor :foo })
-    TestResource.factory.add_generator("foo", type: "String")
+    @type.bodhi_context = @context
+    @embedded_type.bodhi_context = @context
 
-    Object.const_set("Test", Class.new{ include Bodhi::Resource; attr_accessor :Brandon, :Olia, :Alisa })
-    Test.factory.add_generator("Brandon", type: "Boolean")
-    Test.factory.add_generator("Olia", type: "Integer")
-    Test.factory.add_generator("Alisa", type: "String")
+    @type.save!
+    @embedded_type.save!
+
+    Bodhi::Type.create_class_with(@type)
+    Bodhi::Type.create_class_with(@embedded_type)
+  end
+
+  after(:all) do
+    @type.delete!
+    @embedded_type.delete!
+
+    Object.send(:remove_const, :TestResource)
+    Object.send(:remove_const, :TestEmbeddedResource)
   end
 
   after do
-    Test.delete_all(context)
-    Object.send(:remove_const, :TestResource)
-    Object.send(:remove_const, :Test)
+    TestResource.delete_all(@context)
   end
 
   it "includes Bodhi::Validations" do
@@ -38,50 +47,52 @@ describe Bodhi::Resource do
 
   describe "#save!" do
     it "should raise Bodhi::ApiErrors if the object could not be saved" do
-      test = Test.factory.build(Brandon: 12345)
-      test.bodhi_context = context
+      test = TestResource.factory.build(foo: 12345)
+      test.bodhi_context = @context
       expect{ test.save! }.to raise_error(Bodhi::ApiErrors)
     end
 
     it "should POST the objects attributes to the cloud" do
-      test = Test.factory.build
-      test.bodhi_context = context
+      test = TestResource.factory.build
+      test.bodhi_context = @context
       expect{ test.save! }.to_not raise_error
     end
   end
 
   describe "#delete!" do
     it "raises Bodhi::ApiErrors if the object could not be deleted" do
-      record = Test.factory.create(context)
+      record = TestResource.factory.create(@context)
       record.sys_id = nil
       expect{ record.delete! }.to raise_error(Bodhi::ApiErrors)
     end
 
     it "should DELETE the object from the cloud" do
-      record = Test.factory.create(context)
+      record = TestResource.factory.create(@context)
       expect{ record.delete! }.to_not raise_error
     end
   end
 
   describe "#patch!(params)" do
     it "raises Bodhi::ApiErrors if the object could not be patched" do
-      record = Test.factory.create(context)
+      record = TestResource.factory.create(@context)
       expect{ record.patch!([{}]) }.to raise_error(Bodhi::ApiErrors)
     end
 
     it "updates the record with the given patch arguments" do
-      record = Test.factory.create(context)
-      record.patch!([{ op: "replace", path: "/Alisa", value: "hello world" }])
+      record = TestResource.factory.create(@context)
+      record.patch!([{ op: "replace", path: "/foo", value: "hello world" }])
+      record.patch!([{ op: "replace", path: "/bar/test", value: "hello world" }])
 
-      result = Test.find(context, record.sys_id)
-      expect(result.Alisa).to eq "hello world"
+      result = TestResource.find(@context, record.id)
+      expect(result.foo).to eq "hello world"
+      expect(result.bar.test).to eq "hello world"
     end
   end
 
   describe ".save_batch(context, records)" do
     it "saves and returns a batch of the records" do
-      records = [Test.factory.build, Test.factory.build]
-      result = Test.save_batch(context, records)
+      records = [TestResource.factory.build, TestResource.factory.build]
+      result = TestResource.save_batch(@context, records)
       expect(result).to be_a Bodhi::ResourceBatch
       expect(result.failed).to be_empty
       expect(result.created).to match_array(records)
@@ -91,39 +102,39 @@ describe Bodhi::Resource do
   describe ".find(context, id)" do
     it "should raise Bodhi::Error if context is not valid" do
       bad_context = Bodhi::Context.new({})
-      expect{ Test.find(bad_context, 1234) }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
+      expect{ TestResource.find(bad_context, 1234) }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
     end
 
     it "should raise Bodhi::ApiErrors if :id is not present" do
-      expect{ Test.find(context, "12345") }.to raise_error(Bodhi::ApiErrors)
+      expect{ TestResource.find(@context, "12345") }.to raise_error(Bodhi::ApiErrors)
     end
 
     it "should return the resource with the given id" do
-      record = Test.factory.create(context)
-      result = Test.find(context, record.sys_id)
-      expect(result).to be_a Test
+      record = TestResource.factory.create(@context)
+      result = TestResource.find(@context, record.sys_id)
+      expect(result).to be_a TestResource
 
       puts "\033[33mFound Resource\033[0m: \033[36m#{result.attributes}\033[0m"
-      expect(result.attributes).to eq record.attributes
+      expect(result.to_json).to eq record.to_json
     end
   end
 
   describe ".where(query)" do
     it "returns a Bodhi::Query object for querying Test resources" do
-      query = Test.where("{test}")
+      query = TestResource.where("{test}")
 
       expect(query).to be_a Bodhi::Query
       expect(query.criteria).to include "{test}"
     end
 
     it "returns an Array of resources when called" do
-      records = Test.factory.create_list(5, context, Olia: 20)
-      other_records = Test.factory.create_list(5, context, Olia: 10)
-      results = Test.where("{Olia: 20}").from(context).all
+      records = TestResource.factory.create_list(5, @context, foo: "test")
+      other_records = TestResource.factory.create_list(5, @context, foo: "not_test")
+      results = TestResource.where("{foo: 'test'}").from(@context).all
 
       puts "\033[33mFound Resources\033[0m: \033[36m#{results.map(&:attributes)}\033[0m"
       expect(results.count).to eq 5
-      results.each{ |obj| expect(obj).to be_a Test }
+      results.each{ |obj| expect(obj).to be_a TestResource }
       expect(JSON.parse(results.to_json)).to match_array JSON.parse(records.to_json)
     end
   end
@@ -131,59 +142,59 @@ describe Bodhi::Resource do
   describe ".aggregate(context, pipeline)" do
     it "should raise error if context is not valid" do
       bad_context = Bodhi::Context.new({})
-      expect{ Test.aggregate(bad_context, "test") }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
+      expect{ TestResource.aggregate(bad_context, "test") }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
     end
 
     it "should raise api error if the pipeline is not valid" do
-      expect{ Test.aggregate(context, "12345") }.to raise_error(Bodhi::ApiErrors)
+      expect{ TestResource.aggregate(@context, "12345") }.to raise_error(Bodhi::ApiErrors)
     end
 
     it "should return the aggregation as json" do
-      records = Test.factory.create_list(10, context, Olia: 20)
-      other_records = Test.factory.create_list(5, context, Olia: 10)
+      records = TestResource.factory.create_list(10, @context, baz: 20)
+      other_records = TestResource.factory.create_list(5, @context, baz: 10)
       pipeline = "[
-        { $match: { Olia: { $gte: 20 } } },
-        { $group: { _id: 'count_olias_greater_than_20', Olia:{ $sum: 1 } } }
+        { $match: { baz: { $gte: 20 } } },
+        { $group: { _id: 'count_baz_greater_than_20', baz:{ $sum: 1 } } }
       ]"
-      results = Test.aggregate(context, pipeline)
+      results = TestResource.aggregate(@context, pipeline)
 
       puts "\033[33mAggregate Result\033[0m: \033[36m#{results}\033[0m"
       expect(results).to be_a Array
       results.each{ |obj| expect(obj).to be_a Hash }
-      expect(results[0]["_id"]).to eq "count_olias_greater_than_20"
-      expect(results[0]["Olia"]).to eq 10
+      expect(results[0]["_id"]).to eq "count_baz_greater_than_20"
+      expect(results[0]["baz"]).to eq 10
     end
   end
 
   describe ".delete_all(context)" do
     it "raises Bodhi::ContextErrors if context is invalid" do
       bad_context = Bodhi::Context.new({})
-      expect{ Test.delete_all(bad_context) }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
+      expect{ TestResource.delete_all(bad_context) }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
     end
 
     it "deletes all resources from the cloud in the given context" do
-      Test.factory.create_list(5, context)
-      expect(Test.find_all(context).size).to eq 5
+      TestResource.factory.create_list(5, @context)
+      expect(TestResource.find_all(@context).size).to eq 5
 
-      expect{ Test.delete_all(context) }.to_not raise_error
-      expect(Test.find_all(context).size).to eq 0
+      expect{ TestResource.delete_all(@context) }.to_not raise_error
+      expect(TestResource.find_all(@context).size).to eq 0
     end
   end
 
   describe ".count(context)" do
     it "raises Bodhi::ContextErrors if context is invalid" do
       bad_context = Bodhi::Context.new({})
-      expect{ Test.count(bad_context) }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
+      expect{ TestResource.count(bad_context) }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
     end
 
     it "raises Bodhi::ApiErrors if not authorized" do
       bad_context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: nil })
-      expect{ Test.count(bad_context) }.to raise_error(Bodhi::ApiErrors)
+      expect{ TestResource.count(bad_context) }.to raise_error(Bodhi::ApiErrors)
     end
 
     it "returns a JSON object with the record count" do
-      Test.factory.create_list(5, context)
-      result = Test.count(context)
+      TestResource.factory.create_list(5, @context)
+      result = TestResource.count(@context)
 
       expect(result).to be_a Hash
       expect(result["count"]).to eq 5

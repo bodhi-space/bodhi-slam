@@ -1,24 +1,41 @@
 require 'spec_helper'
 
 describe Bodhi::Query do
-  let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
+  before(:all) do
+    @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
+    @type = Bodhi::Type.new(name: "TestResource", properties: { foo: { type: "String" }, bar: { type: "TestEmbeddedResource" }, baz: { type: "Integer" } })
+    @embedded_type = Bodhi::Type.new(name: "TestEmbeddedResource", properties: { test: { type: "String" } }, embedded: true)
+
+    @type.bodhi_context = @context
+    @embedded_type.bodhi_context = @context
+
+    @type.save!
+    @embedded_type.save!
+
+    Bodhi::Type.create_class_with(@type)
+    Bodhi::Type.create_class_with(@embedded_type)
+  end
+
+  after(:all) do
+    @type.delete!
+    @embedded_type.delete!
+
+    Object.send(:remove_const, :TestResource)
+    Object.send(:remove_const, :TestEmbeddedResource)
+  end
 
   before do
-    Object.const_set("Store", Class.new{ include Bodhi::Resource; attr_accessor :name, :store_number, :display_name })
-    Store.factory.add_generator(:name, type: "String", is_not_blank: true)
-    Store.factory.add_generator(:store_number, type: "String", is_not_blank: true)
-    Store.factory.add_generator(:display_name, type: "String")
-    @query = Bodhi::Query.new(Store)
+    @query = Bodhi::Query.new(TestResource)
   end
 
   after do
-    Object.send(:remove_const, :Store)
+    TestResource.delete_all(@context)
   end
 
   describe "Object Attributes" do
     describe "#klass" do
       it "is the Class of the resource to be queried" do
-        expect(@query.klass).to eq Store
+        expect(@query.klass).to eq TestResource
       end
     end
 
@@ -48,8 +65,8 @@ describe Bodhi::Query do
 
     describe "#context" do
       it "is a Bodhi::Context object" do
-        @query.from(context)
-        expect(@query.context).to eq context
+        @query.from(@context)
+        expect(@query.context).to eq @context
       end
     end
   end
@@ -57,21 +74,21 @@ describe Bodhi::Query do
   describe "Instance Methods" do
     describe "#url" do
       it "formats a basic url string for the query" do
-        @query.from(context)
-        expect(@query.url).to eq "/#{ENV['QA_TEST_NAMESPACE']}/resources/Store?"
+        @query.from(@context)
+        expect(@query.url).to eq "/#{ENV['QA_TEST_NAMESPACE']}/resources/TestResource?"
         puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
       end
 
       context "with criteria" do
         it "adds single mongodb where query" do
           @query.where("{test: { $exists: true }}")
-          expect(@query.url).to eq "/resources/Store?where={test:{$exists:true}}"
+          expect(@query.url).to eq "/resources/TestResource?where={test:{$exists:true}}"
           puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
 
         it "joins multiple criteria into an $and mongodb query" do
           @query.where("{test: { $exists: true }}").and("{foo: 'bar'}").and("{test: 10}")
-          expect(@query.url).to eq "/resources/Store?where={$and:[{test:{$exists:true}},{foo:'bar'},{test:10}]}"
+          expect(@query.url).to eq "/resources/TestResource?where={$and:[{test:{$exists:true}},{foo:'bar'},{test:10}]}"
           puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
       end
@@ -79,13 +96,13 @@ describe Bodhi::Query do
       context "with fields" do
         it "joins all fields into the query" do
           @query.select("name,foo,bar")
-          expect(@query.url).to eq "/resources/Store?fields=name,foo,bar"
+          expect(@query.url).to eq "/resources/TestResource?fields=name,foo,bar"
           puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
 
         it "ignores empty fields (,,,,)" do
           @query.select("name,foo,bar,,,,,")
-          expect(@query.url).to eq "/resources/Store?fields=name,foo,bar"
+          expect(@query.url).to eq "/resources/TestResource?fields=name,foo,bar"
           puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
       end
@@ -93,13 +110,13 @@ describe Bodhi::Query do
       context "with sorting" do
         it "adds the field to the query" do
           @query.sort("foo")
-          expect(@query.url).to eq "/resources/Store?sort=foo"
+          expect(@query.url).to eq "/resources/TestResource?sort=foo"
           puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
 
         it "adds the sort order to the query" do
           @query.sort("foo", :desc)
-          expect(@query.url).to eq "/resources/Store?sort=foo:desc"
+          expect(@query.url).to eq "/resources/TestResource?sort=foo:desc"
           puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
       end
@@ -107,19 +124,19 @@ describe Bodhi::Query do
       context "with paging" do
         it "adds the page number to the query" do
           @query.page(2)
-          expect(@query.url).to eq "/resources/Store?paging=page:2"
+          expect(@query.url).to eq "/resources/TestResource?paging=page:2"
           puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
 
         it "adds the limit to the query" do
           @query.limit(10)
-          expect(@query.url).to eq "/resources/Store?paging=limit:10"
+          expect(@query.url).to eq "/resources/TestResource?paging=limit:10"
           puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
 
         it "displays both paging and limit" do
           @query.page(2).limit(10)
-          expect(@query.url).to eq "/resources/Store?paging=page:2,limit:10"
+          expect(@query.url).to eq "/resources/TestResource?paging=page:2,limit:10"
           puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
       end
@@ -127,7 +144,7 @@ describe Bodhi::Query do
     
     describe "#clear!" do
       it "resets all attributes in the Bodhi::Query object" do
-        @query.from(context).where("{test}").select("foo").limit(10).page(2).sort("foo", :desc)
+        @query.from(@context).where("{test}").select("foo").limit(10).page(2).sort("foo", :desc)
 
         expect(@query.context).to_not be_nil
         expect(@query.criteria).to_not be_empty
@@ -151,12 +168,12 @@ describe Bodhi::Query do
       end
 
       it "returns the Bodhi::Query object for method chaining" do
-        expect( @query.from(context) ).to eq @query
+        expect( @query.from(@context) ).to eq @query
       end
 
       it "sets the read only :context attribute on the Bodhi::Query object" do
-        @query.from(context)
-        expect(@query.context).to eq context
+        @query.from(@context)
+        expect(@query.context).to eq @context
       end
     end
 
@@ -261,15 +278,12 @@ describe Bodhi::Query do
       end
 
       it "invokes the query and returns an array of all records that match" do
-        test_stores = Store.factory.create_list(5, context, display_name: "test")
-        not_test_stores = Store.factory.create_list(2, context, display_name: "not_test")
+        TestResource.factory.create_list(5, @context, foo: "test")
+        TestResource.factory.create_list(2, @context, foo: "not_test")
 
-        result = @query.from(context).where("{display_name: 'test'}").all
+        result = @query.from(@context).where("{foo: 'test'}").all
         puts "\033[33mFound Resources\033[0m: \033[36m#{result.map(&:attributes)}\033[0m"
         expect(result.size).to eq 5
-
-        test_stores.each{|store| store.delete! }
-        not_test_stores.each{|store| store.delete! }
       end
     end
 
@@ -282,14 +296,11 @@ describe Bodhi::Query do
       end
 
       it "invokes the query and returns the first record that matches" do
-        test_stores = Store.factory.create_list(5, context, display_name: "test")
-        first_store = test_stores.first
+        first_result = TestResource.factory.create_list(5, @context, foo: "test").first
 
-        result = @query.from(context).where("{display_name: 'test'}").first
+        result = @query.from(@context).where("{foo: 'test'}").first
         puts "\033[33mFound Resources\033[0m: \033[36m#{result.attributes}\033[0m"
-        expect(result.name).to eq first_store.name
-
-        test_stores.each{|store| store.delete! }
+        expect(result.foo).to eq first_result.foo
       end
     end
 
@@ -302,14 +313,11 @@ describe Bodhi::Query do
       end
 
       it "invokes the query and returns the last record that matches" do
-        test_stores = Store.factory.create_list(5, context, display_name: "test")
-        last_store = test_stores.last
+        last_result = TestResource.factory.create_list(5, @context, foo: "test").last
 
-        result = @query.from(context).where("{display_name: 'test'}").last
+        result = @query.from(@context).where("{foo: 'test'}").last
         puts "\033[33mFound Resources\033[0m: \033[36m#{result.attributes}\033[0m"
-        expect(result.name).to eq last_store.name
-
-        test_stores.each{|store| store.delete! }
+        expect(result.foo).to eq last_result.foo
       end
     end
   end
