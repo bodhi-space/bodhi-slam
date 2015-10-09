@@ -1,35 +1,44 @@
 require 'spec_helper'
 
 describe Bodhi::ResourceBatch do
-  let(:batch){ Bodhi::ResourceBatch.new("Test") }
-  let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
+  before(:all) do
+    @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
+    @type = Bodhi::Type.new(name: "TestResource", properties: { foo: { type: "String" }, bar: { type: "TestEmbeddedResource" }, baz: { type: "Integer" } })
+    @embedded_type = Bodhi::Type.new(name: "TestEmbeddedResource", properties: { test: { type: "String" } }, embedded: true)
 
-  before do
-    Object.const_set("Test", Class.new{ include Bodhi::Resource; attr_accessor :Brandon, :Olia, :Alisa })
+    @type.bodhi_context = @context
+    @embedded_type.bodhi_context = @context
 
-    Test.validates :Brandon, type: "Boolean"
-    Test.validates :Olia, type: "Integer"
-    Test.validates :Alisa, type: "String"
+    @type.save!
+    @embedded_type.save!
 
-    Test.factory.add_generator("Brandon", type: "Boolean")
-    Test.factory.add_generator("Olia", type: "Integer")
-    Test.factory.add_generator("Alisa", type: "String")
+    Bodhi::Type.create_class_with(@type)
+    Bodhi::Type.create_class_with(@embedded_type)
   end
 
-  after do
-    Test.delete_all(context)
-    Object.send(:remove_const, :Test)
+  after(:all) do
+    TestResource.delete_all(@context)
+
+    @type.delete!
+    @embedded_type.delete!
+
+    Object.send(:remove_const, :TestResource)
+    Object.send(:remove_const, :TestEmbeddedResource)
+  end
+
+  before do
+    @batch = Bodhi::ResourceBatch.new(TestResource)
   end
 
   describe "#save!(context)" do
     it "raises Bodhi::ContextErrors if the context is invalid" do
       bad_context = Bodhi::Context.new({})
-      expect{ batch.save!(bad_context) }.to raise_error(Bodhi::ContextErrors)
+      expect{ @batch.save!(bad_context) }.to raise_error(Bodhi::ContextErrors)
     end
 
     it "raises Bodhi::ApiErrors if the batch API request failed" do
-      batch.records = []
-      expect{ batch.save!(context) }.to raise_error(Bodhi::ApiErrors)
+      @batch.records = []
+      expect{ @batch.save!(@context) }.to raise_error(Bodhi::ApiErrors)
     end
   end
 
@@ -42,20 +51,20 @@ describe Bodhi::ResourceBatch do
 
   describe "#created" do
     it "returns an array of the records that were sucessfully created" do
-      batch.records = [Test.factory.build, Test.factory.build]
-      batch.save!(context)
+      @batch.records = [TestResource.factory.build, TestResource.factory.build]
+      @batch.save!(@context)
 
-      expect(batch.failed).to be_empty
+      expect(@batch.failed).to be_empty
 
-      expect(batch.created).to_not be_empty
-      expect(batch.created.size).to eq 2
+      expect(@batch.created).to_not be_empty
+      expect(@batch.created.size).to eq 2
 
-      batch.created.each do |record|
+      @batch.created.each do |record|
         expect(record.sys_id).to be_a String
         expect(record.errors.any?).to be false
       end
 
-      batch.records.each do |record|
+      @batch.records.each do |record|
         expect(record.sys_id).to be_a String
         expect(record.errors.any?).to be false
       end
@@ -64,20 +73,20 @@ describe Bodhi::ResourceBatch do
 
   describe "#failed" do
     it "returns an array of the records that failed to be created" do
-      batch.records = [Test.factory.build(Brandon: "1234"), Test.factory.build(Brandon: 10)]
-      batch.save!(context)
+      @batch.records = [TestResource.factory.build(foo: 1234), TestResource.factory.build(foo: true)]
+      @batch.save!(@context)
 
-      expect(batch.created).to be_empty
+      expect(@batch.created).to be_empty
 
-      expect(batch.failed).to_not be_empty
-      expect(batch.failed.size).to eq 2
+      expect(@batch.failed).to_not be_empty
+      expect(@batch.failed.size).to eq 2
 
-      batch.failed.each do |record|
+      @batch.failed.each do |record|
         expect(record.sys_id).to be_nil
         expect(record.errors.any?).to be true
       end
 
-      batch.records.each do |record|
+      @batch.records.each do |record|
         expect(record.sys_id).to be_nil
         expect(record.errors.any?).to be true
       end
