@@ -97,7 +97,13 @@ module Bodhi
           elsif options[:is_email]
             generator = lambda{ [*0..5].sample.times.collect{ /\p{Alnum}{5,10}@\p{Alnum}{5,10}\.\p{Alnum}{2,3}/i.random_example } }
           elsif options[:matches]
-            generator = lambda{ [*0..5].sample.times.collect{ Regexp.new(options[:matches]).random_example } }
+            generator = lambda do
+              begin
+                [*0..5].sample.times.collect{ Regexp.new(options[:matches]).random_example }
+              rescue
+                nil
+              end
+            end
           elsif options[:length]
             min = JSON.parse(options[:length]).first
             max = JSON.parse(options[:length]).last
@@ -111,7 +117,13 @@ module Bodhi
           elsif options[:is_email]
             generator = lambda{ /\p{Alnum}{5,10}@\p{Alnum}{5,10}\.\p{Alnum}{2,3}/i.random_example }
           elsif options[:matches]
-            generator = lambda{ Regexp.new(options[:matches]).random_example }
+            generator = lambda do
+              begin
+                Regexp.new(options[:matches]).random_example
+              rescue
+                nil
+              end
+            end
           elsif options[:length]
             min = JSON.parse(options[:length]).first
             max = JSON.parse(options[:length]).last
