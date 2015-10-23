@@ -38,8 +38,20 @@ describe Bodhi::Resource do
       expect(test).to be_a TestResource
     end
 
-    it "returns a new resource instance with the given params" do
+    it "returns a new resource instance with the given params (symbols as keys)" do
       test = TestResource.new(foo: "hello", bar: { test: "test", bool: true }, baz: 10)
+
+      expect(test).to be_a TestResource
+      expect(test.foo).to eq "hello"
+      expect(test.baz).to eq 10
+      expect(test.bar).to be_a TestEmbeddedResource
+      expect(test.bar.test).to eq "test"
+      expect(test.bar.bool).to eq true
+    end
+
+    it "returns a new resource instance with the given params (strings as keys)" do
+      test = TestResource.new("foo" => "hello", "bar" => { "test" => "test", "bool" => true }, "baz" => 10)
+
       expect(test).to be_a TestResource
       expect(test.foo).to eq "hello"
       expect(test.baz).to eq 10
@@ -60,6 +72,33 @@ describe Bodhi::Resource do
       test = TestResource.factory.build
       expect(test.attributes.keys).to_not include(Bodhi::Resource::SYSTEM_ATTRIBUTES)
     end
+  end
+
+  describe "#save" do
+    it "uses the Bodhi::Context.global_context if no context is present" do
+      Bodhi::Context.global_context = @context
+      test = TestResource.new(foo: "hello world", bar: { test: "abcd", bool: true })
+      expect(test.save).to be true
+      Bodhi::Context.global_context = nil
+    end
+
+    it "raises Bodhi::ContextErrors if the context is not valid" do
+      bad_context = Bodhi::Context.new
+      test = TestResource.new(foo: "hello world", bodhi_context: bad_context)
+      expect{ test.save }.to raise_error(Bodhi::ContextErrors)
+    end
+
+    it "returns false if the record is not valid" do
+      test = TestResource.new(foo: 12345, bodhi_context: @context)
+      expect(test.save).to be false
+    end
+
+    it "returns true if the record was posted to the cloud" do
+      test = TestResource.new(foo: "hello world", bodhi_context: @context)
+      expect(test.save).to be true
+    end
+
+    it "raises Bodhi::ApiErrors if the record can not post to the cloud"
   end
 
   describe "#save!" do

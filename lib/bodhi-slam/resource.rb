@@ -193,7 +193,8 @@ module Bodhi
             if Object.const_defined?(type_validator.type)
               klass = Object.const_get(type_validator.type)
               if klass.ancestors.include?(Bodhi::Resource)
-                send("#{param_key}=", klass.new(param_value))
+                object = klass.new(param_value)
+                send("#{param_key}=", object)
               else
                 send("#{param_key}=", param_value)
               end
@@ -252,16 +253,16 @@ module Bodhi
       #   obj.save # => true
       #   obj.persisted? # => true
       def save
-        if self.invalid?
+        if invalid?
           return false
         end
 
         if bodhi_context.nil?
-          bodhi_context = Bodhi::Context.global_context
+          @bodhi_context = Bodhi::Context.global_context
         end
 
         if bodhi_context.invalid?
-          raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
+          raise Bodhi::ContextErrors.new(bodhi_context.errors.messages), bodhi_context.errors.to_a.to_s
         end
 
         result = bodhi_context.connection.post do |request|

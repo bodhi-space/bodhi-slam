@@ -16,7 +16,7 @@ module Bodhi
       @@current_context = context
     end
 
-    def initialize(params)
+    def initialize(params={})
       @connection = Faraday.new(url: params[:server]) do |faraday|
         faraday.request :multipart
         faraday.request :url_encoded
