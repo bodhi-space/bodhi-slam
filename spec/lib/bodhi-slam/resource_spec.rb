@@ -4,7 +4,7 @@ describe Bodhi::Resource do
   before(:all) do
     @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
     @type = Bodhi::Type.new(name: "TestResource", properties: { foo: { type: "String" }, bar: { type: "TestEmbeddedResource" }, baz: { type: "Integer" } })
-    @embedded_type = Bodhi::Type.new(name: "TestEmbeddedResource", properties: { test: { type: "String" } }, embedded: true)
+    @embedded_type = Bodhi::Type.new(name: "TestEmbeddedResource", properties: { test: { type: "String" }, bool: { type: "Boolean" } }, embedded: true)
 
     @type.bodhi_context = @context
     @embedded_type.bodhi_context = @context
@@ -30,6 +30,23 @@ describe Bodhi::Resource do
 
   it "includes Bodhi::Validations" do
     expect(TestResource.ancestors).to include Bodhi::Validations
+  end
+
+  describe "#initialize(params)" do
+    it "returns a new resource instance" do
+      test = TestResource.new
+      expect(test).to be_a TestResource
+    end
+
+    it "returns a new resource instance with the given params" do
+      test = TestResource.new(foo: "hello", bar: { test: "test", bool: true }, baz: 10)
+      expect(test).to be_a TestResource
+      expect(test.foo).to eq "hello"
+      expect(test.baz).to eq 10
+      expect(test.bar).to be_a TestEmbeddedResource
+      expect(test.bar.test).to eq "test"
+      expect(test.bar.bool).to eq true
+    end
   end
 
   describe "#attributes" do
@@ -83,7 +100,7 @@ describe Bodhi::Resource do
       record.patch!([{ op: "replace", path: "/foo", value: "hello world" }])
       record.patch!([{ op: "replace", path: "/bar/test", value: "hello world" }])
 
-      result = TestResource.find(@context, record.id)
+      result = TestResource.find(record.id, @context)
       expect(result.foo).to eq "hello world"
       expect(result.bar.test).to eq "hello world"
     end
@@ -99,19 +116,19 @@ describe Bodhi::Resource do
     end
   end
 
-  describe ".find(context, id)" do
+  describe ".find(id, context=nil)" do
     it "should raise Bodhi::Error if context is not valid" do
       bad_context = Bodhi::Context.new({})
-      expect{ TestResource.find(bad_context, 1234) }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
+      expect{ TestResource.find(1234, bad_context) }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
     end
 
     it "should raise Bodhi::ApiErrors if :id is not present" do
-      expect{ TestResource.find(@context, "12345") }.to raise_error(Bodhi::ApiErrors)
+      expect{ TestResource.find("12345", @context) }.to raise_error(Bodhi::ApiErrors)
     end
 
     it "should return the resource with the given id" do
       record = TestResource.factory.create(@context)
-      result = TestResource.find(@context, record.sys_id)
+      result = TestResource.find(record.sys_id, @context)
       expect(result).to be_a TestResource
 
       puts "\033[33mFound Resource\033[0m: \033[36m#{result.attributes}\033[0m"

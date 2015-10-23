@@ -3,12 +3,19 @@ require 'bodhi-slam/validations'
 module Bodhi
   class Context
     include Bodhi::Validations
-    attr_reader :connection, :server, :namespace, 
-      :credentials, :credentials_type, :credentials_header
-    
-      validates :server, required: true, is_not_blank: true, url: true
-      validates :namespace, required: true, is_not_blank: true
-    
+    attr_reader :connection, :server, :namespace, :credentials, :credentials_type, :credentials_header
+
+    validates :server, required: true, is_not_blank: true, url: true
+    validates :namespace, required: true, is_not_blank: true
+
+    def self.global_context
+      @@current_context ||= Bodhi::Context.new
+    end
+
+    def self.global_context=(context)
+      @@current_context = context
+    end
+
     def initialize(params)
       @connection = Faraday.new(url: params[:server]) do |faraday|
         faraday.request :multipart

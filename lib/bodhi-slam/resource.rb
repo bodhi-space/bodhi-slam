@@ -23,7 +23,11 @@ module Bodhi
       end
 
       # Counts all of the Resources records and returns the result
-      def count(context)
+      def count(context=nil)
+        if context.nil?
+          context = Bodhi::Context.global_context
+        end
+
         if context.invalid?
           raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
         end
@@ -40,12 +44,31 @@ module Bodhi
         result.body
       end
 
+      def create!(params, context=nil)
+        if context.nil?
+          context = Bodhi::Context.global_context
+        end
+
+        if context.invalid?
+          raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
+        end
+
+        record = self.new(params)
+        record.bodhi_context = context
+        record.save!
+        return record
+      end
+
       # Returns a single resource from the Bodhi Cloud that matches the given +id+
       # 
       #   context = Bodhi::Context.new
       #   id = Resource.factory.create(context).sys_id
       #   obj = Resource.find(context, id)
-      def find(context, id)
+      def find(id, context=nil)
+        if context.nil?
+          context = Bodhi::Context.global_context
+        end
+
         if context.invalid?
           raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
         end
@@ -72,7 +95,11 @@ module Bodhi
       # 
       #   context = Bodhi::Context.new
       #   Resource.find_all(context) # => [#<Resource:0x007fbff403e808>, #<Resource:0x007fbff403e808>, ...]
-      def find_all(context)
+      def find_all(context=nil)
+        if context.nil?
+          context = Bodhi::Context.global_context
+        end
+
         if context.invalid?
           raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
         end
@@ -96,6 +123,7 @@ module Bodhi
 
         records.flatten.collect{ |record| Object.const_get(name).new(record) }
       end
+      alias :all :find_all
 
       # Aggregates the given resource based on the supplied +pipeline+
       # 
@@ -156,18 +184,24 @@ module Bodhi
     module InstanceMethods
       def id; @sys_id; end
       def persisted?; !@sys_id.nil?; end
+      def new_record?; @sys_id.nil?; end
 
       def initialize(params={})
-        super(params)
-
-        # Build any embedded objects
         params.each do |param_key, param_value|
-          if self.class.validators.has_key?(param_key.to_sym)
+          if param_value.is_a? Hash
             type_validator = self.class.validators[param_key.to_sym].find{ |validator| validator.is_a? Bodhi::TypeValidator }
-            klass = Object.const_get(type_validator.type)
-            if klass.ancestors.include?(Bodhi::Resource)
-              send("#{param_key}=", klass.new(param_value))
+            if Object.const_defined?(type_validator.type)
+              klass = Object.const_get(type_validator.type)
+              if klass.ancestors.include?(Bodhi::Resource)
+                send("#{param_key}=", klass.new(param_value))
+              else
+                send("#{param_key}=", param_value)
+              end
+            else
+              send("#{param_key}=", param_value)
             end
+          else
+            send("#{param_key}=", param_value)
           end
         end
       end
@@ -220,6 +254,14 @@ module Bodhi
       def save
         if self.invalid?
           return false
+        end
+
+        if bodhi_context.nil?
+          bodhi_context = Bodhi::Context.global_context
+        end
+
+        if bodhi_context.invalid?
+          raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
         end
 
         result = bodhi_context.connection.post do |request|
