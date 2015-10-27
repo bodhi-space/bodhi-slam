@@ -50,9 +50,35 @@ If you plan to re-use the same context, then you can set it globally by using:
     context.errors.any? #=> true
     context.errors.to_a #=> ["server is required", "namespace is required"]
 
+### Types
+The `Bodhi::Type` class provides an interface for interacting with data collections in the Bodhi API.  The code snippet below demonstrates how to create a new `Bodhi::Type`
+
+    # Define a new type and save it to the cloud
+    options = { bodhi_context: context, name: "TestName", properties: { foo: { type: "String" }, bar: { type: "String" } } }
+    type = Bodhi::Type.new(options)
+    type.save
+    
+    # Create the Ruby class based on the type
+    # This allows all the helper functions associated Bodhi::Resource to work
+    Bodhi::Type.create_class_with(type)
+
+All `Bodhi::Type` objects inherit the following interface:
+
+    # Class methods
+    Bodhi::Type.find_all
+    Bodhi::Type.find(type_name)
+    Bodhi::Type.create_class_with(type)
+    
+    # Instance methods
+    type = Bodhi::Type.new(bodhi_context: context)
+    type.save
+    type.delete
+    type.patch(op: "replace", path: "/properties/name/type", value: "DateTime")
+
 ### Resources
 All resources inherit the following interface.
 
+    # Class methods
     Resource.all
     Resource.count
     Resource.find(sys_id)
@@ -61,6 +87,7 @@ All resources inherit the following interface.
     Resource.save_batch(records_array)
     Resource.delete_all
     
+    # Instance methods
     record = Resource.new(bodhi_context: context)
     record.attributes #=> returns a Hash of the resource's properties and their current values
     record.save       #=> saves the resource to the cloud
