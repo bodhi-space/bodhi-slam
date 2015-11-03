@@ -37,7 +37,7 @@ describe BodhiSlam do
         expect(result).to_not be_empty
         expect(result_type_names).to match_array(@type_names)
 
-        result.delete_if{ |type| ["BodhiEmailTemplate"].include?(type.name) }
+        #result.delete_if{ |type| ["BodhiEmailTemplate"].include?(type.name) }
 
         result.each do |type|
           puts "\033[32m--------------------------------------------------------\033[0m"
