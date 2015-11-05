@@ -75,6 +75,34 @@ describe Bodhi::Type do
     end
   end
 
+  describe "#indexes" do
+    let(:type){ Bodhi::Type.new({ properties: { foo: { type: "String", required: true } }, indexes: [{ keys: ["foo"], options: { unique: true } }] }) }
+
+    it "returns an array of Bodhi::TypeIndex objects" do
+      expect(type.indexes).to be_a Array
+      expect(type.indexes.size).to eq 1
+
+      type.indexes.each{ |index| expect(index).to be_a Bodhi::TypeIndex }
+    end
+  end
+
+  describe "#save!" do
+    let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
+
+    it "saves the type to the cloud" do
+      type = Bodhi::Type.new(
+        bodhi_context: context,
+        name: "AutoTest_Type1",
+        properties: { foo: { type: "String", required: true }, bar: { type: "String", required: true }},
+        indexes: [{ keys: ["foo"], options: { unique: true } }, { keys: ["bar", "foo"], options: { unique: true } }]
+      )
+
+      expect{type.save!}.to_not raise_error
+      expect(type.persisted?).to be true
+      type.delete!
+    end
+  end
+
   describe ".factory" do
     it "returns a Bodhi::Factory for creating Bodhi::Types" do
       expect(Bodhi::Type.factory).to be_a Bodhi::Factory

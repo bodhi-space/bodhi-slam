@@ -4,15 +4,21 @@ module Bodhi
 
     SYSTEM_ATTRIBUTES = [:sys_created_at, :sys_version, :sys_modified_at, :sys_modified_by,
       :sys_namespace, :sys_created_by, :sys_type_version, :sys_id, :sys_embeddedType]
-    ATTRIBUTES = [:name, :namespace, :package, :embedded, :properties, :version, :extends]
+    ATTRIBUTES = [
+      :name, :storage_name, :namespace,
+      :package, :embedded, :properties, :version,
+      :extends, :indexes, :hidden, :events, :documentation,
+      :metadata, :encapsulated
+    ]
 
     attr_accessor *ATTRIBUTES
-    attr_reader *SYSTEM_ATTRIBUTES
+    attr_accessor *SYSTEM_ATTRIBUTES
     attr_accessor :bodhi_context
 
     validates :name, required: true, is_not_blank: true
     validates :namespace, required: true
     validates :properties, required: true
+    validates :indexes, type: "Bodhi::TypeIndex", multi: true
 
     # Returns a factory for the Bodhi::Type class
     def self.factory
@@ -27,15 +33,18 @@ module Bodhi
       end
     end
 
-    def initialize(params={})
-      # same as symbolize_keys!
-      params = params.reduce({}) do |memo, (k, v)| 
-        memo.merge({ k.to_sym => v})
-      end
+    def id; @sys_id; end
+    def persisted?; !@sys_id.nil?; end
+    def new_record?; @sys_id.nil?; end
 
-      # set attributes
-      ATTRIBUTES.each do |attribute|
-        send("#{attribute}=", params[attribute])
+    def initialize(params={})
+      params.each do |param_key, param_value|
+        if param_key.to_sym == :indexes
+          values = param_value.map{ |index| Bodhi::TypeIndex.new(index) }
+          send("#{param_key}=", values)
+        else
+          send("#{param_key}=", param_value)
+        end
       end
 
       # Format type name to be compatible with Ruby Constants
@@ -82,6 +91,10 @@ module Bodhi
 
       if result.status != 201
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
+      end
+
+      if result.headers['location']
+        @sys_id = result.headers['location'].match(/types\/(?<name>[a-zA-Z0-9]+)/)[:name]
       end
     end
 
@@ -186,3 +199,5 @@ module Bodhi
 
   end
 end
+
+Dir[File.dirname(__FILE__) + "/types/*.rb"].each { |file| require file }
