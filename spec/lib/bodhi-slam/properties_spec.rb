@@ -49,6 +49,15 @@ describe Bodhi::Properties do
     end
   end
 
+  describe "#update_attributes(params)" do
+    it "updates the object with the given params" do
+      klass.property :name, :email
+      object = klass.new(name: "test", email: "test@email.com")
+      object.update_attributes(name: "foo")
+      expect(object.attributes).to eq name: "foo", email: "test@email.com"
+    end
+  end
+
   describe "#to_json" do
     it "returns a JSON string of the objects attributes" do
       klass.property :name

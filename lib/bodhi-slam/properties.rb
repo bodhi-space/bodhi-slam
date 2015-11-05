@@ -54,8 +54,8 @@ module Bodhi
       # 
       #   s = SomeResource.factory.build(foo:"test", bar:12345)
       #   s.attributes # => { foo: "test", bar: 12345 }
-      #   s.update_attributes(foo:"12345", bar:10)
-      #   s.attributes # => { foo: "12345", bar: 10 }
+      #   s.update_attributes(bar: 10)
+      #   s.attributes # => { foo: "test", bar: 10 }
       def update_attributes(params)
         params.each do |param_key, param_value|
           send("#{param_key}=", param_value)
