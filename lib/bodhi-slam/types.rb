@@ -1,19 +1,14 @@
 module Bodhi
   class Type
+    include Bodhi::Properties
     include Bodhi::Validations
 
-    SYSTEM_ATTRIBUTES = [:sys_created_at, :sys_version, :sys_modified_at, :sys_modified_by,
-      :sys_namespace, :sys_created_by, :sys_type_version, :sys_id, :sys_embeddedType]
-    ATTRIBUTES = [
-      :name, :storage_name, :namespace,
+    attr_accessor :bodhi_context
+
+    property :name, :storage_name, :namespace,
       :package, :embedded, :properties, :version,
       :extends, :indexes, :hidden, :events, :documentation,
       :metadata, :encapsulated
-    ]
-
-    attr_accessor *ATTRIBUTES
-    attr_accessor *SYSTEM_ATTRIBUTES
-    attr_accessor :bodhi_context
 
     validates :name, required: true, is_not_blank: true
     validates :namespace, required: true
@@ -33,10 +28,6 @@ module Bodhi
       end
     end
 
-    def id; @sys_id; end
-    def persisted?; !@sys_id.nil?; end
-    def new_record?; @sys_id.nil?; end
-
     def initialize(params={})
       params.each do |param_key, param_value|
         if param_key.to_sym == :indexes
@@ -51,29 +42,6 @@ module Bodhi
       if !name.nil? && name[0] == name[0].downcase
         name.capitalize!
       end
-    end
-
-    # Returns a Hash of the Objects form attributes
-    # 
-    #   s = SomeResource.factory.build({foo:"test", bar:12345})
-    #   s.attributes # => { foo: "test", bar: 12345 }
-    def attributes
-      result = Hash.new
-      ATTRIBUTES.each do |attribute|
-        result[attribute] = send(attribute)
-      end
-      result.delete_if { |k, v| v.nil? }
-      result
-    end
-
-    # Returns all the Objects attributes as JSON.
-    # It converts any nested Objects to JSON if they respond to +to_json+
-    # 
-    #   s = SomeResource.factory.build({foo:"test", bar:12345})
-    #   s.to_json # => "{ 'foo':'test', 'bar':12345 }"
-    def to_json(base=nil)
-      super if base
-      attributes.to_json
     end
 
     # Saves the resource to the Bodhi Cloud.  Raises ArgumentError if record could not be saved.
@@ -183,13 +151,11 @@ module Bodhi
         raise ArgumentError.new("Expected #{type.class} to be a Bodhi::Type")
       end
 
-      klass = Object.const_set(type.name, Class.new {
-        include Bodhi::Resource
-        attr_accessor *type.properties.keys
-      })
+      klass = Object.const_set(type.name, Class.new { include Bodhi::Resource })
 
       type.properties.each_pair do |attr_name, attr_properties|
         attr_properties.delete_if{ |key, value| ["system", "trim", "unique", "default", "isCurrentUser", "toLower"].include?(key) }
+        klass.property(attr_name)
         klass.validates(attr_name.to_sym, attr_properties)
         klass.factory.add_generator(attr_name.to_sym, attr_properties)
       end

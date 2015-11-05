@@ -50,11 +50,23 @@ module Bodhi
         attributes
       end
 
+      # Updates the resource with the given attributes Hash
+      # 
+      #   s = SomeResource.factory.build(foo:"test", bar:12345)
+      #   s.attributes # => { foo: "test", bar: 12345 }
+      #   s.update_attributes(foo:"12345", bar:10)
+      #   s.attributes # => { foo: "12345", bar: 10 }
+      def update_attributes(params)
+        params.each do |param_key, param_value|
+          send("#{param_key}=", param_value)
+        end
+      end
+
       # Returns all the classes properties as JSON.
       # It converts any nested objects to JSON if they respond to +to_json+
       # 
       #   resource = SomeResource.new(foo:"test", bar:12345)
-      #   embedded_resources = AnotherResource.new( test: s )
+      #   embedded_resources = AnotherResource.new( test: resource )
       #   
       #   resource.to_json # => "{ 'foo':'test', 'bar':12345 }"
       #   embedded_resources.to_json # => "{ 'test': { 'foo':'test', 'bar':12345 } }"

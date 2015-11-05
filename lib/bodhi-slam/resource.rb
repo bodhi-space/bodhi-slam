@@ -1,10 +1,7 @@
 module Bodhi
   module Resource
 
-    SYSTEM_ATTRIBUTES = [:sys_created_at, :sys_version, :sys_modified_at, :sys_modified_by,
-      :sys_namespace, :sys_created_by, :sys_type_version, :sys_id, :sys_embeddedType]
     SUPPORT_ATTRIBUTES = [:bodhi_context, :errors]
-    attr_accessor *SYSTEM_ATTRIBUTES
     attr_accessor *SUPPORT_ATTRIBUTES
 
     module ClassMethods
@@ -182,9 +179,6 @@ module Bodhi
     end
 
     module InstanceMethods
-      def id; @sys_id; end
-      def persisted?; !@sys_id.nil?; end
-      def new_record?; @sys_id.nil?; end
 
       def initialize(params={})
         params.each do |param_key, param_value|
@@ -205,46 +199,6 @@ module Bodhi
             send("#{param_key}=", param_value)
           end
         end
-      end
-
-      # Returns a Hash of the Objects form attributes
-      # 
-      #   s = SomeResource.build({foo:"test", bar:12345})
-      #   s.attributes # => { foo: "test", bar: 12345 }
-      def attributes
-        attributes = Hash.new
-        self.instance_variables.each do |variable|
-          attribute_name = variable.to_s.delete('@').to_sym
-          unless SYSTEM_ATTRIBUTES.include?(attribute_name) || SUPPORT_ATTRIBUTES.include?(attribute_name)
-            attributes[attribute_name] = send(attribute_name)
-          end
-        end
-        attributes
-      end
-
-      # Updates the resource with the given attributes Hash
-      # 
-      #   s = SomeResource.factory.build(foo:"test", bar:12345)
-      #   s.attributes # => { foo: "test", bar: 12345 }
-      #   s.update_attributes(foo:"12345", bar:10)
-      #   s.attributes # => { foo: "12345", bar: 10 }
-      def update_attributes(params)
-        self.instance_variables.each do |variable|
-          attribute_name = variable.to_s.delete('@').to_sym
-          unless SYSTEM_ATTRIBUTES.include?(attribute_name) || SUPPORT_ATTRIBUTES.include?(attribute_name)
-            send("#{attribute_name}=", params[attribute_name])
-          end
-        end
-      end
-
-      # Returns all the Objects attributes as JSON.
-      # It converts any nested Objects to JSON if they respond to +to_json+
-      # 
-      #   s = SomeResource.build({foo:"test", bar:12345})
-      #   s.to_json # => { "foo":"test", "bar":12345 }
-      def to_json(base=nil)
-        super if base
-        attributes.to_json
       end
 
       # Saves the resource to the Bodhi Cloud.  Returns true if record was saved
@@ -355,7 +309,7 @@ module Bodhi
 
     def self.included(base)
       base.extend(ClassMethods)
-      base.include(InstanceMethods, Bodhi::Validations, ActiveModel::Model)
+      base.include(InstanceMethods, Bodhi::Validations, Bodhi::Properties, ActiveModel::Model)
       base.instance_variable_set(:@factory, Bodhi::Factory.new(base))
     end
   end

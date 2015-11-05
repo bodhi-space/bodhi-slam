@@ -70,7 +70,7 @@ describe Bodhi::Resource do
 
     it "does not return the objects system attributes" do
       test = TestResource.factory.build
-      expect(test.attributes.keys).to_not include(Bodhi::Resource::SYSTEM_ATTRIBUTES)
+      expect(test.attributes.keys).to_not include(Bodhi::Properties::SYSTEM_PROPERTIES)
     end
   end
 
