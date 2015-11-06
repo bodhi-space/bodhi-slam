@@ -1,5 +1,6 @@
 module Bodhi
   class User
+    include Bodhi::Factories
     include Bodhi::Properties
     include Bodhi::Validations
 
@@ -15,17 +16,13 @@ module Bodhi
     validates :lastName, type: "String"
     validates :phone, type: "String"
 
-    def self.factory
-      @factory ||= Bodhi::Factory.new(Bodhi::User).tap do |factory|
-        factory.add_generator(:username, type: "String", required: true, is_not_blank: true)
-        factory.add_generator(:password, type: "String", required: true, is_not_blank: true)
-        factory.add_generator(:profiles, type: "String", required: true, multi: true)
-        factory.add_generator(:email, type: "String", is_email: true)
-        factory.add_generator(:firstName, type: "String")
-        factory.add_generator(:lastName, type: "String")
-        factory.add_generator(:phone, type: "String")
-      end
-    end
+    generates :username, type: "String", required: true, is_not_blank: true
+    generates :password, type: "String", required: true, is_not_blank: true
+    generates :profiles, type: "String", required: true, multi: true
+    generates :email, type: "String", is_email: true
+    generates :firstName, type: "String"
+    generates :lastName, type: "String"
+    generates :phone, type: "String"
 
     # Queries the Bodhi API for the given +user_name+ and
     # returns a Bodhi::User

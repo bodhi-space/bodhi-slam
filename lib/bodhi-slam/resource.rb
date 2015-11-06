@@ -5,8 +5,6 @@ module Bodhi
     attr_accessor *SUPPORT_ATTRIBUTES
 
     module ClassMethods
-      def factory; @factory; end
-
       # Saves a batch of resources to the Bodhi Cloud in the given +context+
       # Returns an array of JSON objects describing the results for each record in the batch
       # 
@@ -309,8 +307,7 @@ module Bodhi
 
     def self.included(base)
       base.extend(ClassMethods)
-      base.include(InstanceMethods, Bodhi::Validations, Bodhi::Properties, ActiveModel::Model)
-      base.instance_variable_set(:@factory, Bodhi::Factory.new(base))
+      base.include(InstanceMethods, Bodhi::Validations, Bodhi::Properties, Bodhi::Factories, ActiveModel::Model)
     end
   end
 end

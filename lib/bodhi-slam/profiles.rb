@@ -1,5 +1,6 @@
 module Bodhi
   class Profile
+    include Bodhi::Factories
     include Bodhi::Properties
     include Bodhi::Validations
 
@@ -11,13 +12,9 @@ module Bodhi
     validates :namespace, type: "String", required: true
     validates :dml, type: "Object", required: true
 
-    def self.factory
-      @factory ||= Bodhi::Factory.new(Bodhi::Profile).tap do |factory|
-        factory.add_generator(:name, type: "String", required: true, is_not_blank: true)
-        factory.add_generator(:namespace, type: "String", required: true)
-        factory.add_generator(:dml, type: "Object", required: true)
-      end
-    end
+    generates :name, type: "String", required: true, is_not_blank: true
+    generates :namespace, type: "String", required: true
+    generates :dml, type: "Object", required: true
 
     # Queries the Bodhi API for the given +user_name+ and
     # returns a Bodhi::Profile

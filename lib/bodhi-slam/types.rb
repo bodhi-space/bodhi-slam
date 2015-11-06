@@ -1,5 +1,6 @@
 module Bodhi
   class Type
+    include Bodhi::Factories
     include Bodhi::Properties
     include Bodhi::Validations
 
@@ -15,18 +16,13 @@ module Bodhi
     validates :properties, required: true
     validates :indexes, type: "Bodhi::TypeIndex", multi: true
 
-    # Returns a factory for the Bodhi::Type class
-    def self.factory
-      @factory ||= Bodhi::Factory.new(Bodhi::Type).tap do |factory|
-        factory.add_generator(:extends, type: "String", matches: "[a-zA-Z_-]{10,20}")
-        factory.add_generator(:name, type: "String", required: true, is_not_blank: true)
-        factory.add_generator(:namespace, type: "String", required: true)
-        factory.add_generator(:properties, type: "Object", required: true)
-        factory.add_generator(:package, type: "String")
-        factory.add_generator(:embedded, type: "Boolean")
-        factory.add_generator(:version, type: "String")
-      end
-    end
+    generates :extends, type: "String", matches: "[a-zA-Z_-]{10,20}"
+    generates :name, type: "String", required: true, is_not_blank: true
+    generates :namespace, type: "String", required: true
+    generates :properties, type: "Object", required: true
+    generates :package, type: "String"
+    generates :embedded, type: "Boolean"
+    generates :version, type: "String"
 
     def initialize(params={})
       params.each do |param_key, param_value|

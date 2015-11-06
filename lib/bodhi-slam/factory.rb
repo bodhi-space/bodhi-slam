@@ -1,4 +1,18 @@
 module Bodhi
+  module Factories
+    module ClassMethods
+      def factory; @factory; end
+      def generates(name, options)
+        @factory.add_generator(name.to_sym, options)
+      end
+    end
+
+    def self.included(base)
+      base.extend(ClassMethods)
+      base.instance_variable_set(:@factory, Bodhi::Factory.new(base))
+    end
+  end
+
   class Factory
     attr_reader :klass
     attr_accessor :generators
