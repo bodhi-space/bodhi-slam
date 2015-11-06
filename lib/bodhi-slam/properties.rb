@@ -71,7 +71,6 @@ module Bodhi
       #   resource.to_json # => "{ 'foo':'test', 'bar':12345 }"
       #   embedded_resources.to_json # => "{ 'test': { 'foo':'test', 'bar':12345 } }"
       def to_json(base=nil)
-        super if base
         attributes.to_json
       end
     end

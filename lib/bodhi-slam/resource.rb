@@ -1,15 +1,14 @@
 module Bodhi
   module Resource
 
-    SUPPORT_ATTRIBUTES = [:bodhi_context, :errors]
-    attr_accessor *SUPPORT_ATTRIBUTES
+    attr_accessor :bodhi_context
 
     module ClassMethods
 
       # Defines the given +name+ and +options+ as a form attribute for the class.
       # The +name+ is set as a property, and validations & factory generators are added based on the supplied +options+
       # 
-      #   class MyClass
+      #   class User
       #     include Bodhi::Resource
       #
       #     field :first_name, type: "String", required: true, is_not_blank: true
@@ -17,7 +16,7 @@ module Bodhi
       #     field :email, type: "String", required: true, is_not_blank: true, is_email: true
       #   end
       #
-      #   object = MyClass.new(first_name: "John", last_name: "Smith", email: "jsmith@email.com")
+      #   object = User.new(first_name: "John", last_name: "Smith", email: "jsmith@email.com")
       #   object.to_json #=> { "first_name": "John", "last_name": "Smith", "email": "jsmith@email.com" }
       def field(name, options)
         property(name.to_sym)
@@ -327,7 +326,7 @@ module Bodhi
 
     def self.included(base)
       base.extend(ClassMethods)
-      base.include(InstanceMethods, Bodhi::Validations, Bodhi::Properties, Bodhi::Factories, ActiveModel::Model)
+      base.include(InstanceMethods, Bodhi::Validations, Bodhi::Properties, Bodhi::Indexes, Bodhi::Factories, ActiveModel::Model)
     end
   end
 end
