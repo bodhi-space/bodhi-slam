@@ -5,6 +5,26 @@ module Bodhi
     attr_accessor *SUPPORT_ATTRIBUTES
 
     module ClassMethods
+
+      # Defines the given +name+ and +options+ as a form attribute for the class.
+      # The +name+ is set as a property, and validations & factory generators are added based on the supplied +options+
+      # 
+      #   class MyClass
+      #     include Bodhi::Resource
+      #
+      #     field :first_name, type: "String", required: true, is_not_blank: true
+      #     field :last_name, type: "String", required: true, is_not_blank: true
+      #     field :email, type: "String", required: true, is_not_blank: true, is_email: true
+      #   end
+      #
+      #   object = MyClass.new(first_name: "John", last_name: "Smith", email: "jsmith@email.com")
+      #   object.to_json #=> { "first_name": "John", "last_name": "Smith", "email": "jsmith@email.com" }
+      def field(name, options)
+        property(name.to_sym)
+        validates(name.to_sym, options)
+        generates(name.to_sym, options)
+      end
+
       # Saves a batch of resources to the Bodhi Cloud in the given +context+
       # Returns an array of JSON objects describing the results for each record in the batch
       # 

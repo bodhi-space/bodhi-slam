@@ -151,9 +151,7 @@ module Bodhi
 
       type.properties.each_pair do |attr_name, attr_properties|
         attr_properties.delete_if{ |key, value| ["system", "trim", "unique", "default", "isCurrentUser", "toLower"].include?(key) }
-        klass.property(attr_name)
-        klass.validates(attr_name.to_sym, attr_properties)
-        klass.factory.add_generator(attr_name.to_sym, attr_properties)
+        klass.field(attr_name, attr_properties)
       end
 
       klass
