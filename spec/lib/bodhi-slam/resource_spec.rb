@@ -72,6 +72,16 @@ describe Bodhi::Resource do
       test = TestResource.factory.build
       expect(test.attributes.keys).to_not include(Bodhi::Properties::SYSTEM_PROPERTIES)
     end
+
+    it "does not return the objects :bodhi_context attribute" do
+      test = TestResource.factory.build
+      expect(test.attributes.keys).to_not include :bodhi_context
+    end
+
+    it "does not return the objects :errors attribute" do
+      test = TestResource.factory.build
+      expect(test.attributes.keys).to_not include :errors
+    end
   end
 
   describe "#save" do
@@ -142,6 +152,49 @@ describe Bodhi::Resource do
       result = TestResource.find(record.id, @context)
       expect(result.foo).to eq "hello world"
       expect(result.bar.test).to eq "hello world"
+    end
+  end
+
+  describe ".build_type" do
+    it "returns a Bodhi::Type based on the classes properties and validations" do
+      klass = Object.const_set("TestResource12345", Class.new do
+        include Bodhi::Resource
+        field :name, type: "String", required: true
+        field :email, type: "String", is_email: true
+
+        index [:name], unique: true
+      end)
+
+      type = klass.build_type
+
+      expect(type).to be_a Bodhi::Type
+      expect(type.name).to eq "TestResource12345"
+      expect(type.properties).to eq name: { type: "String", required: true }, email: { type: "String", isEmail: true }
+      expect(type.indexes.first.keys).to eq ["name"]
+      expect(type.indexes.first.options).to eq unique: true
+      expect(type.to_json).to eq '{"name":"TestResource12345","properties":{"name":{"type":"String","required":true},"email":{"type":"String","isEmail":true}},"indexes":[{"keys":["name"],"options":{"unique":true}}]}'
+
+      Object.send(:remove_const, :TestResource12345)
+    end
+
+    it "builds a valid Bodhi::Type that can be saved to the cloud" do
+      klass = Object.const_set("TestResource12345", Class.new do
+        include Bodhi::Resource
+        field :name, type: "String", required: true
+        field :email, type: "String", is_email: true
+
+        index [:name], unique: true
+      end)
+
+      type = klass.build_type
+      type.bodhi_context = @context
+
+      type.valid?
+      expect(type.errors.to_a).to be_empty
+      expect{ type.save! }.to_not raise_error
+      expect{ type.delete! }.to_not raise_error
+
+      Object.send(:remove_const, :TestResource12345)
     end
   end
 

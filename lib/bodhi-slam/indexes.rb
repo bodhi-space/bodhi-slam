@@ -8,7 +8,7 @@ module Bodhi
           memo.merge({ k.to_sym => v})
         end
 
-        @indexes << Bodhi::TypeIndex.new(keys: keys.map(&:to_sym), options: options)
+        @indexes << Bodhi::TypeIndex.new(keys: keys.map(&:to_s), options: options)
       end
     end
 

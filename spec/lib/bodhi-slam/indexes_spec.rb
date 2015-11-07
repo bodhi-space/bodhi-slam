@@ -7,14 +7,14 @@ describe Bodhi::Indexes do
     it "adds a new index with the given keys and options (strings)" do
       klass.index ["test", "foo"], "unique" => true
       expect(klass.indexes.first).to be_a Bodhi::TypeIndex
-      expect(klass.indexes.first.attributes).to eq keys: [:test, :foo], options: { unique: true }
+      expect(klass.indexes.first.attributes).to eq keys: ["test", "foo"], options: { unique: true }
       expect(klass.indexes.first.to_json).to eq '{"keys":["test","foo"],"options":{"unique":true}}'
     end
 
     it "adds a new index with the given keys and options (symbols)" do
       klass.index [:test, :foo], unique: true
       expect(klass.indexes.first).to be_a Bodhi::TypeIndex
-      expect(klass.indexes.first.attributes).to eq keys: [:test, :foo], options: { unique: true }
+      expect(klass.indexes.first.attributes).to eq keys: ["test", "foo"], options: { unique: true }
       expect(klass.indexes.first.to_json).to eq '{"keys":["test","foo"],"options":{"unique":true}}'
     end
   end

@@ -35,13 +35,6 @@ describe Bodhi::Type do
     it "is a string" do
       expect(type.namespace).to be_a String
     end
-    
-    it "must be present" do
-      type.namespace = nil
-      expect(type.valid?).to be false
-      expect(type.errors.include?(:namespace)).to be true
-      expect(type.errors[:namespace]).to include "is required"
-    end
   end
   
   describe "#package" do

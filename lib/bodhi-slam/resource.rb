@@ -24,6 +24,22 @@ module Bodhi
         generates(name.to_sym, options)
       end
 
+      def build_type
+        # reduce the properties array into a Hash.
+        # lookup the validators for each property and add them as options for the property
+        type_properties = self.properties.reduce({}) do |result, property|
+          options = self.validators[property].map(&:to_options).reduce({}) do |options_result, options_hash|
+            reverse_camelized_hash = options_hash.reduce({}) do |memo, (key,value)|
+              memo.merge({ Bodhi::Support.reverse_camelize(key.to_s).to_sym => value })
+            end
+            options_result.merge(reverse_camelized_hash)
+          end
+          result.merge({ property => options})
+        end
+
+        Bodhi::Type.new(name: self.name, properties: type_properties, indexes: self.indexes)
+      end
+
       # Saves a batch of resources to the Bodhi Cloud in the given +context+
       # Returns an array of JSON objects describing the results for each record in the batch
       # 

@@ -8,6 +8,8 @@ require "SecureRandom"
 require 'regexp-examples'
 require 'active_model'
 
+require 'bodhi-slam/support'
+
 require 'bodhi-slam/validations'
 require 'bodhi-slam/errors'
 require 'bodhi-slam/context'
