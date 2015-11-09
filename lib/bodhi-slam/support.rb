@@ -12,11 +12,11 @@ module Bodhi
     end
 
     def self.camelize(string)
-      string.split('_').collect(&:capitalize).join
+      underscore(string).split('_').collect(&:capitalize).join
     end
 
     def self.reverse_camelize(string)
-      result = string.split('_').collect(&:capitalize).join
+      result = underscore(string).split('_').collect(&:capitalize).join
       uncapitalize(result)
     end
   end

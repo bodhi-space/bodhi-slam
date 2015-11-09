@@ -16,10 +16,8 @@ module Bodhi
     #   type.to_sym # => :type
     #   is_not_blank.to_sym # => :is_not_blank
     def to_sym
-      underscore.
-      gsub("bodhi/", "").
-      gsub("_validator", "").
-      to_sym
+      name = self.underscore.gsub("bodhi::", "").gsub("_validator", "")
+      Bodhi::Support.reverse_camelize(name).to_sym
     end
     
     # Returns the validation's class name in snake_case.
@@ -30,11 +28,7 @@ module Bodhi
     #   type.underscore # => "bodhi/type_validator"
     #   is_not_blank.underscore # => "bodhi/is_not_blank_validator"
     def underscore
-      self.class.name.gsub(/::/, '/').
-      gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
-      gsub(/([a-z\d])([A-Z])/,'\1_\2').
-      tr("-", "_").
-      downcase
+      Bodhi::Support.underscore(self.class.name)
     end
     
     # Returns the validation as an options Hash.
@@ -55,9 +49,8 @@ module Bodhi
     #   Bodhi::Validator.constantize("type") # => #<Bodhi::TypeValidator:0x007fbff403e808>
     #   Bodhi::Validator.constantize("is_not_blank") # => #<Bodhi::IsNotBlankValidator:0x007fbff403e808>
     def self.constantize(name)
-      camelized_name = name.to_s.split('_').collect(&:capitalize).join
-      full_name = "Bodhi::#{camelized_name}Validator"
-      Object.const_get(full_name)
+      camelized_name = Bodhi::Support.camelize(name.to_s)
+      Object.const_get("Bodhi::#{camelized_name}Validator")
     end
   end
 end

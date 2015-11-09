@@ -34,7 +34,7 @@ describe Bodhi::IsNotEmptyValidator do
   
   describe "#to_options" do
     it "should return a Hash" do
-      expect(validator.to_options).to be { is_not_empty:true }
+      expect(validator.to_options).to eq isNotEmpty: true
     end
   end
 end

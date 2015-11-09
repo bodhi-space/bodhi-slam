@@ -62,7 +62,7 @@ describe Bodhi::IsNotBlankValidator do
   
   describe "#to_options" do
     it "should return the validator as an option Hash" do
-      expect(validator.to_options).to include({is_not_blank: true})
+      expect(validator.to_options).to eq isNotBlank: true
     end
   end
 end

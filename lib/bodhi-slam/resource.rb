@@ -29,10 +29,7 @@ module Bodhi
         # lookup the validators for each property and add them as options for the property
         type_properties = self.properties.reduce({}) do |result, property|
           options = self.validators[property].map(&:to_options).reduce({}) do |options_result, options_hash|
-            reverse_camelized_hash = options_hash.reduce({}) do |memo, (key,value)|
-              memo.merge({ Bodhi::Support.reverse_camelize(key.to_s).to_sym => value })
-            end
-            options_result.merge(reverse_camelized_hash)
+            options_result.merge(options_hash)
           end
           result.merge({ property => options})
         end

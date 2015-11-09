@@ -30,7 +30,7 @@ module Bodhi
           if param_value.is_a?(Array) && param_value.first.is_a?(Bodhi::TypeIndex)
             send("#{param_key}=", param_value)
           else
-            # the param_value is a raw hash and needs to be turned into an array of Bodhi::TypeIndex objects
+            # the param_value is a raw json object and needs to be turned into an array of Bodhi::TypeIndex objects
             values = param_value.map{ |index| Bodhi::TypeIndex.new(index) }
             send("#{param_key}=", values)
           end

@@ -17,7 +17,7 @@ describe Bodhi::Validator do
   
   describe "#underscore" do
     it "returns the class name in snake_case" do
-      expect(validator.underscore).to eq "bodhi/validator"
+      expect(validator.underscore).to eq "bodhi::validator"
     end
   end
   
