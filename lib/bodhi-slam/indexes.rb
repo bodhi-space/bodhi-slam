@@ -2,7 +2,7 @@ module Bodhi
   module Indexes
     module ClassMethods
       def indexes; @indexes; end
-      def index(keys, options)
+      def index(keys, options={})
         # symbolize the option keys
         options = options.reduce({}) do |memo, (k, v)| 
           memo.merge({ k.to_sym => v})

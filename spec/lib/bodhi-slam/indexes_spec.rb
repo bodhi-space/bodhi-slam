@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Bodhi::Indexes do
   let(:klass){ Class.new{ include Bodhi::Indexes } }
 
-  describe ".index(keys, options)" do
+  describe ".index(keys, options={})" do
     it "adds a new index with the given keys and options (strings)" do
       klass.index ["test", "foo"], "unique" => true
       expect(klass.indexes.first).to be_a Bodhi::TypeIndex
@@ -16,6 +16,13 @@ describe Bodhi::Indexes do
       expect(klass.indexes.first).to be_a Bodhi::TypeIndex
       expect(klass.indexes.first.attributes).to eq keys: ["test", "foo"], options: { unique: true }
       expect(klass.indexes.first.to_json).to eq '{"keys":["test","foo"],"options":{"unique":true}}'
+    end
+
+    it "options can be optional" do
+      klass.index [:test, :foo]
+      expect(klass.indexes.first).to be_a Bodhi::TypeIndex
+      expect(klass.indexes.first.attributes).to eq keys: ["test", "foo"], options: Hash.new
+      expect(klass.indexes.first.to_json).to eq '{"keys":["test","foo"],"options":{}}'
     end
   end
 
