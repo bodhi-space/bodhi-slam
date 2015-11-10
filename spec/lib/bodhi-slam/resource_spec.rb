@@ -172,7 +172,7 @@ describe Bodhi::Resource do
       expect(type.properties).to eq name: { type: "String", required: true }, email: { type: "String", isEmail: true }
       expect(type.indexes.first.keys).to eq ["name"]
       expect(type.indexes.first.options).to eq unique: true
-      expect(type.to_json).to eq '{"name":"TestResource12345","properties":{"name":{"type":"String","required":true},"email":{"type":"String","isEmail":true}},"indexes":[{"keys":["name"],"options":{"unique":true}}]}'
+      expect(type.to_json).to eq '{"name":"TestResource12345","embedded":false,"properties":{"name":{"type":"String","required":true},"email":{"type":"String","isEmail":true}},"indexes":[{"keys":["name"],"options":{"unique":true}}]}'
 
       Object.send(:remove_const, :TestResource12345)
     end

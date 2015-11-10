@@ -5,6 +5,9 @@ module Bodhi
 
     module ClassMethods
 
+      def embedded(bool); @embedded = bool; end
+      def is_embedded?; @embedded; end
+
       # Defines the given +name+ and +options+ as a form attribute for the class.
       # The +name+ is set as a property, and validations & factory generators are added based on the supplied +options+
       # 
@@ -34,7 +37,7 @@ module Bodhi
           result.merge({ property => options})
         end
 
-        Bodhi::Type.new(name: self.name, properties: type_properties, indexes: self.indexes)
+        Bodhi::Type.new(name: self.name, properties: type_properties, indexes: self.indexes, embedded: self.is_embedded?)
       end
 
       # Saves a batch of resources to the Bodhi Cloud in the given +context+
@@ -340,6 +343,7 @@ module Bodhi
     def self.included(base)
       base.extend(ClassMethods)
       base.include(InstanceMethods, Bodhi::Validations, Bodhi::Properties, Bodhi::Indexes, Bodhi::Factories, ActiveModel::Model)
+      base.instance_variable_set(:@embedded, false)
     end
   end
 end
