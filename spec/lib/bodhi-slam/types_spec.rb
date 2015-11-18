@@ -161,7 +161,8 @@ describe Bodhi::Type do
     let(:type) do
       Bodhi::Type.new({
         name: "TestCreateType",
-        properties: { foo: { type: "String", required: true }, bar: { type: "Integer", required: true, multi: true }, something: { type: "String", system: true } }
+        properties: { foo: { type: "String", required: true }, bar: { type: "Integer", required: true, multi: true }, something: { type: "String", system: true } },
+        indexes: [{ keys: ["foo"], options: { unique: false } }]
       })
     end
     
@@ -193,6 +194,12 @@ describe Bodhi::Type do
         expect(klass.factory.build.attributes).to_not have_key :something
 
         expect(klass.factory.build.something).to eq nil
+      end
+
+      it "adds the type objects indexes to the class indexes array" do
+        klass = Bodhi::Type.create_class_with(type)
+        expect(klass.indexes.first.keys).to eq ["foo"]
+        expect(klass.indexes.first.options).to eq unique: false
       end
     end
   end

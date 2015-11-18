@@ -171,6 +171,23 @@ module Bodhi
         end
       end
 
+      # add indexes to the class
+      unless type.indexes.nil?
+        type.indexes.each do |index|
+          if index.is_a? Bodhi::TypeIndex
+            klass.index index.keys, index.options
+          else
+            # index is a raw json object
+            # symbolize the index option keys
+            index = index.reduce({}) do |memo, (k, v)|
+              memo.merge({ k.to_sym => v})
+            end
+
+            klass.index index[:keys], index[:options]
+          end
+        end
+      end
+
       klass
     end
 
