@@ -24,7 +24,7 @@ describe Bodhi::Profile do
       let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
 
       it "saves a profile to the cloud and returns a Bodhi::Profile" do
-        profile = Bodhi::Profile.factory.create(context, name: "TestProfile007", namespace: context.namespace, dml: { Store: { select: {} } })
+        profile = Bodhi::Profile.factory.create(bodhi_context: context, name: "TestProfile007", namespace: context.namespace, dml: { Store: { select: {} } })
         puts "\033[33mGenerated\033[0m: \033[36m#{profile.attributes}\033[0m"
         profile.delete!
       end
@@ -40,7 +40,7 @@ describe Bodhi::Profile do
     end
 
     it "returns a Bodhi::Profile for the given profile_name" do
-      Bodhi::Profile.factory.create(context, name: "TestProfile007", namespace: context.namespace, dml: { Store: { select: {} } })
+      Bodhi::Profile.factory.create(bodhi_context: context, name: "TestProfile007", namespace: context.namespace, dml: { Store: { select: {} } })
       profile = Bodhi::Profile.find(context, "TestProfile007")
       expect(profile).to be_a Bodhi::Profile
       profile.delete!

@@ -278,8 +278,8 @@ describe Bodhi::Query do
       end
 
       it "invokes the query and returns an array of all records that match" do
-        TestResource.factory.create_list(5, @context, foo: "test")
-        TestResource.factory.create_list(2, @context, foo: "not_test")
+        TestResource.factory.create_list(5, bodhi_context: @context, foo: "test")
+        TestResource.factory.create_list(2, bodhi_context: @context, foo: "not_test")
 
         result = @query.from(@context).where("{foo: 'test'}").all
         puts "\033[33mFound Resources\033[0m: \033[36m#{result.map(&:attributes)}\033[0m"
@@ -296,7 +296,7 @@ describe Bodhi::Query do
       end
 
       it "invokes the query and returns the first record that matches" do
-        first_result = TestResource.factory.create_list(5, @context, foo: "test").first
+        first_result = TestResource.factory.create_list(5, bodhi_context: @context, foo: "test").first
 
         result = @query.from(@context).where("{foo: 'test'}").first
         puts "\033[33mFound Resources\033[0m: \033[36m#{result.attributes}\033[0m"
@@ -313,7 +313,7 @@ describe Bodhi::Query do
       end
 
       it "invokes the query and returns the last record that matches" do
-        last_result = TestResource.factory.create_list(5, @context, foo: "test").last
+        last_result = TestResource.factory.create_list(5, bodhi_context: @context, foo: "test").last
 
         result = @query.from(@context).where("{foo: 'test'}").last
         puts "\033[33mFound Resources\033[0m: \033[36m#{result.attributes}\033[0m"

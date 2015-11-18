@@ -87,33 +87,33 @@ describe Bodhi::Factory do
 
   describe "#create(context, params={})" do
     it "should return an instance of the type #klass" do
-      expect(@factory.create(@context)).to be_a TestResource
+      expect(@factory.create(bodhi_context: @context)).to be_a TestResource
     end
 
     it "should randomly generate values for each of the objects attributes" do
-      obj = @factory.create(@context)
+      obj = @factory.create(bodhi_context: @context)
       expect(obj.foo).to be_a String
       expect(obj.baz).to be_a Integer
     end
 
     it "should override attributes for the object if an attribute hash is given" do
-      obj = @factory.create(@context, foo: "test test")
+      obj = @factory.create(bodhi_context: @context, foo: "test test")
       expect(obj.foo).to eq "test test"
     end
 
     it "should raise Bodhi::Errors if the context is not valid" do
       bad_context = Bodhi::Context.new({})
-      expect{ @factory.create(bad_context, baz: 125) }.to raise_error(Bodhi::Errors, '["server is required", "namespace is required"]')
+      expect{ @factory.create(bodhi_context: bad_context, baz: 125) }.to raise_error(Bodhi::Errors, '["server is required", "namespace is required"]')
     end
 
     it "should raise Bodhi::ApiErrors if the resource could not be saved" do
-      expect{ @factory.create(@context, bar: "test") }.to raise_error(Bodhi::ApiErrors)
+      expect{ @factory.create(bodhi_context: @context, bar: "test") }.to raise_error(Bodhi::ApiErrors)
     end
   end
 
   describe "#create_list(size, context, params={})" do
     it "should return an array of #klass objects" do
-      results = @factory.create_list(5, @context)
+      results = @factory.create_list(5, bodhi_context: @context)
       expect(results).to be_a Array
       expect(results.size).to eq 5
       results.each do |obj|
@@ -122,20 +122,20 @@ describe Bodhi::Factory do
     end
 
     it "should randomly generate values for each object in the array" do
-      @factory.create_list(5, @context).each do |obj|
+      @factory.create_list(5, bodhi_context: @context).each do |obj|
         expect(obj.baz).to be_between(-10, 10)
       end
     end
 
     it "should override all objects with the specified attributes hash" do
-      @factory.create_list(5, @context, foo: "test").each do |obj|
+      @factory.create_list(5, bodhi_context: @context, foo: "test").each do |obj|
         expect(obj.foo).to eq "test"
       end
     end
 
     it "should raise Bodhi::ContextErrors if the context is invalid" do
       bad_context = Bodhi::Context.new({})
-      expect{ @factory.create_list(5, bad_context, baz: 125) }.to raise_error(Bodhi::Errors, '["server is required", "namespace is required"]')
+      expect{ @factory.create_list(5, bodhi_context: bad_context, baz: 125) }.to raise_error(Bodhi::Errors, '["server is required", "namespace is required"]')
     end
   end
 

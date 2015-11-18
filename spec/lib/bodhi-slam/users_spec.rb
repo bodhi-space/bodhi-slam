@@ -24,7 +24,7 @@ describe Bodhi::User do
       let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
 
       it "saves a user to the cloud and returns Bodhi::User" do
-        user = Bodhi::User.factory.create(context, username: "AutoTest_24601", password: "12345", email: "test@email.com", profiles: ["user"])
+        user = Bodhi::User.factory.create(bodhi_context: context, username: "AutoTest_24601", password: "12345", email: "test@email.com", profiles: ["user"])
         puts "\033[33mGenerated\033[0m: \033[36m#{user.attributes}\033[0m"
         expect(user.username).to eq "AutoTest_24601"
 
@@ -44,7 +44,7 @@ describe Bodhi::User do
     end
 
     it "returns a Bodhi::User for the given user_name" do
-      Bodhi::User.factory.create(context, username: "autotest_user1", password: "12345", email: "test@email.com", profiles: ["user"])
+      Bodhi::User.factory.create(bodhi_context: context, username: "autotest_user1", password: "12345", email: "test@email.com", profiles: ["user"])
       user = Bodhi::User.find(context, "autotest_user1")
       expect(user).to be_a Bodhi::User
 

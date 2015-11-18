@@ -127,25 +127,25 @@ describe Bodhi::Resource do
 
   describe "#delete!" do
     it "raises Bodhi::ApiErrors if the object could not be deleted" do
-      record = TestResource.factory.create(@context)
+      record = TestResource.factory.create(bodhi_context: @context)
       record.sys_id = nil
       expect{ record.delete! }.to raise_error(Bodhi::ApiErrors)
     end
 
     it "should DELETE the object from the cloud" do
-      record = TestResource.factory.create(@context)
+      record = TestResource.factory.create(bodhi_context: @context)
       expect{ record.delete! }.to_not raise_error
     end
   end
 
   describe "#patch!(params)" do
     it "raises Bodhi::ApiErrors if the object could not be patched" do
-      record = TestResource.factory.create(@context)
+      record = TestResource.factory.create(bodhi_context: @context)
       expect{ record.patch!([{}]) }.to raise_error(Bodhi::ApiErrors)
     end
 
     it "updates the record with the given patch arguments" do
-      record = TestResource.factory.create(@context)
+      record = TestResource.factory.create(bodhi_context: @context)
       record.patch!([{ op: "replace", path: "/foo", value: "hello world" }])
       record.patch!([{ op: "replace", path: "/bar/test", value: "hello world" }])
 
@@ -219,7 +219,7 @@ describe Bodhi::Resource do
     end
 
     it "should return the resource with the given id" do
-      record = TestResource.factory.create(@context)
+      record = TestResource.factory.create(bodhi_context: @context)
       result = TestResource.find(record.sys_id, @context)
       expect(result).to be_a TestResource
 
@@ -237,8 +237,8 @@ describe Bodhi::Resource do
     end
 
     it "returns an Array of resources when called" do
-      records = TestResource.factory.create_list(5, @context, foo: "test")
-      other_records = TestResource.factory.create_list(5, @context, foo: "not_test")
+      records = TestResource.factory.create_list(5, bodhi_context: @context, foo: "test")
+      other_records = TestResource.factory.create_list(5, bodhi_context: @context, foo: "not_test")
       results = TestResource.where("{foo: 'test'}").from(@context).all
 
       puts "\033[33mFound Resources\033[0m: \033[36m#{results.map(&:attributes)}\033[0m"
@@ -259,8 +259,8 @@ describe Bodhi::Resource do
     end
 
     it "should return the aggregation as json" do
-      records = TestResource.factory.create_list(10, @context, baz: 20)
-      other_records = TestResource.factory.create_list(5, @context, baz: 10)
+      records = TestResource.factory.create_list(10, bodhi_context: @context, baz: 20)
+      other_records = TestResource.factory.create_list(5, bodhi_context: @context, baz: 10)
       pipeline = "[
         { $match: { baz: { $gte: 20 } } },
         { $group: { _id: 'count_baz_greater_than_20', baz:{ $sum: 1 } } }
@@ -282,7 +282,7 @@ describe Bodhi::Resource do
     end
 
     it "deletes all resources from the cloud in the given context" do
-      TestResource.factory.create_list(5, @context)
+      TestResource.factory.create_list(5, bodhi_context: @context)
       expect(TestResource.find_all(@context).size).to eq 5
 
       expect{ TestResource.delete_all(@context) }.to_not raise_error
@@ -302,7 +302,7 @@ describe Bodhi::Resource do
     end
 
     it "returns a JSON object with the record count" do
-      TestResource.factory.create_list(5, @context)
+      TestResource.factory.create_list(5, bodhi_context: @context)
       result = TestResource.count(@context)
 
       expect(result).to be_a Hash
