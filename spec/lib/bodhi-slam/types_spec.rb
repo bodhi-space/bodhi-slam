@@ -161,7 +161,7 @@ describe Bodhi::Type do
     let(:type) do
       Bodhi::Type.new({
         name: "TestCreateType",
-        properties: { foo: { type: "String", required: true }, bar: { type: "Integer", required: true, multi: true } } 
+        properties: { foo: { type: "String", required: true }, bar: { type: "Integer", required: true, multi: true }, something: { type: "String", system: true } }
       })
     end
     
@@ -184,6 +184,15 @@ describe Bodhi::Type do
         obj.bar = [10, 20, 30]
         obj.valid?
         expect(obj.errors.messages).to eq Hash.new
+      end
+
+      it "does not add factory generators for system properties" do
+        klass = Bodhi::Type.create_class_with(type)
+        expect(klass.factory.build.attributes).to have_key :foo
+        expect(klass.factory.build.attributes).to have_key :bar
+        expect(klass.factory.build.attributes).to_not have_key :something
+
+        expect(klass.factory.build.something).to eq nil
       end
     end
   end

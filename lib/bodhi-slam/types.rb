@@ -155,8 +155,20 @@ module Bodhi
       klass = Object.const_set(type.name, Class.new { include Bodhi::Resource })
 
       type.properties.each_pair do |attr_name, attr_properties|
-        attr_properties.delete_if{ |key, value| ["system", "trim", "unique", "default", "isCurrentUser", "toLower"].include?(key) }
-        klass.field(attr_name, attr_properties)
+        # symbolize the attr_properties keys
+        attr_properties = attr_properties.reduce({}) do |memo, (k, v)|
+          memo.merge({ k.to_sym => v})
+        end
+
+        # remove Sanitizers
+        attr_properties.delete_if{ |key, value| [:trim, :unique, :default, :isCurrentUser, :toLower].include?(key) }
+
+        # Do not add factories or validations for system properties
+        if attr_properties[:system] == true
+          klass.property attr_name
+        else
+          klass.field(attr_name, attr_properties)
+        end
       end
 
       klass
