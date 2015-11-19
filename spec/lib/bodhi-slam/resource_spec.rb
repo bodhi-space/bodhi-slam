@@ -6,22 +6,29 @@ describe Bodhi::Resource do
     @type = Bodhi::Type.new(name: "TestResource", properties: { foo: { type: "String" }, bar: { type: "TestEmbeddedResource" }, baz: { type: "Integer" } })
     @embedded_type = Bodhi::Type.new(name: "TestEmbeddedResource", properties: { test: { type: "String" }, bool: { type: "Boolean" } }, embedded: true)
 
+    @unique_index_type = Bodhi::Type.new(name: "TestResource2", properties: { foo: { type: "String" }, bar: { type: "Integer" } }, indexes: [{keys: ["bar"], options:{unique: true}}])
+
     @type.bodhi_context = @context
     @embedded_type.bodhi_context = @context
+    @unique_index_type.bodhi_context = @context
 
     @type.save!
     @embedded_type.save!
+    @unique_index_type.save!
 
     Bodhi::Type.create_class_with(@type)
     Bodhi::Type.create_class_with(@embedded_type)
+    Bodhi::Type.create_class_with(@unique_index_type)
   end
 
   after(:all) do
     @type.delete!
     @embedded_type.delete!
+    @unique_index_type.delete!
 
     Object.send(:remove_const, :TestResource)
     Object.send(:remove_const, :TestEmbeddedResource)
+    Object.send(:remove_const, :TestResource2)
   end
 
   after do
@@ -135,6 +142,33 @@ describe Bodhi::Resource do
     it "should DELETE the object from the cloud" do
       record = TestResource.factory.create(bodhi_context: @context)
       expect{ record.delete! }.to_not raise_error
+    end
+  end
+
+  describe "#upsert!(params)" do
+    it "raises Bodhi::ApiErrors if the resource does not have a unique index" do
+      record = TestResource.new(bodhi_context: @context, foo: "test")
+      expect{ record.upsert! }.to raise_error(Bodhi::ApiErrors, '{"status":422,"body":[{"message":"Upsert can only be used with document hitting a unique index","code":"space.bodhi.unprocessable.json.entity","params":[{"foo":"test"},"TestResource"]}]}')
+    end
+
+    it "creates a new record if not already present" do
+      record = TestResource2.new(bodhi_context: @context, foo: "test", bar: 10)
+      expect{ record.upsert! }.to_not raise_error
+      expect(TestResource2.count(@context)).to eq "count" => 1
+    end
+
+    it "updates the record if it already exists" do
+      record = TestResource2.new(bodhi_context: @context, foo: "test", bar: 10)
+      expect{ record.upsert! }.to_not raise_error
+
+      expect{ record.upsert!(foo: "12345", bar: 10) }.to_not raise_error
+      expect(TestResource2.count(@context)).to eq "count" => 1
+      expect(TestResource2.find_all(@context).first.foo).to eq "12345"
+    end
+
+    it "returns false if the record is invalid" do
+      record = TestResource2.new(bodhi_context: @context, foo: 12345, bar: 10)
+      expect( record.upsert! ).to be false
     end
   end
 

@@ -315,7 +315,7 @@ module Bodhi
           request.url "/#{bodhi_context.namespace}/resources/#{self.class}/#{sys_id}"
           request.headers['Content-Type'] = 'application/json'
           request.headers[bodhi_context.credentials_header] = bodhi_context.credentials
-          request.body = params.to_json
+          request.body = attributes.to_json
         end
 
         if result.status != 204
@@ -325,6 +325,30 @@ module Bodhi
         true
       end
       alias :update :update!
+
+      def upsert!(params={})
+        update_attributes(params)
+
+        if invalid?
+          return false
+        end
+
+        result = bodhi_context.connection.put do |request|
+          request.url "/#{bodhi_context.namespace}/resources/#{self.class}?upsert=true"
+          request.headers['Content-Type'] = 'application/json'
+          request.headers[bodhi_context.credentials_header] = bodhi_context.credentials
+          request.body = attributes.to_json
+        end
+
+        unless [204, 201].include?(result.status)
+          raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
+        end
+
+        if result.headers['location']
+          @sys_id = result.headers['location'].match(/(?<id>[a-zA-Z0-9]{24})/)[:id]
+        end
+      end
+      alias :upsert :upsert!
 
       def patch!(params)
         result = bodhi_context.connection.patch do |request|
