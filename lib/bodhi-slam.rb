@@ -53,6 +53,12 @@ class BodhiSlam
 
     all_enums = Bodhi::Enumeration.find_all(context)
     all_types = Bodhi::Type.find_all(context)
-    all_types.collect{ |type| Bodhi::Type.create_class_with(type) }
+    all_types.collect do |type|
+      begin
+        Bodhi::Type.create_class_with(type)
+      rescue Exception => error
+        puts "WARNING: Unable to create class for #{type.name}.  The following error was encountered: #{error}"
+      end
+    end
   end
 end
