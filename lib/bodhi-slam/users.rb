@@ -88,6 +88,34 @@ module Bodhi
       end
     end
 
+    def update!(options)
+      update_attributes(options)
+
+      result = bodhi_context.connection.put do |request|
+        request.url "/#{bodhi_context.namespace}/users/#{username}"
+        request.headers['Content-Type'] = 'application/json'
+        request.headers[bodhi_context.credentials_header] = bodhi_context.credentials
+        request.body = attributes.to_json
+      end
+
+      if result.status != 204
+        raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
+      end
+    end
+
+    def patch!(options)
+      result = bodhi_context.connection.patch do |request|
+        request.url "/#{bodhi_context.namespace}/users/#{username}"
+        request.headers['Content-Type'] = 'application/json'
+        request.headers[bodhi_context.credentials_header] = bodhi_context.credentials
+        request.body = options.to_json
+      end
+
+      if result.status != 204
+        raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
+      end
+    end
+
     def delete!
       result = bodhi_context.connection.delete do |request|
         request.url "/#{bodhi_context.namespace}/users/#{username}"
