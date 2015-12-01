@@ -20,7 +20,42 @@ describe BodhiSlam do
       end
     end
   end
-  
+
+  describe ".define_resources(context, options={})" do
+    let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
+
+    it "raises Bodhi::ContextErrors if the context is invalid" do
+      bad_context = Bodhi::Context.new
+      expect{ BodhiSlam.define_resources(bad_context) }.to raise_error(Bodhi::ContextErrors)
+    end
+
+    it "returns only the types specified with the :include options" do
+      resources = BodhiSlam.define_resources(context, include: ["Store", :SalesTransaction])
+      expect(resources.size).to eq 2
+      expect(Object.const_defined?("Store")).to be true
+      expect(Object.const_defined?("SalesTransaction")).to be true
+
+      #clean up
+      ["Store", "SalesTransaction"].each{ |resource| Object.send(:remove_const, resource) }
+    end
+
+    it "returns all types except the ones specified with the :exclude options" do
+      resources = BodhiSlam.define_resources(context, except: ["Store", :SalesTransaction])
+      expect(resources.map(&:name)).to_not include ["Store", "SalesTransaction"]
+
+      # clean up
+      resources.map(&:name).each{ |resource| Object.send(:remove_const, resource) }
+    end
+
+    it "returns all types if no options are given" do
+      resources = BodhiSlam.define_resources(context)
+      expect(resources).to_not be_empty
+
+      # clean up
+      resources.map(&:name).each{ |resource| Object.send(:remove_const, resource) }
+    end
+  end
+
   describe ".analyze" do
     context "with valid context" do
       let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }

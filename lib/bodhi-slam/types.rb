@@ -139,6 +139,12 @@ module Bodhi
       end
     end
 
+    def self.where(query)
+      query_obj = Bodhi::Query.new(Bodhi::Type, "types")
+      query_obj.where(query)
+      query_obj
+    end
+
     # Dynamically defines a new Ruby class for the given +type+
     # Class validations, factory, and helper methods will also be added
     # 
@@ -164,9 +170,7 @@ module Bodhi
         attr_properties.delete_if{ |key, value| [:trim, :unique, :default, :isCurrentUser, :toLower].include?(key) }
 
         # Do not add factories or validations for system properties
-        if attr_properties[:system] == true
-          klass.property attr_name
-        else
+        unless attr_properties[:system] == true
           klass.field(attr_name, attr_properties)
         end
       end

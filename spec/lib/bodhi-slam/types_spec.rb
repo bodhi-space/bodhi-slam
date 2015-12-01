@@ -185,6 +185,7 @@ describe Bodhi::Type do
         obj.bar = [10, 20, 30]
         obj.valid?
         expect(obj.errors.messages).to eq Hash.new
+        Object.send(:remove_const, :TestCreateType)
       end
 
       it "does not add factory generators for system properties" do
@@ -192,14 +193,15 @@ describe Bodhi::Type do
         expect(klass.factory.build.attributes).to have_key :foo
         expect(klass.factory.build.attributes).to have_key :bar
         expect(klass.factory.build.attributes).to_not have_key :something
-
-        expect(klass.factory.build.something).to eq nil
+        expect{ klass.new.something }.to raise_error(NoMethodError)
+        Object.send(:remove_const, :TestCreateType)
       end
 
       it "adds the type objects indexes to the class indexes array" do
         klass = Bodhi::Type.create_class_with(type)
         expect(klass.indexes.first.keys).to eq ["foo"]
         expect(klass.indexes.first.options).to eq unique: false
+        Object.send(:remove_const, :TestCreateType)
       end
     end
   end

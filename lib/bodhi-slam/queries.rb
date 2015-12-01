@@ -1,8 +1,9 @@
 module Bodhi
   class Query
-    attr_reader :klass, :url, :context, :criteria, :fields, :paging, :sorting
+    attr_reader :klass, :controller, :url, :context, :criteria, :fields, :paging, :sorting
 
-    def initialize(klass)
+    def initialize(klass, controller="resources")
+      @controller = controller
       @klass = Object.const_get(klass.to_s)
       @criteria = []
       @fields = []
@@ -20,9 +21,13 @@ module Bodhi
 
     def url
       unless context.nil?
-        query = "/#{context.namespace}/resources/#{klass}?"
+        if @controller == "resources"
+          query = "/#{context.namespace}/#{controller}/#{klass}?"
+        else
+          query = "/#{context.namespace}/#{controller}?"
+        end
       else
-        query = "/resources/#{klass}?"
+        query = "/#{controller}/#{klass}?"
       end
       params = []
 
