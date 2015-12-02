@@ -82,13 +82,13 @@ describe Bodhi::Query do
       context "with criteria" do
         it "adds single mongodb where query" do
           @query.where("{test: { $exists: true }}")
-          expect(@query.url).to eq "/resources/TestResource?where={test:{$exists:true}}"
+          expect(@query.url).to eq "/resources/TestResource?where={test: { $exists: true }}"
           puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
 
         it "joins multiple criteria into an $and mongodb query" do
           @query.where("{test: { $exists: true }}").and("{foo: 'bar'}").and("{test: 10}")
-          expect(@query.url).to eq "/resources/TestResource?where={$and:[{test:{$exists:true}},{foo:'bar'},{test:10}]}"
+          expect(@query.url).to eq "/resources/TestResource?where={$and:[{test: { $exists: true }},{foo: 'bar'},{test: 10}]}"
           puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
       end

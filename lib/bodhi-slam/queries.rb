@@ -74,7 +74,7 @@ module Bodhi
       end
 
       query << params.join('&')
-      query.gsub(/\s+/, "")
+      #query.gsub(/\s+/, "")
     end
 
     def all

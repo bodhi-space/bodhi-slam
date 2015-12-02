@@ -142,6 +142,7 @@ describe Bodhi::Resource do
     it "should DELETE the object from the cloud" do
       record = TestResource.factory.create(bodhi_context: @context)
       expect{ record.delete! }.to_not raise_error
+      expect{ TestResource.find(record.id, @context) }.to raise_error(Bodhi::ApiErrors)
     end
   end
 
