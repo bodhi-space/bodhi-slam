@@ -95,7 +95,7 @@ module Bodhi
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
 
-      result.body.map{ |attributes| klass.new(attributes) }
+      result.body.map{ |attributes| klass.new(attributes.merge(bodhi_context: context)) }
     end
 
     def first
@@ -116,7 +116,7 @@ module Bodhi
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
 
-      result.body.map{ |attributes| klass.new(attributes) }.first
+      result.body.map{ |attributes| klass.new(attributes.merge(bodhi_context: context)) }.first
     end
 
     def last
@@ -137,7 +137,7 @@ module Bodhi
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
 
-      result.body.map{ |attributes| klass.new(attributes) }.last
+      result.body.map{ |attributes| klass.new(attributes.merge(bodhi_context: context)) }.last
     end
 
     def from(context)

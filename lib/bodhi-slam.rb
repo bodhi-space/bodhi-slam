@@ -1,15 +1,11 @@
+require "json"
+require "time"
 require 'faraday'
 require 'faraday_middleware'
 require 'net/http/persistent'
-
-require "json"
-require "time"
-require "SecureRandom"
 require 'regexp-examples'
-require 'active_model'
 
 require 'bodhi-slam/support'
-
 require 'bodhi-slam/validations'
 require 'bodhi-slam/errors'
 require 'bodhi-slam/context'

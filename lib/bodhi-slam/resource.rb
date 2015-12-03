@@ -366,7 +366,7 @@ module Bodhi
 
     def self.included(base)
       base.extend(ClassMethods)
-      base.include(InstanceMethods, Bodhi::Validations, Bodhi::Properties, Bodhi::Indexes, Bodhi::Factories, ActiveModel::Model)
+      base.include(InstanceMethods, Bodhi::Validations, Bodhi::Properties, Bodhi::Indexes, Bodhi::Factories)
       base.instance_variable_set(:@embedded, false)
     end
   end
