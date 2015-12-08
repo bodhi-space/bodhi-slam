@@ -276,6 +276,10 @@ module Bodhi
       #   obj.save!
       #   obj.persisted? # => true
       def save!
+        if bodhi_context.invalid?
+          raise Bodhi::ContextErrors.new(bodhi_context.errors.messages), bodhi_context.errors.to_a.to_s
+        end
+
         result = bodhi_context.connection.post do |request|
           request.url "/#{bodhi_context.namespace}/resources/#{self.class}"
           request.headers['Content-Type'] = 'application/json'

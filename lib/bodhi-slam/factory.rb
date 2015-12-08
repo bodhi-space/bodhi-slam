@@ -33,8 +33,7 @@ module Bodhi
         memo.merge({ k.to_sym => v})
       end
 
-      object = klass.new
-      object.bodhi_context = options[:bodhi_context]
+      object = klass.new(bodhi_context: options[:bodhi_context])
       @generators.each_pair do |attribute, generator|
         if options.has_key?(attribute)
           object.send("#{attribute}=", options[attribute])
@@ -60,19 +59,6 @@ module Bodhi
     #   Resource.factory.create(context) # => #<Resource:0x007fbff403e808 @name="2-3lmwp^oef@245">
     #   Resource.factory.create(context, name: "test") # => #<Resource:0x007fbff403e808 @name="test">
     def create(options={})
-      # symbolize the option keys
-      options = options.reduce({}) do |memo, (k, v)| 
-        memo.merge({ k.to_sym => v})
-      end
-      
-      if options[:bodhi_context].nil?
-        raise ArgumentError.new("Missing option :bodhi_context")
-      end
-
-      if options[:bodhi_context].invalid?
-        raise options[:bodhi_context].errors, options[:bodhi_context].errors.to_a.to_s
-      end
-
       object = build(options)
       object.save!
       object
@@ -84,19 +70,6 @@ module Bodhi
     #   Resource.factory.create_list(10, context) # => [#<Resource:0x007fbff403e808 @name="2-3lmwp^oef@245">, #<Resource:0x007fbff403e808 @name="p7:n#$903<u1">, ...]
     #   Resource.factory.create_list(10, context, name: "test") # => [#<Resource:0x007fbff403e808 @name="test">, #<Resource:0x007fbff403e808 @name="test">, ...]
     def create_list(size, options={})
-      # symbolize the option keys
-      options = options.reduce({}) do |memo, (k, v)| 
-        memo.merge({ k.to_sym => v})
-      end
-      
-      if options[:bodhi_context].nil?
-        raise ArgumentError.new("Missing option :bodhi_context")
-      end
-
-      if options[:bodhi_context].invalid?
-        raise options[:bodhi_context].errors, options[:bodhi_context].errors.to_a.to_s
-      end
-
       resources = build_list(size, options)
       resources.each{ |resource| resource.save! }
       resources
