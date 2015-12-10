@@ -42,8 +42,16 @@ module Bodhi
       #   object.attributes # => { foo: "test", bar: 12345 }
       def attributes
         attributes = Hash.new
+
         self.class.properties.each do |property|
-          attributes[property] = send(property)
+          value = send(property)
+          if value.respond_to?(:attributes)
+            attributes[property] = value.attributes.delete_if { |k, v| v.nil? }
+          elsif value.is_a?(Array) && value.first.respond_to?(:attributes)
+            attributes[property] = value.map(&:attributes).collect{ |item| item.delete_if { |k, v| v.nil? } }
+          else
+            attributes[property] = value
+          end
         end
 
         attributes.delete_if { |k, v| v.nil? }

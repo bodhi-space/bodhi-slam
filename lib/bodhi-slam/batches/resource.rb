@@ -25,7 +25,7 @@ module Bodhi
         request.url "/#{context.namespace}/resources/#{type}"
         request.headers['Content-Type'] = 'application/json'
         request.headers[context.credentials_header] = context.credentials
-        request.body = records.to_json
+        request.body = records.map(&:attributes).to_json
       end
 
       if response.status != 200

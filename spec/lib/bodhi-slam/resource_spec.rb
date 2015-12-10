@@ -279,7 +279,7 @@ describe Bodhi::Resource do
       puts "\033[33mFound Resources\033[0m: \033[36m#{results.map(&:attributes)}\033[0m"
       expect(results.count).to eq 5
       results.each{ |obj| expect(obj).to be_a TestResource }
-      expect(JSON.parse(results.to_json)).to match_array JSON.parse(records.to_json)
+      expect(results.map(&:attributes)).to match_array records.map(&:attributes)
     end
   end
 

@@ -44,8 +44,28 @@ describe Bodhi::Properties do
   describe "#attributes" do
     it "returns a Hash of the objects properties and values" do
       klass.property :name
-      object = klass.new(name: "test")
-      expect(object.attributes).to eq name: "test"
+      klass.property :age
+
+      object = klass.new(name: "test", age: 42)
+      expect(object.attributes).to eq name: "test", age: 42
+    end
+
+    it "serializes embedded resources to a hash" do
+      embedded = Class.new{ include Bodhi::Properties }
+      embedded.property :test
+
+      klass.property :name
+      object = klass.new(name: embedded.new(test: "hello"))
+      expect(object.attributes).to eq name: { test: "hello" }
+    end
+
+    it "serializes arrays of embedded resources to an array of hashes" do
+      embedded = Class.new{ include Bodhi::Properties }
+      embedded.property :test
+
+      klass.property :name
+      object = klass.new(name: [embedded.new(test: "hello"), embedded.new(test: "foo"), embedded.new(test: "bar")])
+      expect(object.attributes).to eq name: [{ test: "hello" }, { test: "foo" }, { test: "bar" }]
     end
   end
 
