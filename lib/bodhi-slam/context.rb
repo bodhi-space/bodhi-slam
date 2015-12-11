@@ -1,5 +1,3 @@
-require 'bodhi-slam/validations'
-
 module Bodhi
   class Context
     include Bodhi::Validations
