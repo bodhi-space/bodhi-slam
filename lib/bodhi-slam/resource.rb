@@ -22,22 +22,13 @@ module Bodhi
       #   object = User.new(first_name: "John", last_name: "Smith", email: "jsmith@email.com")
       #   object.to_json #=> { "first_name": "John", "last_name": "Smith", "email": "jsmith@email.com" }
       def field(name, options)
-        property(name.to_sym)
+        property(name.to_sym, options)
         validates(name.to_sym, options)
         generates(name.to_sym, options)
       end
 
       def build_type
-        # reduce the properties array into a Hash.
-        # lookup the validators for each property and add them as options for the property
-        type_properties = self.properties.reduce({}) do |result, property|
-          options = self.validators[property].map(&:to_options).reduce({}) do |options_result, options_hash|
-            options_result.merge(options_hash)
-          end
-          result.merge({ property => options})
-        end
-
-        Bodhi::Type.new(name: self.name, properties: type_properties, indexes: self.indexes, embedded: self.is_embedded?)
+        Bodhi::Type.new(name: self.name, properties: self.properties, indexes: self.indexes, embedded: self.is_embedded?)
       end
 
       # Saves a batch of resources to the Bodhi Cloud in the given +context+

@@ -6,7 +6,11 @@ module Bodhi
 
     attr_accessor :bodhi_context
 
-    property :name, :namespace, :dml, :subspace, :parent
+    property :dml,        type: "Object"
+    property :name,       type: "String"
+    property :namespace,  type: "String"
+    property :subspace,   type: "String"
+    property :parent,     type: "String"
 
     validates :name, type: "String", required: true, is_not_blank: true
     validates :namespace, type: "String", required: true

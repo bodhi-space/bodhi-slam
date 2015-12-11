@@ -10,77 +10,126 @@ describe Bodhi::Properties do
     end
   end
 
-  describe ".property(*names)" do
+  describe ".property(name, options)" do
     it "adds a new property with the given name (string)" do
-      expect{klass.property "test"}.to_not raise_error
+      expect{klass.property "test", type: String}.to_not raise_error
       expect(klass.properties).to include :test
     end
 
     it "adds a new property with the given name (symbol)" do
-      expect{klass.property :test}.to_not raise_error
+      expect{klass.property :test, type: "String"}.to_not raise_error
       expect(klass.properties).to include :test
-    end
-
-    it "adds multiple properties from the given array of names" do
-      expect{klass.property :test, :foo, :bar}.to_not raise_error
-      expect(klass.properties).to include :test, :foo, :bar
     end
   end
 
   describe ".properties" do
     it "returns an Array of all properties for the class" do
-      expect(klass.properties).to be_a Array
+      expect(klass.properties).to be_a Hash
     end
   end
 
-  describe "#initialize(params={})" do
-    it "returns a new object with the given params" do
-      klass.property :name
+  describe "#initialize(options={})" do
+    it "returns a new object with the given options" do
+      klass.property :name, type: String
+      klass.property :address, type: "String"
+
       object = klass.new(name: "test")
+
       expect(object.name).to eq "test"
+      expect(object.address).to eq nil
+    end
+
+    context "type coersion" do
+      it "converts from String to Time" do
+        klass.property :date, type: "DateTime"
+
+        object = klass.new(date: "November 3rd 2011 10:26pm")
+
+        expect(object.date).to be_a Time
+        expect(object.date).to eq Time.parse("November 3rd 2011 10:26pm")
+      end
+
+      it "converts from String to Integer" do
+        klass.property :date, type: "Integer"
+
+        object = klass.new(date: "-12345")
+
+        expect(object.date).to be_a Integer
+        expect(object.date).to eq -12345
+      end
+
+      it "converts from String to Decimal (Real)" do
+        klass.property :date, type: "Real"
+
+        object = klass.new(date: "10.55")
+
+        expect(object.date).to be_a Float
+        expect(object.date).to eq 10.55
+      end
+
+      it "converts Hash to an object of the properties type" do
+        klass2 = Object.const_set("AwesomeType", Class.new{ include Bodhi::Properties })
+
+        klass2.property :name, type: String
+        klass.property :embedded, type: AwesomeType
+
+        object = klass.new("embedded" => { "name" => "Dogmeat" })
+
+        expect(object.embedded).to be_a AwesomeType
+        expect(object.embedded.name).to eq "Dogmeat"
+
+        Object.send(:remove_const, :AwesomeType)
+      end
     end
   end
 
   describe "#attributes" do
     it "returns a Hash of the objects properties and values" do
-      klass.property :name
-      klass.property :age
+      klass.property :name, type: String
+      klass.property :age, type: Integer
 
       object = klass.new(name: "test", age: 42)
       expect(object.attributes).to eq name: "test", age: 42
     end
 
     it "serializes embedded resources to a hash" do
-      embedded = Class.new{ include Bodhi::Properties }
-      embedded.property :test
+      klass2 = Object.const_set("AwesomeType", Class.new{ include Bodhi::Properties })
+      klass2.property :test, type: String
+      klass.property :name, type: AwesomeType
 
-      klass.property :name
-      object = klass.new(name: embedded.new(test: "hello"))
+      object = klass.new(name: { test: "hello" })
       expect(object.attributes).to eq name: { test: "hello" }
+
+      Object.send(:remove_const, :AwesomeType)
     end
 
     it "serializes arrays of embedded resources to an array of hashes" do
-      embedded = Class.new{ include Bodhi::Properties }
-      embedded.property :test
+      klass2 = Object.const_set("AwesomeType", Class.new{ include Bodhi::Properties })
+      klass2.property :test, type: String
 
-      klass.property :name
-      object = klass.new(name: [embedded.new(test: "hello"), embedded.new(test: "foo"), embedded.new(test: "bar")])
+      klass.property :name, type: AwesomeType, multi: true
+      object = klass.new(name: [{ test: "hello"}, { test: "foo" }, { test: "bar" }])
       expect(object.attributes).to eq name: [{ test: "hello" }, { test: "foo" }, { test: "bar" }]
+
+      Object.send(:remove_const, :AwesomeType)
     end
   end
 
   describe "#update_attributes(params)" do
     it "updates the object with the given params" do
-      klass.property :name, :email
+      klass.property :name, type: String
+      klass.property :email, type: String
+
       object = klass.new(name: "test", email: "test@email.com")
       object.update_attributes(name: "foo")
+
       expect(object.attributes).to eq name: "foo", email: "test@email.com"
     end
   end
 
   describe "#to_json" do
     it "returns a JSON string of the objects attributes" do
-      klass.property :name
+      klass.property :name, type: String
       object = klass.new(name: "test")
       expect(object.to_json).to eq '{"name":"test"}'
     end

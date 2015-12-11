@@ -6,10 +6,23 @@ module Bodhi
 
     attr_accessor :bodhi_context
 
-    property :name, :storage_name, :namespace,
-      :package, :embedded, :properties, :version,
-      :extends, :indexes, :hidden, :events, :documentation,
-      :metadata, :encapsulated
+    property :properties,     type: "Object"
+    property :indexes,        type: "Object", multi: true
+    property :events,         type: "Object"
+
+    property :name,           type: "String"
+    property :storage_name,   type: "String"
+    property :namespace,      type: "String"
+    property :package,        type: "String"
+    property :version,        type: "String"
+    property :extends,        type: "String"
+
+    property :hidden,         type: "Boolean"
+    property :embedded,       type: "Boolean"
+    property :metadata,       type: "Boolean"
+    property :encapsulated,   type: "Boolean"
+
+    property :documentation,  type: "Link"
 
     validates :name, required: true, is_not_blank: true
     validates :properties, required: true

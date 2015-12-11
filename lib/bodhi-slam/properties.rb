@@ -7,10 +7,12 @@ module Bodhi
 
     module ClassMethods
       def properties; @properties; end
-      def property(*names)
-        attr_accessor *names.map(&:to_sym)
-        @properties << names.map(&:to_sym)
-        @properties.flatten!
+      def property_names; @properties.keys; end
+      def property(name, options)
+        attr_accessor name.to_sym
+        @properties[name.to_sym] = options.reduce({}) do |memo, (k, v)|
+          memo.merge({ Bodhi::Support.reverse_camelize(k.to_s).to_sym => v})
+        end
       end
     end
 
@@ -30,9 +32,23 @@ module Bodhi
       #   object = klass.new(name: "Bob", email: "some@email.com")
       #   object.name #=> "Bob"
       #   object.email #=> "some@email.com"
-      def initialize(params={})
-        params.each do |param_key, param_value|
-          send("#{param_key}=", param_value)
+      def initialize(options={})
+        options.each do |property, value|
+          send("#{property}=", value)
+
+          #type = self.class.properties[property.to_sym][:type].to_s
+          #case type
+          #when "String"
+          #  send("#{property}=", value.to_s)
+          #when "Real"
+          #  send("#{property}=", value.to_f)
+          #when "Integer"
+          #  send("#{property}=", value.to_i)
+          #when "DateTime"
+          #  send("#{property}=", Time.parse(value.to_s))
+          #else
+          #  send("#{property}=", value)
+          #end
         end
       end
 
@@ -43,7 +59,7 @@ module Bodhi
       def attributes
         attributes = Hash.new
 
-        self.class.properties.each do |property|
+        self.class.property_names.each do |property|
           value = send(property)
           if value.respond_to?(:attributes)
             attributes[property] = value.attributes.delete_if { |k, v| v.nil? }
@@ -86,7 +102,7 @@ module Bodhi
     def self.included(base)
       base.extend(ClassMethods)
       base.include(InstanceMethods)
-      base.instance_variable_set(:@properties, Array.new)
+      base.instance_variable_set(:@properties, Hash.new)
     end
   end
 end

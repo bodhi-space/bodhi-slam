@@ -6,7 +6,16 @@ module Bodhi
 
     attr_accessor :bodhi_context
 
-    property :username, :password, :profiles, :authorizations, :email, :firstName, :lastName, :phone, :usertype, :namespace
+    property :username,       type: "String"
+    property :password,       type: "String"
+    property :profiles,       type: "String", multi: true
+    property :authorizations, type: "BodhiAuthorization", multi: true
+    property :email,          type: "String"
+    property :firstName,      type: "String"
+    property :lastName,       type: "String"
+    property :phone,          type: "String"
+    property :usertype,       type: "String"
+    property :namespace,      type: "String"
 
     validates :username, type: "String", required: true, is_not_blank: true
     validates :password, type: "String", required: true, is_not_blank: true
