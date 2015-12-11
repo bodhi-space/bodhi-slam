@@ -7,7 +7,7 @@ module Bodhi
     attr_accessor :bodhi_context
 
     property :properties,     type: "Object"
-    property :indexes,        type: "Object", multi: true
+    property :indexes,        type: "Bodhi::TypeIndex", multi: true
     property :events,         type: "Object"
 
     property :name,           type: "String"
@@ -35,28 +35,6 @@ module Bodhi
     generates :package, type: "String"
     generates :embedded, type: "Boolean"
     generates :version, type: "String"
-
-    def initialize(params={})
-      params.each do |param_key, param_value|
-        if param_key.to_sym == :indexes
-          # check if the param_value is already an Array of Bodhi::TypeIndex objects
-          if param_value.is_a?(Array) && param_value.first.is_a?(Bodhi::TypeIndex)
-            send("#{param_key}=", param_value)
-          else
-            # the param_value is a raw json object and needs to be turned into an array of Bodhi::TypeIndex objects
-            values = param_value.map{ |index| Bodhi::TypeIndex.new(index) }
-            send("#{param_key}=", values)
-          end
-        else
-          send("#{param_key}=", param_value)
-        end
-      end
-
-      # Format type name to be compatible with Ruby Constants
-      if !name.nil? && name[0] == name[0].downcase
-        name.capitalize!
-      end
-    end
 
     # Saves the resource to the Bodhi Cloud.  Raises ArgumentError if record could not be saved.
     # 
