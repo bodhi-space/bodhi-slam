@@ -105,11 +105,6 @@ describe Bodhi::Resource do
       expect{ test.save }.to raise_error(Bodhi::ContextErrors)
     end
 
-    it "returns false if the record is not valid" do
-      test = TestResource.new(foo: 12345, bodhi_context: @context)
-      expect(test.save).to be false
-    end
-
     it "returns true if the record was posted to the cloud" do
       test = TestResource.new(foo: "hello world", bodhi_context: @context)
       expect(test.save).to be true
@@ -165,11 +160,6 @@ describe Bodhi::Resource do
       expect{ record.upsert!(foo: "12345", bar: 10) }.to_not raise_error
       expect(TestResource2.count(@context)).to eq "count" => 1
       expect(TestResource2.find_all(@context).first.foo).to eq "12345"
-    end
-
-    it "returns false if the record is invalid" do
-      record = TestResource2.new(bodhi_context: @context, foo: 12345, bar: 10)
-      expect( record.upsert! ).to be false
     end
   end
 

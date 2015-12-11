@@ -33,22 +33,54 @@ module Bodhi
       #   object.name #=> "Bob"
       #   object.email #=> "some@email.com"
       def initialize(options={})
-        options.each do |property, value|
-          send("#{property}=", value)
+        options = options.reduce({}) do |memo, (k, v)| 
+          memo.merge({ k.to_sym => v})
+        end
 
-          #type = self.class.properties[property.to_sym][:type].to_s
-          #case type
-          #when "String"
-          #  send("#{property}=", value.to_s)
-          #when "Real"
-          #  send("#{property}=", value.to_f)
-          #when "Integer"
-          #  send("#{property}=", value.to_i)
-          #when "DateTime"
-          #  send("#{property}=", Time.parse(value.to_s))
-          #else
-          #  send("#{property}=", value)
-          #end
+        options.each do |property, value|
+          property_options = self.class.properties[property]
+          if property_options.nil?
+            send("#{property}=", value)
+          else
+            type = property_options[:type].to_s
+            case type
+            when "String"
+              if property_options[:multi] == true
+                send("#{property}=", value.map(&:to_s))
+              else
+                send("#{property}=", value.to_s)
+              end
+            when "Real"
+              if property_options[:multi] == true
+                send("#{property}=", value.map(&:to_f))
+              else
+                send("#{property}=", value.to_f)
+              end
+            when "Integer"
+              if property_options[:multi] == true
+                send("#{property}=", value.map(&:to_i))
+              else
+                send("#{property}=", value.to_i)
+              end
+            when "DateTime"
+              if property_options[:multi] == true
+                send("#{property}=", value.map{|item| Time.parse(item.to_s) })
+              else
+                send("#{property}=", Time.parse(value.to_s))
+              end
+            else
+              if Object.const_defined?(type) && Object.const_get(type).ancestors.include?(Bodhi::Properties)
+                klass = Object.const_get(type)
+                if property_options[:multi] == true
+                  send("#{property}=", value.map{|item| klass.new(item) })
+                else
+                  send("#{property}=", klass.new(value))
+                end
+              else
+                send("#{property}=", value)
+              end
+            end
+          end
         end
       end
 

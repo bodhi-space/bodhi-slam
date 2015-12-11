@@ -203,28 +203,6 @@ module Bodhi
     end
 
     module InstanceMethods
-
-      def initialize(params={})
-        params.each do |param_key, param_value|
-          if param_value.is_a? Hash
-            type_validator = self.class.validators[param_key.to_sym].find{ |validator| validator.is_a? Bodhi::TypeValidator }
-            if Object.const_defined?(type_validator.type)
-              klass = Object.const_get(type_validator.type)
-              if klass.ancestors.include?(Bodhi::Resource)
-                object = klass.new(param_value)
-                send("#{param_key}=", object)
-              else
-                send("#{param_key}=", param_value)
-              end
-            else
-              send("#{param_key}=", param_value)
-            end
-          else
-            send("#{param_key}=", param_value)
-          end
-        end
-      end
-
       # Saves the resource to the Bodhi Cloud.  Returns true if record was saved
       # 
       #   obj = Resource.new
