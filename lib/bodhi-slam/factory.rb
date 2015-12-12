@@ -28,12 +28,9 @@ module Bodhi
     #   Resource.factory.build # => #<Resource:0x007fbff403e808 @name="2-3lmwp^oef@245">
     #   Resource.factory.build(name: "test") # => #<Resource:0x007fbff403e808 @name="test">
     def build(options={})
-      # symbolize the option keys
-      options = options.reduce({}) do |memo, (k, v)| 
-        memo.merge({ k.to_sym => v})
-      end
-
+      options = Bodhi::Support.symbolize_keys(options)
       object = klass.new(bodhi_context: options[:bodhi_context])
+
       @generators.each_pair do |attribute, generator|
         if options.has_key?(attribute)
           object.send("#{attribute}=", options[attribute])
@@ -41,6 +38,7 @@ module Bodhi
           object.send("#{attribute}=", generator.call)
         end
       end
+
       object
     end
 

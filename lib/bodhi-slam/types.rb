@@ -152,10 +152,7 @@ module Bodhi
       klass = Object.const_set(type.name, Class.new { include Bodhi::Resource })
 
       type.properties.each_pair do |attr_name, attr_properties|
-        # symbolize the attr_properties keys
-        attr_properties = attr_properties.reduce({}) do |memo, (k, v)|
-          memo.merge({ k.to_sym => v})
-        end
+        attr_properties = Bodhi::Support.symbolize_keys(attr_properties)
 
         # remove Sanitizers
         attr_properties.delete_if{ |key, value| [:trim, :unique, :default, :isCurrentUser, :toLower].include?(key) }
@@ -172,12 +169,7 @@ module Bodhi
           if index.is_a? Bodhi::TypeIndex
             klass.index index.keys, index.options
           else
-            # index is a raw json object
-            # symbolize the index option keys
-            index = index.reduce({}) do |memo, (k, v)|
-              memo.merge({ k.to_sym => v})
-            end
-
+            index = Bodhi::Support.symbolize_keys(index)
             klass.index index[:keys], index[:options]
           end
         end

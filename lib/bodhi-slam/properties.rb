@@ -33,9 +33,7 @@ module Bodhi
       #   object.name #=> "Bob"
       #   object.email #=> "some@email.com"
       def initialize(options={})
-        options = options.reduce({}) do |memo, (k, v)| 
-          memo.merge({ k.to_sym => v})
-        end
+        options = Bodhi::Support.symbolize_keys(options)
 
         options.each do |property, value|
           property_options = self.class.properties[property]
