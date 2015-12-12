@@ -34,7 +34,6 @@ module Bodhi
       #   object.email #=> "some@email.com"
       def initialize(options={})
         options = Bodhi::Support.symbolize_keys(options)
-
         options.each do |property, value|
           property_options = self.class.properties[property]
           if property_options.nil?
