@@ -27,5 +27,46 @@ module Bodhi
         memo.merge({ k.to_sym => value })
       end
     end
+
+    def self.coerce(value, options)
+      options = symbolize_keys(options)
+      case options[:type].to_s
+      when "String"
+        if options[:multi] == true
+          value.map(&:to_s)
+        else
+          value.to_s
+        end
+      when "Real"
+        if options[:multi] == true
+          value.map(&:to_f)
+        else
+          value.to_f
+        end
+      when "Integer"
+        if options[:multi] == true
+          value.map(&:to_i)
+        else
+          value.to_i
+        end
+      when "DateTime"
+        if options[:multi] == true
+          value.map{|item| Time.parse(item.to_s) }
+        else
+          Time.parse(value.to_s)
+        end
+      else
+        if Object.const_defined?(options[:type].to_s) && Object.const_get(options[:type].to_s).ancestors.include?(Bodhi::Properties)
+          klass = Object.const_get(options[:type].to_s)
+          if options[:multi] == true
+            value.map{|item| klass.new(item) }
+          else
+            klass.new(value)
+          end
+        else
+          value
+        end
+      end
+    end
   end
 end

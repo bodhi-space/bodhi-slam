@@ -40,44 +40,7 @@ module Bodhi
           if property_options.nil?
             send("#{property}=", value)
           else
-            type = property_options[:type].to_s
-            case type
-            when "String"
-              if property_options[:multi] == true
-                send("#{property}=", value.map(&:to_s))
-              else
-                send("#{property}=", value.to_s)
-              end
-            when "Real"
-              if property_options[:multi] == true
-                send("#{property}=", value.map(&:to_f))
-              else
-                send("#{property}=", value.to_f)
-              end
-            when "Integer"
-              if property_options[:multi] == true
-                send("#{property}=", value.map(&:to_i))
-              else
-                send("#{property}=", value.to_i)
-              end
-            when "DateTime"
-              if property_options[:multi] == true
-                send("#{property}=", value.map{|item| Time.parse(item.to_s) })
-              else
-                send("#{property}=", Time.parse(value.to_s))
-              end
-            else
-              if Object.const_defined?(type) && Object.const_get(type).ancestors.include?(Bodhi::Properties)
-                klass = Object.const_get(type)
-                if property_options[:multi] == true
-                  send("#{property}=", value.map{|item| klass.new(item) })
-                else
-                  send("#{property}=", klass.new(value))
-                end
-              else
-                send("#{property}=", value)
-              end
-            end
+            send("#{property}=", Bodhi::Support.coerce(value, property_options))
           end
         end
       end
