@@ -19,5 +19,13 @@ module Bodhi
       result = underscore(string).split('_').collect(&:capitalize).join
       uncapitalize(result)
     end
+
+    def self.symbolize_keys(hash)
+      hash.reduce({}) do |memo, (k, v)|
+        value = v.is_a?(Hash) ? symbolize_keys(v) : v
+        value = value.is_a?(Array) && value.first.is_a?(Hash) ? value.map{|item| symbolize_keys(item) } : value
+        memo.merge({ k.to_sym => value })
+      end
+    end
   end
 end

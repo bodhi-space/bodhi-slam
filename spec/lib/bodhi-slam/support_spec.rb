@@ -71,4 +71,21 @@ describe Bodhi::Support do
       expect(Bodhi::Support.uncapitalize("foo")).to eq "foo"
     end
   end
+
+  describe ".symbolize_keys(hash)" do
+    it "updates all of the keys to symbols" do
+      hash = { "name" => "test" }
+      expect(Bodhi::Support.symbolize_keys(hash)).to eq name: "test"
+    end
+
+    it "updates any child hash's keys to symbols" do
+      hash = { "name" => { "test" => { "inception" => true } } }
+      expect(Bodhi::Support.symbolize_keys(hash)).to eq name: { test: { inception: true } }
+    end
+
+    it "updates any array hashes to have symbols as keys" do
+      hash = { "name" => [ { "test" => "12345" }, { "foo" => true } ] }
+      expect(Bodhi::Support.symbolize_keys(hash)).to eq name: [{ test: "12345" }, { foo: true }]
+    end
+  end
 end
