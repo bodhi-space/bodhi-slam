@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Bodhi::ResourceBatch do
   before(:all) do
     @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
-    @type = Bodhi::Type.new(name: "TestResource", properties: { foo: { type: "String" }, bar: { type: "TestEmbeddedResource" }, baz: { type: "Integer" } })
+    @type = Bodhi::Type.new(name: "TestResource", properties: { foo: { type: "String", required: true }, bar: { type: "TestEmbeddedResource" }, baz: { type: "Integer" } })
     @embedded_type = Bodhi::Type.new(name: "TestEmbeddedResource", properties: { test: { type: "String" } }, embedded: true)
 
     @type.bodhi_context = @context
@@ -73,7 +73,7 @@ describe Bodhi::ResourceBatch do
 
   describe "#failed" do
     it "returns an array of the records that failed to be created" do
-      @batch.records = [TestResource.factory.build(foo: 1234), TestResource.factory.build(foo: true)]
+      @batch.records = [TestResource.new, TestResource.new]
       @batch.save!(@context)
 
       expect(@batch.created).to be_empty

@@ -28,7 +28,6 @@ module Bodhi
     validates :properties, required: true
     validates :indexes, type: "Bodhi::TypeIndex", multi: true
 
-    generates :extends, type: "String", matches: "[a-zA-Z_-]{10,20}"
     generates :name, type: "String", required: true, is_not_blank: true
     generates :namespace, type: "String", required: true
     generates :properties, type: "Object", required: true

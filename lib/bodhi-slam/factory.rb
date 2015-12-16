@@ -29,12 +29,10 @@ module Bodhi
     #   Resource.factory.build(name: "test") # => #<Resource:0x007fbff403e808 @name="test">
     def build(options={})
       options = Bodhi::Support.symbolize_keys(options)
-      object = klass.new(bodhi_context: options[:bodhi_context])
+      object = klass.new(options)
 
       @generators.each_pair do |attribute, generator|
-        if options.has_key?(attribute)
-          object.send("#{attribute}=", options[attribute])
-        else
+        unless options.has_key?(attribute)
           object.send("#{attribute}=", generator.call)
         end
       end

@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Bodhi::Resource do
   before(:all) do
     @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
-    @type = Bodhi::Type.new(name: "TestResource", properties: { foo: { type: "String" }, bar: { type: "TestEmbeddedResource" }, baz: { type: "Integer" } })
+    @type = Bodhi::Type.new(name: "TestResource", properties: { foo: { type: "String", required: true }, bar: { type: "TestEmbeddedResource" }, baz: { type: "Integer" } })
     @embedded_type = Bodhi::Type.new(name: "TestEmbeddedResource", properties: { test: { type: "String" }, bool: { type: "Boolean" } }, embedded: true)
 
     @unique_index_type = Bodhi::Type.new(name: "TestResource2", properties: { foo: { type: "String" }, bar: { type: "Integer" } }, indexes: [{keys: ["bar"], options:{unique: true}}])
@@ -115,8 +115,7 @@ describe Bodhi::Resource do
 
   describe "#save!" do
     it "should raise Bodhi::ApiErrors if the object could not be saved" do
-      test = TestResource.factory.build(foo: 12345)
-      test.bodhi_context = @context
+      test = TestResource.new(bodhi_context: @context)
       expect{ test.save! }.to raise_error(Bodhi::ApiErrors)
     end
 

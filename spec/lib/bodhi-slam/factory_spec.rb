@@ -43,19 +43,18 @@ describe Bodhi::Factory do
     end
 
     it "should randomly generate values for each of the types properties" do
-      @factory.add_generator("foo", type: "Integer", min: -10, max: 10)
+      @factory.add_generator("foo", type: "String")
 
       obj = @factory.build
-      expect(obj.foo).to be_a Integer
-      expect(obj.foo).to be_between(-10, 10)
+      expect(obj.foo).to be_a String
     end
 
     it "should override attributes for the object if an attribute hash is given" do
-      @factory.add_generator("foo", type: "Integer", min: -10, max: 10)
+      @factory.add_generator("foo", type: "String")
 
-      obj = @factory.build(foo: 125)
-      expect(obj.foo).to be_a Integer
-      expect(obj.foo).to eq 125
+      obj = @factory.build(foo: "125")
+      expect(obj.foo).to be_a String
+      expect(obj.foo).to eq "125"
     end
   end
 
@@ -69,18 +68,18 @@ describe Bodhi::Factory do
     end
 
     it "should randomly generate values for each object in the array" do
-      @factory.add_generator("foo", type: "Integer", min: -10, max: 10)
+      @factory.add_generator("foo", type: "String")
 
       @factory.build_list(5).each do |obj|
-        expect(obj.foo).to be_between(-10, 10)
+        expect(obj.foo).to be_a String
       end
     end
 
     it "should override all objects with the specified attributes hash" do
-      @factory.add_generator("foo", type: "Integer", min: -10, max: 10)
+      @factory.add_generator("foo", type: "String")
 
-      @factory.build_list(5, foo: 125).each do |obj|
-        expect(obj.foo).to eq 125
+      @factory.build_list(5, foo: "125").each do |obj|
+        expect(obj.foo).to eq "125"
       end
     end
   end

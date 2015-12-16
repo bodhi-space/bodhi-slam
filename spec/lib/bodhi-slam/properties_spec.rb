@@ -29,6 +29,11 @@ describe Bodhi::Properties do
   end
 
   describe "#initialize(options={})" do
+    it "raises NoMethodError if initialized with non-existant properties" do
+      klass.property :name, type: String
+      expect{ klass.new(smooth_criminal: "you ok?") }.to raise_error(NoMethodError)
+    end
+
     it "returns a new object with the given options" do
       klass.property :name, type: String
       klass.property :address, type: "String"
