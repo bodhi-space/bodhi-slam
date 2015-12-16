@@ -38,6 +38,85 @@ describe Bodhi::Properties do
       expect(object.name).to eq "test"
       expect(object.address).to eq nil
     end
+
+    context "from a Hash" do
+      it "returns a new object (String Keys)" do
+        klass.property :name, type: String
+        object = klass.new("name" => "test")
+        expect(object.name).to eq "test"
+      end
+
+      it "returns a new object (Symbol Keys)" do
+        klass.property :name, type: String
+        object = klass.new(name: "test")
+        expect(object.name).to eq "test"
+      end
+    end
+
+    context "from a JSON String" do
+      it "returns a new object" do
+        klass.property :name, type: String
+        object = klass.new('{"name":"test"}')
+        expect(object.name).to eq "test"
+      end
+
+      it "raises JSON::ParseError if the String is not valid JSON" do
+        klass.property :name, type: String
+        expect{ klass.new('"name":"test"') }.to raise_error(JSON::ParserError)
+      end
+    end
+
+    context "embedded objects" do
+      it "from Hash, returns a new object with all embedded objects" do
+        klass2 = Object.const_set("AwesomeType", Class.new{ include Bodhi::Properties })
+        klass2.property :test, type: String
+        klass.property :name, type: AwesomeType
+
+        object = klass.new(name: { test: "hello" })
+        expect(object.name).to be_a AwesomeType
+        expect(object.name.test).to eq "hello"
+
+        Object.send(:remove_const, :AwesomeType)
+      end
+
+      it "from Object, returns a new object with all embedded objects" do
+        klass2 = Object.const_set("AwesomeType", Class.new{ include Bodhi::Properties })
+        klass2.property :test, type: String
+        klass.property :name, type: AwesomeType
+
+        object = klass.new(name: AwesomeType.new(test: "hello"))
+        expect(object.name).to be_a AwesomeType
+        expect(object.name.test).to eq "hello"
+
+        Object.send(:remove_const, :AwesomeType)
+      end
+    end
+
+    context "arrays of embedded objects" do
+      it "from Hash, returns a new object with all embedded objects" do
+        klass2 = Object.const_set("AwesomeType", Class.new{ include Bodhi::Properties })
+        klass2.property :test, type: String
+        klass.property :name, type: AwesomeType, multi: true
+
+        object = klass.new(name: [{ test: "hello" }, { test: "Dirty Wastelander" }])
+        expect(object.name).to be_a Array
+        object.name.each{ |item| expect(item).to be_a AwesomeType }
+
+        Object.send(:remove_const, :AwesomeType)
+      end
+
+      it "from Object, returns a new object with all embedded objects" do
+        klass2 = Object.const_set("AwesomeType", Class.new{ include Bodhi::Properties })
+        klass2.property :test, type: String
+        klass.property :name, type: AwesomeType, multi: true
+
+        object = klass.new(name: [AwesomeType.new(test: "hello"), AwesomeType.new(test: "Radroach")])
+        expect(object.name).to be_a Array
+        object.name.each{ |item| expect(item).to be_a AwesomeType }
+
+        Object.send(:remove_const, :AwesomeType)
+      end
+    end
   end
 
   describe "#attributes" do

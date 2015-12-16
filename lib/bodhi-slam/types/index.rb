@@ -1,6 +1,5 @@
 module Bodhi
   class TypeIndex
-    include Enumerable
     include Bodhi::Properties
     include Bodhi::Validations
 
@@ -9,9 +8,5 @@ module Bodhi
 
     validates :keys, required: true, multi: true, type: "String"
     validates :options, type: "Object"
-
-    def each
-      self.attributes.each{ |k, v| yield(k, v) }
-    end
   end
 end

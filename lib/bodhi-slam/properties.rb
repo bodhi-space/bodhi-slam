@@ -20,6 +20,7 @@ module Bodhi
       def id; @sys_id; end
       def persisted?; !@sys_id.nil?; end
       def new_record?; @sys_id.nil?; end
+      def each; attributes.each{ |k, v| yield(k, v) }; end
 
       # Initializes a new instance of the class.  Accepts a parameter Hash for mass assignment.
       # If a parameter does not exist for the class, an UndefinedMethod error is raised.
@@ -33,6 +34,10 @@ module Bodhi
       #   object.name #=> "Bob"
       #   object.email #=> "some@email.com"
       def initialize(options={})
+        if options.is_a?(String)
+          options = JSON.parse(options)
+        end
+
         options = Bodhi::Support.symbolize_keys(options)
         options.each do |property, value|
           property_options = self.class.properties[property]
@@ -93,7 +98,7 @@ module Bodhi
 
     def self.included(base)
       base.extend(ClassMethods)
-      base.include(InstanceMethods)
+      base.include(InstanceMethods, Enumerable)
       base.instance_variable_set(:@properties, Hash.new)
     end
   end

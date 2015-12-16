@@ -229,7 +229,7 @@ describe Bodhi::Resource do
       result = TestResource.save_batch(@context, records)
       expect(result).to be_a Bodhi::ResourceBatch
       expect(result.failed).to be_empty
-      expect(result.created).to match_array(records)
+      expect(result.created).to eq records
     end
   end
 
