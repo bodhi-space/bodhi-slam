@@ -1,6 +1,7 @@
 require "json"
 require "time"
 require 'faraday'
+require 'SecureRandom'
 require 'faraday_middleware'
 require 'net/http/persistent'
 require 'regexp-examples'
@@ -39,10 +40,7 @@ class BodhiSlam
   end
 
   def self.define_resources(context, options={})
-    # symbolize keys for the options hash
-    options = options.reduce({}) do |memo, (k, v)|
-      memo.merge({ k.to_sym => v})
-    end
+    options = Bodhi::Support.symbolize_keys(options)
 
     if context.invalid?
       raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
