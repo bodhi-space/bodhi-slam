@@ -28,20 +28,7 @@ module Bodhi
         when "Link"
           klass = Hash
         when "DateTime"
-          single_comparator = lambda do |item|
-            begin
-              DateTime.iso8601(item)
-            rescue
-              false
-            end
-          end
-          array_comparator = lambda do |items|
-            begin
-              items.collect{ |item| DateTime.iso8601(item) }
-            rescue
-              false
-            end
-          end
+          klass = Time
         when "Object"
           klass = Hash
           single_message = "must be a JSON object"

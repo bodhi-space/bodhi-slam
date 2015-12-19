@@ -139,8 +139,8 @@ describe Bodhi::Factory do
   end
 
 
-  describe "#add_generator(name, validations)" do
-    it "should add the given validations under the :name key" do
+  describe "#add_generator(name, options)" do
+    it "defines a new random generator with the given options (Hash)" do
       @factory.add_generator("foo", type: "Integer")
 
       expect(@factory.generators).to have_key :foo
@@ -148,6 +148,16 @@ describe Bodhi::Factory do
       expect(@factory.generators[:foo].call).to be_a Integer
     end
 
+    it "defines a new random generator with the given options (Proc)" do
+      @factory.add_generator("foo", lambda{ "why not Zoidberg?" })
+
+      expect(@factory.generators).to have_key :foo
+      expect(@factory.generators[:foo]).to be_a Proc
+      expect(@factory.generators[:foo].call).to eq "why not Zoidberg?"
+    end
+  end
+
+  describe "#build_default_generator(options) (private method)" do
     context "with GeoJSON" do
       context "and multi=true" do
         it "returns 0..5 random GeoJSON objects in an Array" do
@@ -394,13 +404,15 @@ describe Bodhi::Factory do
 
     context "with DateTime" do
       context "and multi=true" do
-        it "returns 0..5 random DateTimes as Strings in an Array" do
+        it "returns 0..5 random DateTimes in an Array" do
           @factory.add_generator("foo", type: "DateTime", multi: true)
 
           obj = @factory.build
           expect(obj.foo).to be_a Array
           expect(obj.foo.size).to be_between(0,5)
-          expect(Time.parse(obj.foo[0])).to be_a Time if obj.foo.size > 0
+          if obj.foo.size > 0
+            obj.foo.each{ |item| expect(item).to be_a Time }
+          end
           puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
         end
       end
@@ -410,7 +422,7 @@ describe Bodhi::Factory do
           @factory.add_generator("foo", type: "DateTime")
 
           obj = @factory.build
-          expect(Time.parse(obj.foo)).to be_a Time
+          expect(obj.foo).to be_a Time
           puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
         end
       end
@@ -500,6 +512,4 @@ describe Bodhi::Factory do
       end
     end
   end
-
-
 end

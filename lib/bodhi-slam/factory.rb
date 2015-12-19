@@ -76,8 +76,17 @@ module Bodhi
     #   Resource.factory.add_generator("name", type: "String")
     #   Resource.factory.add_generator("test", type: "Integer", multi: true, required: true)
     def add_generator(name, options)
+      if options.is_a?(Proc)
+        @generators[name.to_sym] = options
+      else
+        @generators[name.to_sym] = build_default_generator(options)
+      end
+    end
+
+    private
+    def build_default_generator(options)
       options = options.reduce({}) do |memo, (k, v)| 
-        memo.merge({ k.to_s.gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').gsub(/([a-z\d])([A-Z])/,'\1_\2').tr("-", "_").downcase.to_sym => v})
+        memo.merge({ Bodhi::Support.underscore(k.to_s).to_sym => v})
       end
 
       case options[:type]
@@ -129,9 +138,9 @@ module Bodhi
 
       when "DateTime"
         if options[:multi]
-          generator = lambda { [*0..5].sample.times.collect{ Time.at(rand * Time.now.to_i).iso8601 } }
+          generator = lambda { [*0..5].sample.times.collect{ Time.at(rand * Time.now.to_i) } }
         else
-          generator = lambda { Time.at(rand * Time.now.to_i).iso8601 }
+          generator = lambda { Time.at(rand * Time.now.to_i) }
         end
 
       when "Integer"
@@ -230,8 +239,6 @@ module Bodhi
           end
         end
       end
-
-      @generators[name.to_sym] = generator
     end
 
   end
