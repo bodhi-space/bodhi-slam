@@ -209,4 +209,44 @@ describe Bodhi::Associations do
       pokemon_type.delete!
     end
   end
+
+  describe ".belongs_to(association_name, options={})" do
+    it "auto-generates an instance method with the given association_name" do
+      @pokemon.belongs_to(:trainer)
+      expect(@pokemon.new).to respond_to :trainer
+    end
+
+    it "auto-generated instance method can be called and returns the target resources" do
+      @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
+
+      @trainer.include(Bodhi::Resource)
+      @trainer.property :name, type: "String"
+
+      trainer_type = @trainer.build_type
+      trainer_type.bodhi_context = @context
+      trainer_type.save!
+
+      @pokemon.include(Bodhi::Resource)
+      @pokemon.property :name, type: "String"
+      @pokemon.property :trainer_id, type: "String", is_not_blank: true
+      @pokemon.belongs_to :trainer
+
+      pokemon_type = @pokemon.build_type
+      pokemon_type.bodhi_context = @context
+      pokemon_type.save!
+
+      ash = @trainer.factory.create(bodhi_context: @context, name: "Ash Ketchum")
+      pikachu = @pokemon.factory.create(bodhi_context: @context, name: "Pikachu", trainer_id: ash.id)
+
+      # Finally! The actual tests...
+      trainer = pikachu.trainer
+      puts trainer.attributes
+      expect(trainer).to be_a Trainer
+      expect(trainer.name).to eq "Ash Ketchum"
+
+      # Clean up!
+      trainer_type.delete!
+      pokemon_type.delete!
+    end
+  end
 end
