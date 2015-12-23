@@ -5,7 +5,7 @@ module Bodhi
     def initialize(klass, controller="resources")
       @controller = controller
       @klass = Object.const_get(klass.to_s)
-      @criteria = []
+      @criteria = {}
       @fields = []
       @paging = {}
       @sorting = {}
@@ -13,7 +13,7 @@ module Bodhi
 
     def clear!
       @context = nil
-      @criteria.clear
+      @criteria = {}
       @fields.clear
       @paging.clear
       @sorting.clear
@@ -31,14 +31,8 @@ module Bodhi
       end
       params = []
 
-      unless criteria.empty?
-        if criteria.size > 1
-          where_string = "{$and:[#{criteria.join(',')}]}"
-        else
-          where_string = criteria.join
-        end
-
-        params << "where=#{where_string}"
+      unless criteria.keys.empty?
+        params << "where=#{criteria.to_json}"
       end
 
       unless fields.empty?
@@ -150,12 +144,14 @@ module Bodhi
     end
 
     def where(query)
-      unless query.is_a? String
-        raise ArgumentError.new("Expected String but received #{query.class}")
+      if query.is_a?(String)
+        json = JSON.parse(query)
+        query = Bodhi::Support.symbolize_keys(json)
+      else
+        query = Bodhi::Support.symbolize_keys(query)
       end
 
-      @criteria << query
-      @criteria.uniq!
+      @criteria.merge!(query)
       self
     end
     alias :and :where

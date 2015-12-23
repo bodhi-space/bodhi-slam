@@ -21,8 +21,24 @@ module Bodhi
         options[:query].nil? ? options[:query] = Hash.new : options[:query]
         options[:query].merge!(options[:foreign_key].to_sym => "object.#{options[:source_key]}")
 
+        # Add the association to the classes :has_one association Hash
         @associations[:has_one][association_name.to_sym] = options
-        define_method(association_name){ Bodhi::Query.new(options[:resource_name]).from(self.bodhi_context).where(options[:query]).first }
+
+        # Define a new helper method to get the association
+        define_method(association_name) do
+
+          # Get the value from the instance object's source_key. Default is :sys_id
+          association = self.class.associations[:has_one][association_name.to_sym]
+          instance_id = self.send(association[:source_key])
+
+          # Set the foreign_key's value to the instance id
+          association[:query].merge!(association[:foreign_key].to_sym => instance_id)
+
+          # Define & call the query.  Returns a single Object or nil
+          query = Bodhi::Query.new(association[:resource_name]).from(self.bodhi_context).where(association[:query])
+          puts query.url
+          query.first
+        end
       end
     end
 

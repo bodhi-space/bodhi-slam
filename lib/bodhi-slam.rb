@@ -50,9 +50,9 @@ class BodhiSlam
     enumerations = Bodhi::Enumeration.find_all(context)
 
     if options[:include].is_a? Array
-      types = Bodhi::Type.where("{name: { $in: #{options[:include].map(&:to_s)} }}").from(context).all
+      types = Bodhi::Type.where(name: { "$in" => options[:include].map(&:to_s) }).from(context).all
     elsif options[:except].is_a? Array
-      types = Bodhi::Type.where("{name: { $nin: #{options[:except].map(&:to_s)} }}").from(context).all
+      types = Bodhi::Type.where(name: { "$nin" => options[:except].map(&:to_s) }).from(context).all
     else
       types = Bodhi::Type.find_all(context)
     end

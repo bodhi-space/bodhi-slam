@@ -158,8 +158,10 @@ describe Bodhi::Associations do
       pikachu = @pokemon.factory.create(bodhi_context: @context, name: "Pikachu", trainer_id: ash.id)
 
       # Finally! The actual tests...
-      expect(ash.pokemon).to be_a Pokemon
-      expect(ash.pokemon.name).to eq "Pikachu"
+      pokemon = ash.pokemon
+      puts pokemon.attributes
+      expect(pokemon).to be_a Pokemon
+      expect(pokemon.name).to eq "Pikachu"
 
       # Clean up!
       trainer_type.delete!

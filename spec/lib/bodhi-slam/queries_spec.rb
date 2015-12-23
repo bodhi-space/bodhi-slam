@@ -40,8 +40,8 @@ describe Bodhi::Query do
     end
 
     describe "#criteria" do
-      it "is an Array of all query conditions" do
-        expect(@query.criteria).to be_a Array
+      it "is an Hash containing all query conditions" do
+        expect(@query.criteria).to be_a Hash
       end
     end
 
@@ -81,14 +81,14 @@ describe Bodhi::Query do
 
       context "with criteria" do
         it "adds single mongodb where query" do
-          @query.where("{test: { $exists: true }}")
-          expect(@query.url).to eq "/resources/TestResource?where={test: { $exists: true }}"
+          @query.where(test: { "$exists" => true })
+          expect(@query.url).to eq "/resources/TestResource?where={\"test\":{\"$exists\":true}}"
           puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
 
         it "joins multiple criteria into an $and mongodb query" do
-          @query.where("{test: { $exists: true }}").and("{foo: 'bar'}").and("{test: 10}")
-          expect(@query.url).to eq "/resources/TestResource?where={$and:[{test: { $exists: true }},{foo: 'bar'},{test: 10}]}"
+          @query.where(foo: "12345").and(bar: { "$in" => [1,2,3] })
+          expect(@query.url).to eq "/resources/TestResource?where={\"foo\":\"12345\",\"bar\":{\"$in\":[1,2,3]}}"
           puts "\033[33mQuery URL\033[0m: \033[36m#{@query.url}\033[0m"
         end
       end
@@ -144,7 +144,7 @@ describe Bodhi::Query do
     
     describe "#clear!" do
       it "resets all attributes in the Bodhi::Query object" do
-        @query.from(@context).where("{test}").select("foo").limit(10).page(2).sort("foo", :desc)
+        @query.from(@context).where(foo: "test").select("foo").limit(10).page(2).sort("foo", :desc)
 
         expect(@query.context).to_not be_nil
         expect(@query.criteria).to_not be_empty
@@ -178,22 +178,23 @@ describe Bodhi::Query do
     end
 
     describe "#where(query_string)" do
-      it "accepts a String as a parameter" do
-        expect { @query.where(123) }.to raise_error(ArgumentError, "Expected String but received Fixnum")
+      it "accepts a JSON String as a parameter" do
+        @query.where('{"test": "foo"}')
+        expect(@query.criteria).to eq test: "foo"
+      end
+
+      it "accepts a Hash as a parameter" do
+        @query.where(test: "foo")
+        expect(@query.criteria).to eq test: "foo"
       end
 
       it "returns the Bodhi::Query object for method chaining" do
-        expect( @query.where("{test}") ).to eq @query
+        expect( @query.where(test: "foo") ).to eq @query
       end
 
-      it "adds the query string to the read only :criteria array on the Bodhi::Query object" do
-        @query.where("{test}")
-        expect(@query.criteria).to include "{test}"
-      end
-
-      it "does not add duplicate criteria" do
-        @query.where("{test}").where("{test}")
-        expect(@query.criteria).to contain_exactly("{test}")
+      it "does not duplicate criteria" do
+        @query.where(test: "foo").where(test: "foo")
+        expect(@query.criteria).to eq test: "foo"
       end
     end
 
@@ -281,7 +282,7 @@ describe Bodhi::Query do
         TestResource.factory.create_list(5, bodhi_context: @context, foo: "test")
         TestResource.factory.create_list(2, bodhi_context: @context, foo: "not_test")
 
-        result = @query.from(@context).where("{foo: 'test'}").all
+        result = @query.from(@context).where(foo: "test").all
         puts "\033[33mFound Resources\033[0m: \033[36m#{result.map(&:attributes)}\033[0m"
         expect(result.size).to eq 5
       end
@@ -298,7 +299,7 @@ describe Bodhi::Query do
       it "invokes the query and returns the first record that matches" do
         first_result = TestResource.factory.create_list(5, bodhi_context: @context, foo: "test").first
 
-        result = @query.from(@context).where("{foo: 'test'}").first
+        result = @query.from(@context).where(foo: "test").first
         puts "\033[33mFound Resources\033[0m: \033[36m#{result.attributes}\033[0m"
         expect(result.foo).to eq first_result.foo
       end
@@ -315,7 +316,7 @@ describe Bodhi::Query do
       it "invokes the query and returns the last record that matches" do
         last_result = TestResource.factory.create_list(5, bodhi_context: @context, foo: "test").last
 
-        result = @query.from(@context).where("{foo: 'test'}").last
+        result = @query.from(@context).where(foo: "test").last
         puts "\033[33mFound Resources\033[0m: \033[36m#{result.attributes}\033[0m"
         expect(result.foo).to eq last_result.foo
       end

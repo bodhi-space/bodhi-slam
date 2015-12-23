@@ -254,16 +254,16 @@ describe Bodhi::Resource do
 
   describe ".where(query)" do
     it "returns a Bodhi::Query object for querying Test resources" do
-      query = TestResource.where("{test}")
+      query = TestResource.where(test: "foo")
 
       expect(query).to be_a Bodhi::Query
-      expect(query.criteria).to include "{test}"
+      expect(query.criteria).to eq test: "foo"
     end
 
     it "returns an Array of resources when called" do
       records = TestResource.factory.create_list(5, bodhi_context: @context, foo: "test")
       other_records = TestResource.factory.create_list(5, bodhi_context: @context, foo: "not_test")
-      results = TestResource.where("{foo: 'test'}").from(@context).all
+      results = TestResource.where(foo: "test").from(@context).all
 
       puts "\033[33mFound Resources\033[0m: \033[36m#{results.map(&:attributes)}\033[0m"
       expect(results.count).to eq 5
