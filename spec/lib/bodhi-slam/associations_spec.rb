@@ -168,4 +168,45 @@ describe Bodhi::Associations do
       pokemon_type.delete!
     end
   end
+
+  describe ".has_many(association_name, options={})" do
+    it "auto-generates an instance method with the given association_name" do
+      @trainer.has_many(:pokemon)
+      expect(@trainer.new).to respond_to :pokemon
+    end
+
+    it "auto-generated instance method can be called and returns the target resources" do
+      @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
+
+      @trainer.include(Bodhi::Resource)
+      @trainer.property :name, type: "String"
+      @trainer.has_many :pokemon
+
+      trainer_type = @trainer.build_type
+      trainer_type.bodhi_context = @context
+      trainer_type.save!
+
+      @pokemon.include(Bodhi::Resource)
+      @pokemon.property :name, type: "String"
+      @pokemon.property :trainer_id, type: "String", is_not_blank: true
+
+      pokemon_type = @pokemon.build_type
+      pokemon_type.bodhi_context = @context
+      pokemon_type.save!
+
+      ash = @trainer.factory.create(bodhi_context: @context, name: "Ash Ketchum")
+      pikachu = @pokemon.factory.create(bodhi_context: @context, name: "Pikachu", trainer_id: ash.id)
+      bulbasaur = @pokemon.factory.create(bodhi_context: @context, name: "Bulbasaur", trainer_id: ash.id)
+      charmander = @pokemon.factory.create(bodhi_context: @context, name: "Charmander", trainer_id: ash.id)
+
+      # Finally! The actual tests...
+      pokemon = ash.pokemon
+      puts pokemon.map(&:attributes).to_s
+      pokemon.each{ |item| expect(item).to be_a Pokemon }
+
+      # Clean up!
+      trainer_type.delete!
+      pokemon_type.delete!
+    end
+  end
 end
