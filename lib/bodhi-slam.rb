@@ -13,6 +13,7 @@ require 'bodhi-slam/context'
 
 require 'bodhi-slam/properties'
 require 'bodhi-slam/indexes'
+require 'bodhi-slam/associations'
 
 require 'bodhi-slam/batches'
 require 'bodhi-slam/enumerations'
