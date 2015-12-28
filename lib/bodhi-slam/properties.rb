@@ -62,6 +62,8 @@ module Bodhi
             attributes[property] = value.attributes.delete_if { |k, v| v.nil? }
           elsif value.is_a?(Array) && value.first.respond_to?(:attributes)
             attributes[property] = value.map(&:attributes).collect{ |item| item.delete_if { |k, v| v.nil? } }
+          elsif value.is_a?(Time)
+            attributes[property] = value.iso8601
           else
             attributes[property] = value
           end
