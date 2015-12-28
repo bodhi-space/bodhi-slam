@@ -31,11 +31,8 @@ module Bodhi
           association = self.class.associations[:has_one][association_name.to_sym]
           instance_id = self.send(association[:source_key])
 
-          # Set the foreign_key's value to the instance id
-          association[:query].merge!(association[:foreign_key].to_sym => instance_id)
-
           # Define & call the query.  Returns a single Object or nil
-          query = Bodhi::Query.new(association[:resource_name]).from(self.bodhi_context).where(association[:query])
+          query = Bodhi::Query.new(association[:resource_name]).from(self.bodhi_context).where(association[:query]).and(association[:foreign_key].to_sym => instance_id)
           puts query.url
           query.first
         end
@@ -69,11 +66,8 @@ module Bodhi
           association = self.class.associations[:has_one][association_name.to_sym]
           instance_id = self.send(association[:source_key])
 
-          # Set the foreign_key's value to the instance id
-          association[:query].merge!(association[:foreign_key].to_sym => instance_id)
-
-          # Define & call the query.  Returns a single Object or nil
-          query = Bodhi::Query.new(association[:resource_name]).from(self.bodhi_context).where(association[:query])
+          # Define & call the query.  Returns an Array of Objects or nil
+          query = Bodhi::Query.new(association[:resource_name]).from(self.bodhi_context).where(association[:query]).and(association[:foreign_key].to_sym => instance_id)
           puts query.url
           query.all
         end
@@ -107,11 +101,8 @@ module Bodhi
           association = self.class.associations[:has_one][association_name.to_sym]
           instance_id = self.send(association[:source_key])
 
-          # Set the foreign_key's value to the instance id
-          association[:query].merge!(association[:foreign_key].to_sym => instance_id)
-
           # Define & call the query.  Returns a single Object or nil
-          query = Bodhi::Query.new(association[:resource_name]).from(self.bodhi_context).where(association[:query])
+          query = Bodhi::Query.new(association[:resource_name]).from(self.bodhi_context).where(association[:query]).and(association[:foreign_key].to_sym => instance_id)
           puts query.url
           query.first
         end
