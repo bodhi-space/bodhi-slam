@@ -29,12 +29,19 @@ module Bodhi
 
           # Get the value from the instance object's source_key. Default is :sys_id
           association = self.class.associations[:has_one][association_name.to_sym]
-          instance_id = self.send(association[:source_key])
 
-          # Define & call the query.  Returns a single Object or nil
-          query = Bodhi::Query.new(association[:resource_name]).from(self.bodhi_context).where(association[:query]).and(association[:foreign_key].to_sym => instance_id)
-          puts query.url
-          query.first
+          if association[:through]
+            associated_object = self.send(association[:through])
+            associated_object.send(association_name.to_sym)
+          else
+            instance_id = self.send(association[:source_key])
+
+            query = Bodhi::Query.new(association[:resource_name]).from(self.bodhi_context).where(association[:query])
+            query.and(association[:foreign_key].to_sym => instance_id)
+
+            puts query.url
+            query.first
+          end
         end
       end
 

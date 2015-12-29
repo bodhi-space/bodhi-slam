@@ -3,11 +3,13 @@ require 'spec_helper'
 describe Bodhi::Associations do
   before(:each) do
     @trainer = Object.const_set("Trainer", Class.new{ include Bodhi::Associations })
+    @pokedex = Object.const_set("Pokedex", Class.new{ include Bodhi::Associations })
     @pokemon = Object.const_set("Pokemon", Class.new{ include Bodhi::Associations })
   end
 
   after(:each) do
     Object.send(:remove_const, :Trainer)
+    Object.send(:remove_const, :Pokedex)
     Object.send(:remove_const, :Pokemon)
   end
 
@@ -166,6 +168,54 @@ describe Bodhi::Associations do
       # Clean up!
       trainer_type.delete!
       pokemon_type.delete!
+    end
+
+    context "with :through option" do
+      it "auto-generated instance method can be called and returns the target resource" do
+        @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
+
+        @trainer.include(Bodhi::Resource)
+        @trainer.property :name, type: "String"
+        @trainer.has_one :pokedex
+        @trainer.has_one :pokemon, through: :pokedex
+
+        trainer_type = @trainer.build_type
+        trainer_type.bodhi_context = @context
+        trainer_type.save!
+
+        @pokedex.include(Bodhi::Resource)
+        @pokedex.property :name, type: "String"
+        @pokedex.property :trainer_id, type: "String", is_not_blank: true
+        @pokedex.has_one :pokemon
+
+        pokedex_type = @pokedex.build_type
+        pokedex_type.bodhi_context = @context
+        pokedex_type.save!
+
+        @pokemon.include(Bodhi::Resource)
+        @pokemon.property :name, type: "String"
+        @pokemon.property :pokedex_id, type: "String", is_not_blank: true
+        @pokemon.belongs_to :pokedex
+
+        pokemon_type = @pokemon.build_type
+        pokemon_type.bodhi_context = @context
+        pokemon_type.save!
+
+        ash = @trainer.factory.create(bodhi_context: @context, name: "Ash Ketchum")
+        pokedex = @pokedex.factory.create(bodhi_context: @context, name: "Ash Ketchum's Pokedex", trainer_id: ash.id)
+        pikachu = @pokemon.factory.create(bodhi_context: @context, name: "Pikachu", pokedex_id: pokedex.id)
+
+        # Finally! The actual tests...
+        pokemon = ash.pokemon
+        puts pokemon.attributes
+        expect(pokemon).to be_a Pokemon
+        expect(pokemon.name).to eq "Pikachu"
+
+        # Clean up!
+        trainer_type.delete!
+        pokedex_type.delete!
+        pokemon_type.delete!
+      end
     end
   end
 
