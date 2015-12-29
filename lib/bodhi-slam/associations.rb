@@ -57,13 +57,13 @@ module Bodhi
         options[:query].merge!(options[:foreign_key].to_sym => "object.#{options[:source_key]}")
 
         # Add the association to the classes :has_one association Hash
-        @associations[:has_one][association_name.to_sym] = options
+        @associations[:has_many][association_name.to_sym] = options
 
         # Define a new helper method to get the association
         define_method(association_name) do
 
           # Get the value from the instance object's source_key. Default is :sys_id
-          association = self.class.associations[:has_one][association_name.to_sym]
+          association = self.class.associations[:has_many][association_name.to_sym]
           instance_id = self.send(association[:source_key])
 
           # Define & call the query.  Returns an Array of Objects or nil
@@ -92,13 +92,13 @@ module Bodhi
         options[:query].merge!(options[:foreign_key].to_sym => "object.#{options[:source_key]}")
 
         # Add the association to the classes :has_one association Hash
-        @associations[:has_one][association_name.to_sym] = options
+        @associations[:belongs_to][association_name.to_sym] = options
 
         # Define a new helper method to get the association
         define_method(association_name) do
 
           # Get the value from the instance object's source_key. Default is :sys_id
-          association = self.class.associations[:has_one][association_name.to_sym]
+          association = self.class.associations[:belongs_to][association_name.to_sym]
           instance_id = self.send(association[:source_key])
 
           # Define & call the query.  Returns a single Object or nil
