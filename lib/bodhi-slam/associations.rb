@@ -11,7 +11,7 @@ module Bodhi
         define_method(association_name) do
 
           # Get the value from the instance object's source_key. Default is :sys_id
-          association = self.class.associations[:has_one][association_name.to_sym]
+          association = self.class.associations[association_name.to_sym]
 
           if association[:through]
             associated_object = self.send(association[:through])
@@ -36,7 +36,7 @@ module Bodhi
         define_method(association_name) do
 
           # Get the value from the instance object's source_key. Default is :sys_id
-          association = self.class.associations[:has_many][association_name.to_sym]
+          association = self.class.associations[association_name.to_sym]
           instance_id = self.send(association[:source_key])
 
           # Define & call the query.  Returns an Array of Objects or nil
@@ -54,7 +54,7 @@ module Bodhi
         define_method(association_name) do
 
           # Get the value from the instance object's source_key. Default is :sys_id
-          association = self.class.associations[:belongs_to][association_name.to_sym]
+          association = self.class.associations[association_name.to_sym]
           instance_id = self.send(association[:source_key])
 
           # Define & call the query.  Returns a single Object or nil
@@ -66,6 +66,8 @@ module Bodhi
 
       private
       def define_association(type, name, options)
+        options.merge!(association_type: type)
+
         if options[:resource_name].nil?
           options[:resource_name] = Bodhi::Support.camelize(name.to_s)
         end
@@ -92,13 +94,13 @@ module Bodhi
         options[:query].nil? ? options[:query] = Hash.new : options[:query]
         options[:query].merge!(options[:foreign_key].to_sym => "object.#{options[:source_key]}")
 
-        @associations[type][name.to_sym] = options
+        @associations[name.to_sym] = options
       end
     end
 
     def self.included(base)
       base.extend(ClassMethods)
-      base.instance_variable_set(:@associations, Hash.new(has_one:{}, has_many:{}, belongs_to:{}))
+      base.instance_variable_set(:@associations, Hash.new)
     end
   end
 end
