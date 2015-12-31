@@ -119,6 +119,12 @@ describe Bodhi::Associations do
   end
 
   describe ".has_one(association_name, options={})" do
+    it "sets the association type to :has_one" do
+      @trainer.has_one(:pokemon)
+      expect(@trainer.associations[:pokemon]).to have_key :association_type
+      expect(@trainer.associations[:pokemon][:association_type]).to eq :has_one
+    end
+
     it "auto-generates an instance method with the given association_name" do
       @trainer.has_one(:pokemon)
       expect(@trainer.new).to respond_to :pokemon
@@ -208,6 +214,12 @@ describe Bodhi::Associations do
   end
 
   describe ".has_many(association_name, options={})" do
+    it "sets the association type to :has_many" do
+      @trainer.has_many(:pokemon)
+      expect(@trainer.associations[:pokemon]).to have_key :association_type
+      expect(@trainer.associations[:pokemon][:association_type]).to eq :has_many
+    end
+
     it "auto-generates an instance method with the given association_name" do
       @trainer.has_many(:pokemon)
       expect(@trainer.new).to respond_to :pokemon
@@ -249,6 +261,12 @@ describe Bodhi::Associations do
   end
 
   describe ".belongs_to(association_name, options={})" do
+    it "sets the association type to :has_one" do
+      @pokemon.belongs_to(:trainer)
+      expect(@pokemon.associations[:trainer]).to have_key :association_type
+      expect(@pokemon.associations[:trainer][:association_type]).to eq :belongs_to
+    end
+
     it "auto-generates an instance method with the given association_name" do
       @pokemon.belongs_to(:trainer)
       expect(@pokemon.new).to respond_to :trainer
