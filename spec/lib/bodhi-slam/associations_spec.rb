@@ -34,8 +34,8 @@ describe Bodhi::Associations do
   describe "valid options" do
     it "can be Hash with String keys" do
       @trainer.has_one(:pokemon, "resource_name" => "Pokemon")
-      expect(@trainer.associations[:pokemon]).to have_key :resource_name
-      expect(@trainer.associations[:pokemon][:resource_name]).to eq "Pokemon"
+      expect(@trainer.associations[:pokemon]).to have_key :class_name
+      expect(@trainer.associations[:pokemon][:class_name]).to eq "Pokemon"
     end
 
     it "accepts :query" do
@@ -50,16 +50,16 @@ describe Bodhi::Associations do
       expect(@trainer.associations[:pokemon][:foreign_key]).to eq "super_trainer_id"
     end
 
-    it "accepts :resource_name" do
-      @trainer.has_one(:pokemon, resource_name: "Pokemon")
-      expect(@trainer.associations[:pokemon]).to have_key :resource_name
-      expect(@trainer.associations[:pokemon][:resource_name]).to eq "Pokemon"
+    it "accepts :class_name" do
+      @trainer.has_one(:pokemon, class_name: "Pokemon")
+      expect(@trainer.associations[:pokemon]).to have_key :class_name
+      expect(@trainer.associations[:pokemon][:class_name]).to eq "Pokemon"
     end
 
-    it "accepts :source_key" do
-      @trainer.has_one(:pokemon, source_key: "name")
-      expect(@trainer.associations[:pokemon]).to have_key :source_key
-      expect(@trainer.associations[:pokemon][:source_key]).to eq "name"
+    it "accepts :primary_key" do
+      @trainer.has_one(:pokemon, primary_key: "name")
+      expect(@trainer.associations[:pokemon]).to have_key :primary_key
+      expect(@trainer.associations[:pokemon][:primary_key]).to eq "name"
     end
   end
 
@@ -71,7 +71,7 @@ describe Bodhi::Associations do
 
     it "uses association_name for resource_name" do
       @trainer.has_one(:pokemon)
-      expect(@trainer.associations[:pokemon][:resource_name]).to eq "Pokemon"
+      expect(@trainer.associations[:pokemon][:class_name]).to eq "Pokemon"
     end
 
     it "uses the calling objects name plus _id for foreign_key" do
@@ -85,36 +85,36 @@ describe Bodhi::Associations do
       @trainer.has_one(:pokemon, foreign_key: "backup_trainer_name")
 
       expect(@trainer.associations[:pokemon][:query]).to eq backup_trainer_name: "object.sys_id"
-      expect(@trainer.associations[:pokemon][:source_key]).to eq "sys_id"
+      expect(@trainer.associations[:pokemon][:primary_key]).to eq "sys_id"
       expect(@trainer.associations[:pokemon][:foreign_key]).to eq "backup_trainer_name"
-      expect(@trainer.associations[:pokemon][:resource_name]).to eq "Pokemon"
+      expect(@trainer.associations[:pokemon][:class_name]).to eq "Pokemon"
     end
 
     it "updates the query based on the supplied :source_property" do
-      @trainer.has_one(:pokemon, source_key: "name")
+      @trainer.has_one(:pokemon, primary_key: "name")
 
       expect(@trainer.associations[:pokemon][:query]).to eq trainer_id: "object.name"
-      expect(@trainer.associations[:pokemon][:source_key]).to eq "name"
+      expect(@trainer.associations[:pokemon][:primary_key]).to eq "name"
       expect(@trainer.associations[:pokemon][:foreign_key]).to eq "trainer_id"
-      expect(@trainer.associations[:pokemon][:resource_name]).to eq "Pokemon"
+      expect(@trainer.associations[:pokemon][:class_name]).to eq "Pokemon"
     end
 
-    it "updates the query based on the supplied :resource_name" do
-      @trainer.has_one(:pikachu, resource_name: "Pokemon")
+    it "updates the query based on the supplied :class_name" do
+      @trainer.has_one(:pikachu, class_name: "Pokemon")
 
       expect(@trainer.associations[:pikachu][:query]).to eq trainer_id: "object.sys_id"
-      expect(@trainer.associations[:pikachu][:source_key]).to eq "sys_id"
+      expect(@trainer.associations[:pikachu][:primary_key]).to eq "sys_id"
       expect(@trainer.associations[:pikachu][:foreign_key]).to eq "trainer_id"
-      expect(@trainer.associations[:pikachu][:resource_name]).to eq "Pokemon"
+      expect(@trainer.associations[:pikachu][:class_name]).to eq "Pokemon"
     end
 
-    it "with custom :foreign_key, :source_key, :resource_name, and :query" do
-      @trainer.has_one(:pikachu, resource_name: "Pokemon", source_key: "name", foreign_key: "trainer_name", query: { name: "Pikachu" })
+    it "with custom :foreign_key, :primary_key, :class_name, and :query" do
+      @trainer.has_one(:pikachu, class_name: "Pokemon", primary_key: "name", foreign_key: "trainer_name", query: { name: "Pikachu" })
 
       expect(@trainer.associations[:pikachu][:query]).to eq trainer_name: "object.name", name: "Pikachu"
-      expect(@trainer.associations[:pikachu][:source_key]).to eq "name"
+      expect(@trainer.associations[:pikachu][:primary_key]).to eq "name"
       expect(@trainer.associations[:pikachu][:foreign_key]).to eq "trainer_name"
-      expect(@trainer.associations[:pikachu][:resource_name]).to eq "Pokemon"
+      expect(@trainer.associations[:pikachu][:class_name]).to eq "Pokemon"
     end
   end
 
