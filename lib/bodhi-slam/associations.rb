@@ -5,24 +5,7 @@ module Bodhi
 
       def has_one(association_name, options={})
         options = Bodhi::Support.symbolize_keys(options)
-
-        if options[:resource_name].nil?
-          options[:resource_name] = Bodhi::Support.camelize(association_name.to_s)
-        end
-
-        if options[:foreign_key].nil?
-          options[:foreign_key] = Bodhi::Support.underscore(name)+"_id"
-        end
-
-        if options[:source_key].nil?
-          options[:source_key] = "sys_id"
-        end
-
-        options[:query].nil? ? options[:query] = Hash.new : options[:query]
-        options[:query].merge!(options[:foreign_key].to_sym => "object.#{options[:source_key]}")
-
-        # Add the association to the classes :has_one association Hash
-        @associations[:has_one][association_name.to_sym] = options
+        define_association(:has_one, association_name, options)
 
         # Define a new helper method to get the association
         define_method(association_name) do
@@ -47,24 +30,7 @@ module Bodhi
 
       def has_many(association_name, options={})
         options = Bodhi::Support.symbolize_keys(options)
-
-        if options[:resource_name].nil?
-          options[:resource_name] = Bodhi::Support.camelize(association_name.to_s)
-        end
-
-        if options[:foreign_key].nil?
-          options[:foreign_key] = Bodhi::Support.underscore(name)+"_id"
-        end
-
-        if options[:source_key].nil?
-          options[:source_key] = "sys_id"
-        end
-
-        options[:query].nil? ? options[:query] = Hash.new : options[:query]
-        options[:query].merge!(options[:foreign_key].to_sym => "object.#{options[:source_key]}")
-
-        # Add the association to the classes :has_one association Hash
-        @associations[:has_many][association_name.to_sym] = options
+        define_association(:has_many, association_name, options)
 
         # Define a new helper method to get the association
         define_method(association_name) do
@@ -82,24 +48,7 @@ module Bodhi
 
       def belongs_to(association_name, options={})
         options = Bodhi::Support.symbolize_keys(options)
-
-        if options[:resource_name].nil?
-          options[:resource_name] = Bodhi::Support.camelize(association_name.to_s)
-        end
-
-        if options[:foreign_key].nil?
-          options[:foreign_key] = "sys_id"
-        end
-
-        if options[:source_key].nil?
-          options[:source_key] = Bodhi::Support.underscore(options[:resource_name])+"_id"
-        end
-
-        options[:query].nil? ? options[:query] = Hash.new : options[:query]
-        options[:query].merge!(options[:foreign_key].to_sym => "object.#{options[:source_key]}")
-
-        # Add the association to the classes :has_one association Hash
-        @associations[:belongs_to][association_name.to_sym] = options
+        define_association(:belongs_to, association_name, options)
 
         # Define a new helper method to get the association
         define_method(association_name) do
@@ -113,6 +62,37 @@ module Bodhi
           puts query.url
           query.first
         end
+      end
+
+      private
+      def define_association(type, name, options)
+        if options[:resource_name].nil?
+          options[:resource_name] = Bodhi::Support.camelize(name.to_s)
+        end
+
+        case type
+        when :belongs_to
+          if options[:foreign_key].nil?
+            options[:foreign_key] = "sys_id"
+          end
+
+          if options[:source_key].nil?
+            options[:source_key] = Bodhi::Support.underscore(options[:resource_name])+"_id"
+          end
+        else
+          if options[:foreign_key].nil?
+            options[:foreign_key] = Bodhi::Support.underscore(self.name)+"_id"
+          end
+
+          if options[:source_key].nil?
+            options[:source_key] = "sys_id"
+          end
+        end
+
+        options[:query].nil? ? options[:query] = Hash.new : options[:query]
+        options[:query].merge!(options[:foreign_key].to_sym => "object.#{options[:source_key]}")
+
+        @associations[type][name.to_sym] = options
       end
     end
 
