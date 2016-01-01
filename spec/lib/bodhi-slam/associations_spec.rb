@@ -2,12 +2,14 @@ require 'spec_helper'
 
 describe Bodhi::Associations do
   before(:each) do
+    @gym = Object.const_set("Gym", Class.new{ include Bodhi::Associations })
     @trainer = Object.const_set("Trainer", Class.new{ include Bodhi::Associations })
     @pokedex = Object.const_set("Pokedex", Class.new{ include Bodhi::Associations })
     @pokemon = Object.const_set("Pokemon", Class.new{ include Bodhi::Associations })
   end
 
   after(:each) do
+    Object.send(:remove_const, :Gym)
     Object.send(:remove_const, :Trainer)
     Object.send(:remove_const, :Pokedex)
     Object.send(:remove_const, :Pokemon)
@@ -66,7 +68,7 @@ describe Bodhi::Associations do
   describe "default queries" do
     it "uses the calling objects sys_id" do
       @trainer.has_one(:pokemon)
-      expect(@trainer.associations[:pokemon][:query]).to eq trainer_id: "object.sys_id"
+      expect(@trainer.associations[:pokemon][:primary_key]).to eq "sys_id"
     end
 
     it "uses association_name for resource_name" do
@@ -84,7 +86,6 @@ describe Bodhi::Associations do
     it "updates the query based on the supplied :foreign_key" do
       @trainer.has_one(:pokemon, foreign_key: "backup_trainer_name")
 
-      expect(@trainer.associations[:pokemon][:query]).to eq backup_trainer_name: "object.sys_id"
       expect(@trainer.associations[:pokemon][:primary_key]).to eq "sys_id"
       expect(@trainer.associations[:pokemon][:foreign_key]).to eq "backup_trainer_name"
       expect(@trainer.associations[:pokemon][:class_name]).to eq "Pokemon"
@@ -93,7 +94,6 @@ describe Bodhi::Associations do
     it "updates the query based on the supplied :source_property" do
       @trainer.has_one(:pokemon, primary_key: "name")
 
-      expect(@trainer.associations[:pokemon][:query]).to eq trainer_id: "object.name"
       expect(@trainer.associations[:pokemon][:primary_key]).to eq "name"
       expect(@trainer.associations[:pokemon][:foreign_key]).to eq "trainer_id"
       expect(@trainer.associations[:pokemon][:class_name]).to eq "Pokemon"
@@ -102,7 +102,6 @@ describe Bodhi::Associations do
     it "updates the query based on the supplied :class_name" do
       @trainer.has_one(:pikachu, class_name: "Pokemon")
 
-      expect(@trainer.associations[:pikachu][:query]).to eq trainer_id: "object.sys_id"
       expect(@trainer.associations[:pikachu][:primary_key]).to eq "sys_id"
       expect(@trainer.associations[:pikachu][:foreign_key]).to eq "trainer_id"
       expect(@trainer.associations[:pikachu][:class_name]).to eq "Pokemon"
@@ -111,7 +110,7 @@ describe Bodhi::Associations do
     it "with custom :foreign_key, :primary_key, :class_name, and :query" do
       @trainer.has_one(:pikachu, class_name: "Pokemon", primary_key: "name", foreign_key: "trainer_name", query: { name: "Pikachu" })
 
-      expect(@trainer.associations[:pikachu][:query]).to eq trainer_name: "object.name", name: "Pikachu"
+      expect(@trainer.associations[:pikachu][:query]).to eq name: "Pikachu"
       expect(@trainer.associations[:pikachu][:primary_key]).to eq "name"
       expect(@trainer.associations[:pikachu][:foreign_key]).to eq "trainer_name"
       expect(@trainer.associations[:pikachu][:class_name]).to eq "Pokemon"
@@ -257,6 +256,58 @@ describe Bodhi::Associations do
       # Clean up!
       trainer_type.delete!
       pokemon_type.delete!
+    end
+
+    context "with :through option" do
+      it "auto-generated instance method can be called and returns the target resource" do
+        @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
+
+        @gym.include(Bodhi::Resource)
+        @gym.property :name, type: "String"
+        @gym.has_many :trainers, class_name: "Trainer"
+        @gym.has_many :pokemon, through: :trainers, through_class: "Trainer"
+
+        gym_type = @gym.build_type
+        gym_type.bodhi_context = @context
+        gym_type.save!
+
+        @trainer.include(Bodhi::Resource)
+        @trainer.property :name, type: "String"
+        @trainer.property :gym_id, type: "String", is_not_blank: true
+
+        trainer_type = @trainer.build_type
+        trainer_type.bodhi_context = @context
+        trainer_type.save!
+
+        @pokemon.include(Bodhi::Resource)
+        @pokemon.property :name, type: "String"
+        @pokemon.property :trainer_id, type: "String", is_not_blank: true
+
+        pokemon_type = @pokemon.build_type
+        pokemon_type.bodhi_context = @context
+        pokemon_type.save!
+
+        gym = @gym.factory.create(bodhi_context: @context, name: "Pewter Gym")
+        broc = @trainer.factory.create(bodhi_context: @context, name: "Broc", gym_id: gym.id)
+        jr_trainer = @trainer.factory.create(bodhi_context: @context, name: "Jr. Trainer", gym_id: gym.id)
+        onix = @pokemon.factory.create(bodhi_context: @context, name: "Onix", trainer_id: broc.id)
+        geodude = @pokemon.factory.create(bodhi_context: @context, name: "Geodude", trainer_id: broc.id)
+        diglett = @pokemon.factory.create(bodhi_context: @context, name: "Diglett", trainer_id: jr_trainer.id)
+        sandshrew = @pokemon.factory.create(bodhi_context: @context, name: "Sandshrew", trainer_id: jr_trainer.id)
+        pikachu = @pokemon.factory.create(bodhi_context: @context, name: "Pikachu", trainer_id: "12345")
+
+        # Finally! The actual tests...
+        pokemon = gym.pokemon
+        puts pokemon.map(&:attributes).to_s
+        expect(pokemon).to be_a Array
+        expect(pokemon.size).to eq 4
+        pokemon.each{ |obj| expect(obj).to be_a Pokemon }
+
+        # Clean up!
+        gym_type.delete!
+        trainer_type.delete!
+        pokemon_type.delete!
+      end
     end
   end
 

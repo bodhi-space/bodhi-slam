@@ -37,10 +37,17 @@ module Bodhi
 
           # Get the value from the instance object's source_key. Default is :sys_id
           association = self.class.associations[association_name.to_sym]
-          instance_id = self.send(association[:primary_key])
+          query = Bodhi::Query.new(association[:class_name]).from(self.bodhi_context).where(association[:query])
 
-          # Define & call the query.  Returns an Array of Objects or nil
-          query = Bodhi::Query.new(association[:class_name]).from(self.bodhi_context).where(association[:query]).and(association[:foreign_key].to_sym => instance_id)
+          if association[:through]
+            associated_objects = self.send(association[:through])
+            instance_ids = associated_objects.map{ |obj| obj.send(association[:primary_key]) }
+            query.and(association[:foreign_key].to_sym => { "$in" => instance_ids })
+          else
+            instance_id = self.send(association[:primary_key])
+            query.and(association[:foreign_key].to_sym => instance_id)
+          end
+
           puts query.url
           query.all
         end
@@ -72,6 +79,10 @@ module Bodhi
           options[:class_name] = Bodhi::Support.camelize(name.to_s)
         end
 
+        if options[:through] && options[:through_class].nil?
+          options[:through_class] = Bodhi::Support.camelize(options[:through].to_s)
+        end
+
         case type
         when :belongs_to
           if options[:foreign_key].nil?
@@ -83,7 +94,11 @@ module Bodhi
           end
         else
           if options[:foreign_key].nil?
-            options[:foreign_key] = Bodhi::Support.underscore(self.name)+"_id"
+            if options[:through] && options[:through_class]
+              options[:foreign_key] = Bodhi::Support.underscore(options[:through_class])+"_id"
+            else
+              options[:foreign_key] = Bodhi::Support.underscore(self.name)+"_id"
+            end
           end
 
           if options[:primary_key].nil?
@@ -92,8 +107,6 @@ module Bodhi
         end
 
         options[:query].nil? ? options[:query] = Hash.new : options[:query]
-        options[:query].merge!(options[:foreign_key].to_sym => "object.#{options[:primary_key]}")
-
         @associations[name.to_sym] = options
       end
     end
