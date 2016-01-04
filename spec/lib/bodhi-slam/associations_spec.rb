@@ -35,33 +35,39 @@ describe Bodhi::Associations do
 
   describe "valid options" do
     it "can be Hash with String keys" do
-      @trainer.has_one(:pokemon, "resource_name" => "Pokemon")
+      @trainer.has_one(:pokemon, "class_name" => "Foo")
       expect(@trainer.associations[:pokemon]).to have_key :class_name
-      expect(@trainer.associations[:pokemon][:class_name]).to eq "Pokemon"
+      expect(@trainer.associations[:pokemon][:class_name]).to eq "Foo"
     end
 
-    it "accepts :query" do
+    it "accepts additional :query conditions" do
       @trainer.has_one(:pokemon, query: { name: "Pikachu" })
       expect(@trainer.associations[:pokemon]).to have_key :query
-      expect(@trainer.associations[:pokemon][:query]).to have_key :name
+      expect(@trainer.associations[:pokemon][:query]).to eq name: "Pikachu"
     end
 
-    it "accepts :foreign_key" do
+    it "accepts a :primary_key option" do
+      @trainer.has_one(:pokemon, primary_key: "name")
+      expect(@trainer.associations[:pokemon]).to have_key :primary_key
+      expect(@trainer.associations[:pokemon][:primary_key]).to eq "name"
+    end
+
+    it "accepts a :foreign_key option" do
       @trainer.has_one(:pokemon, foreign_key: "super_trainer_id")
       expect(@trainer.associations[:pokemon]).to have_key :foreign_key
       expect(@trainer.associations[:pokemon][:foreign_key]).to eq "super_trainer_id"
     end
 
-    it "accepts :class_name" do
+    it "accepts a :class_name option" do
       @trainer.has_one(:pokemon, class_name: "Pokemon")
       expect(@trainer.associations[:pokemon]).to have_key :class_name
       expect(@trainer.associations[:pokemon][:class_name]).to eq "Pokemon"
     end
 
-    it "accepts :primary_key" do
-      @trainer.has_one(:pokemon, primary_key: "name")
-      expect(@trainer.associations[:pokemon]).to have_key :primary_key
-      expect(@trainer.associations[:pokemon][:primary_key]).to eq "name"
+    it "accepts a :through option" do
+      @trainer.has_one(:pokemon, through: "SomeOtherAssociation")
+      expect(@trainer.associations[:pokemon]).to have_key :through
+      expect(@trainer.associations[:pokemon][:through]).to eq "SomeOtherAssociation"
     end
   end
 
@@ -129,42 +135,76 @@ describe Bodhi::Associations do
       expect(@trainer.new).to respond_to :pokemon
     end
 
-    it "auto-generated instance method can be called and returns the target resource" do
-      @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
+    context "auto-generated GET method" do
+      it "returns all associated objects (default options)" do
+        @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
 
-      @trainer.include(Bodhi::Resource)
-      @trainer.property :name, type: "String"
-      @trainer.has_one :pokemon
+        @trainer.include(Bodhi::Resource)
+        @trainer.property :name, type: "String"
+        @trainer.has_one :pokemon
 
-      trainer_type = @trainer.build_type
-      trainer_type.bodhi_context = @context
-      trainer_type.save!
+        trainer_type = @trainer.build_type
+        trainer_type.bodhi_context = @context
+        trainer_type.save!
 
-      @pokemon.include(Bodhi::Resource)
-      @pokemon.property :name, type: "String"
-      @pokemon.property :trainer_id, type: "String", is_not_blank: true
-      @pokemon.index [:trainer_id], unique: true
+        @pokemon.include(Bodhi::Resource)
+        @pokemon.property :name, type: "String"
+        @pokemon.property :trainer_id, type: "String", is_not_blank: true
+        @pokemon.index [:trainer_id], unique: true
 
-      pokemon_type = @pokemon.build_type
-      pokemon_type.bodhi_context = @context
-      pokemon_type.save!
+        pokemon_type = @pokemon.build_type
+        pokemon_type.bodhi_context = @context
+        pokemon_type.save!
 
-      ash = @trainer.factory.create(bodhi_context: @context, name: "Ash Ketchum")
-      pikachu = @pokemon.factory.create(bodhi_context: @context, name: "Pikachu", trainer_id: ash.id)
+        ash = @trainer.factory.create(bodhi_context: @context, name: "Ash Ketchum")
+        pikachu = @pokemon.factory.create(bodhi_context: @context, name: "Pikachu", trainer_id: ash.id)
 
-      # Finally! The actual tests...
-      pokemon = ash.pokemon
-      puts pokemon.attributes
-      expect(pokemon).to be_a Pokemon
-      expect(pokemon.name).to eq "Pikachu"
+        # Finally! The actual tests...
+        pokemon = ash.pokemon
+        puts pokemon.attributes
+        expect(pokemon).to be_a Pokemon
+        expect(pokemon.name).to eq "Pikachu"
 
-      # Clean up!
-      trainer_type.delete!
-      pokemon_type.delete!
-    end
+        # Clean up!
+        trainer_type.delete!
+        pokemon_type.delete!
+      end
 
-    context "with :through option" do
-      it "auto-generated instance method can be called and returns the target resource" do
+      it "returns all associated objects (custom options)" do
+        @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
+
+        @trainer.include(Bodhi::Resource)
+        @trainer.property :name, type: "String"
+        @trainer.has_one :starter_pokemon, class_name: "Pokemon", primary_key: "name", foreign_key: "trainer_name"
+
+        trainer_type = @trainer.build_type
+        trainer_type.bodhi_context = @context
+        trainer_type.save!
+
+        @pokemon.include(Bodhi::Resource)
+        @pokemon.property :name, type: "String"
+        @pokemon.property :trainer_name, type: "String", is_not_blank: true
+        @pokemon.index [:trainer_name], unique: true
+
+        pokemon_type = @pokemon.build_type
+        pokemon_type.bodhi_context = @context
+        pokemon_type.save!
+
+        ash = @trainer.factory.create(bodhi_context: @context, name: "Ash Ketchum")
+        bulbasaur = @pokemon.factory.create(bodhi_context: @context, name: "Pikachu", trainer_name: ash.name)
+
+        # Finally! The actual tests...
+        pokemon = ash.starter_pokemon
+        puts pokemon.attributes
+        expect(pokemon).to be_a Pokemon
+        expect(pokemon.name).to eq "Pikachu"
+
+        # Clean up!
+        trainer_type.delete!
+        pokemon_type.delete!
+      end
+
+      it "returns all assocaited objects :through the given association" do
         @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
 
         @trainer.include(Bodhi::Resource)
@@ -222,42 +262,77 @@ describe Bodhi::Associations do
       expect(@trainer.new).to respond_to :pokemon
     end
 
-    it "auto-generated instance method can be called and returns the target resources" do
-      @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
+    context "auto-generated GET method" do
+      it "returns all associated objects (default options)" do
+        @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
 
-      @trainer.include(Bodhi::Resource)
-      @trainer.property :name, type: "String"
-      @trainer.has_many :pokemon
+        @trainer.include(Bodhi::Resource)
+        @trainer.property :name, type: "String"
+        @trainer.has_many :pokemon
 
-      trainer_type = @trainer.build_type
-      trainer_type.bodhi_context = @context
-      trainer_type.save!
+        trainer_type = @trainer.build_type
+        trainer_type.bodhi_context = @context
+        trainer_type.save!
 
-      @pokemon.include(Bodhi::Resource)
-      @pokemon.property :name, type: "String"
-      @pokemon.property :trainer_id, type: "String", is_not_blank: true
+        @pokemon.include(Bodhi::Resource)
+        @pokemon.property :name, type: "String"
+        @pokemon.property :trainer_id, type: "String", is_not_blank: true
 
-      pokemon_type = @pokemon.build_type
-      pokemon_type.bodhi_context = @context
-      pokemon_type.save!
+        pokemon_type = @pokemon.build_type
+        pokemon_type.bodhi_context = @context
+        pokemon_type.save!
 
-      ash = @trainer.factory.create(bodhi_context: @context, name: "Ash Ketchum")
-      pikachu = @pokemon.factory.create(bodhi_context: @context, name: "Pikachu", trainer_id: ash.id)
-      bulbasaur = @pokemon.factory.create(bodhi_context: @context, name: "Bulbasaur", trainer_id: ash.id)
-      charmander = @pokemon.factory.create(bodhi_context: @context, name: "Charmander", trainer_id: ash.id)
+        ash = @trainer.factory.create(bodhi_context: @context, name: "Ash Ketchum")
+        pikachu = @pokemon.factory.create(bodhi_context: @context, name: "Pikachu", trainer_id: ash.id)
+        bulbasaur = @pokemon.factory.create(bodhi_context: @context, name: "Bulbasaur", trainer_id: ash.id)
+        charmander = @pokemon.factory.create(bodhi_context: @context, name: "Charmander", trainer_id: ash.id)
 
-      # Finally! The actual tests...
-      pokemon = ash.pokemon
-      puts pokemon.map(&:attributes).to_s
-      pokemon.each{ |item| expect(item).to be_a Pokemon }
+        # Finally! The actual tests...
+        pokemon = ash.pokemon
+        puts pokemon.map(&:attributes).to_s
+        pokemon.each{ |item| expect(item).to be_a Pokemon }
 
-      # Clean up!
-      trainer_type.delete!
-      pokemon_type.delete!
-    end
+        # Clean up!
+        trainer_type.delete!
+        pokemon_type.delete!
+      end
 
-    context "with :through option" do
-      it "auto-generated instance method can be called and returns the target resource" do
+      it "returns all associated objects (custom options)" do
+        @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
+
+        @trainer.include(Bodhi::Resource)
+        @trainer.property :name, type: "String"
+        @trainer.has_many :fire_pokemon, class_name: "Pokemon", primary_key: "name", foreign_key: "trainer_name", query: { type: "Fire" }
+
+        trainer_type = @trainer.build_type
+        trainer_type.bodhi_context = @context
+        trainer_type.save!
+
+        @pokemon.include(Bodhi::Resource)
+        @pokemon.property :name, type: "String"
+        @pokemon.property :type, type: "String"
+        @pokemon.property :trainer_name, type: "String", is_not_blank: true
+
+        pokemon_type = @pokemon.build_type
+        pokemon_type.bodhi_context = @context
+        pokemon_type.save!
+
+        ash = @trainer.factory.create(bodhi_context: @context, name: "Ash Ketchum")
+        pikachu = @pokemon.factory.create(bodhi_context: @context, name: "Pikachu", type: "Electric", trainer_name: ash.name)
+        flareon = @pokemon.factory.create(bodhi_context: @context, name: "Flareon", type: "Fire", trainer_name: ash.name)
+        charmander = @pokemon.factory.create(bodhi_context: @context, name: "Charmander", type: "Fire", trainer_name: ash.name)
+
+        # Finally! The actual tests...
+        pokemon = ash.fire_pokemon
+        puts pokemon.map(&:attributes).to_s
+        pokemon.each{ |item| expect(item).to be_a Pokemon }
+
+        # Clean up!
+        trainer_type.delete!
+        pokemon_type.delete!
+      end
+
+      it "returns all assocaited objects :through the given association" do
         @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
 
         @gym.include(Bodhi::Resource)
