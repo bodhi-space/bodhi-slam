@@ -179,7 +179,6 @@ describe Bodhi::Associations do
         @pokedex.include(Bodhi::Resource)
         @pokedex.property :name, type: "String"
         @pokedex.property :trainer_id, type: "String", is_not_blank: true
-        @pokedex.has_one :pokemon
 
         pokedex_type = @pokedex.build_type
         pokedex_type.bodhi_context = @context
@@ -188,7 +187,6 @@ describe Bodhi::Associations do
         @pokemon.include(Bodhi::Resource)
         @pokemon.property :name, type: "String"
         @pokemon.property :pokedex_id, type: "String", is_not_blank: true
-        @pokemon.belongs_to :pokedex
 
         pokemon_type = @pokemon.build_type
         pokemon_type.bodhi_context = @context
