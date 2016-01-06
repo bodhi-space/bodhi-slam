@@ -12,7 +12,7 @@ module Bodhi
 
           # Get the value from the instance object's source_key. Default is :sys_id
           association = self.class.associations[association_name.to_sym]
-          query = Bodhi::Query.new(association[:class_name]).from(self.bodhi_context).where(association[:query])
+          query = Bodhi::Query.new(association[:class_name]).from(self.bodhi_context)
 
           if association[:through]
             associated_object = self.send(association[:through])
@@ -21,7 +21,8 @@ module Bodhi
             instance_id = self.send(association[:primary_key])
           end
 
-          query.and(association[:foreign_key].to_sym => instance_id)
+          query.where(association[:foreign_key].to_sym => instance_id)
+          query.and(association[:query])
 
           puts query.url
           query.first
@@ -37,17 +38,22 @@ module Bodhi
 
           # Get the value from the instance object's source_key. Default is :sys_id
           association = self.class.associations[association_name.to_sym]
-          query = Bodhi::Query.new(association[:class_name]).from(self.bodhi_context).where(association[:query])
+          query = Bodhi::Query.new(association[:class_name]).from(self.bodhi_context)
 
           if association[:through]
             associated_objects = self.send(association[:through])
             instance_ids = associated_objects.map{ |obj| obj.send(association[:primary_key]) }
-            query.and(association[:foreign_key].to_sym => { "$in" => instance_ids })
+            query.where(association[:foreign_key].to_sym => { "$in" => instance_ids })
           else
             instance_id = self.send(association[:primary_key])
-            query.and(association[:foreign_key].to_sym => instance_id)
+            if instance_id.is_a?(Array)
+              query.where(association[:foreign_key].to_sym => { "$in" => instance_id })
+            else
+              query.where(association[:foreign_key].to_sym => instance_id)
+            end
           end
 
+          query.and(association[:query])
           puts query.url
           query.all
         end
@@ -65,7 +71,10 @@ module Bodhi
           instance_id = self.send(association[:primary_key])
 
           # Define & call the query.  Returns a single Object or nil
-          query = Bodhi::Query.new(association[:class_name]).from(self.bodhi_context).where(association[:query]).and(association[:foreign_key].to_sym => instance_id)
+          query = Bodhi::Query.new(association[:class_name]).from(self.bodhi_context)
+          query.where(association[:foreign_key].to_sym => instance_id)
+          query.and(association[:query])
+
           puts query.url
           query.first
         end

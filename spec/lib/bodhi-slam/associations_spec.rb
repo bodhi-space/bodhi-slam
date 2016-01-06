@@ -263,6 +263,44 @@ describe Bodhi::Associations do
     end
 
     context "auto-generated GET method" do
+      it "returns all associated objects (array of ids)" do
+        @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
+
+        @trainer.include(Bodhi::Resource)
+        @trainer.property :name, type: "String"
+        @trainer.property :pokemon_ids, type: "String", multi: true
+        @trainer.has_many :pokemon, primary_key: "pokemon_ids", foreign_key: "sys_id"
+
+        trainer_type = @trainer.build_type
+        trainer_type.bodhi_context = @context
+        trainer_type.save!
+
+        @pokemon.include(Bodhi::Resource)
+        @pokemon.property :name, type: "String"
+
+        pokemon_type = @pokemon.build_type
+        pokemon_type.bodhi_context = @context
+        pokemon_type.save!
+
+        ash = @trainer.factory.create(bodhi_context: @context, name: "Ash Ketchum")
+        squirtle = @pokemon.factory.create(bodhi_context: @context, name: "Squirtle")
+        bulbasaur = @pokemon.factory.create(bodhi_context: @context, name: "Bulbasaur")
+        charmander = @pokemon.factory.create(bodhi_context: @context, name: "Charmander")
+
+        #ash.patch! [{ op: "add", path: "/pokemon_ids", value: [squirtle.id, bulbasaur.id] }]
+        ash.update! pokemon_ids: [squirtle.id, bulbasaur.id]
+
+        # Finally! The actual tests...
+        pokemon = ash.pokemon
+        puts pokemon.map(&:attributes).to_s
+        pokemon.each{ |item| expect(item).to be_a Pokemon }
+        expect(pokemon.size).to eq 2
+
+        # Clean up!
+        trainer_type.delete!
+        pokemon_type.delete!
+      end
+
       it "returns all associated objects (default options)" do
         @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
 
