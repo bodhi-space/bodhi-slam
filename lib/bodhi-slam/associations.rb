@@ -52,7 +52,15 @@ module Bodhi
 
             puts through_query.url
 
-            instance_ids = through_query.all.map{ |item| item.send(association[:through][:primary_key]) }
+            method_chain = association[:through][:primary_key].split('.')
+            if method_chain.size == 1
+              instance_ids = through_query.all.map{ |item| item.send(association[:through][:primary_key]) }
+            else
+              instance_ids = through_query.all.map do |item|
+                method_chain.reduce(item){ |memo, method| memo.send(method) }
+              end
+            end
+
             query.where(association[:foreign_key].to_sym => { "$in" => instance_ids })
           else
             instance_id = self.send(association[:primary_key])
