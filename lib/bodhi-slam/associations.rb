@@ -9,22 +9,27 @@ module Bodhi
 
         # Define a new helper method to get the association
         define_method(association_name) do
-
-          # Get the value from the instance object's source_key. Default is :sys_id
           association = self.class.associations[association_name.to_sym]
           query = Bodhi::Query.new(association[:class_name]).from(self.bodhi_context)
 
           if association[:through]
-            associated_object = self.send(association[:through])
-            instance_id = associated_object.send(association[:primary_key])
+            through_query = Bodhi::Query.new(association[:through][:class_name]).from(self.bodhi_context)
+            through_query.where(association[:through][:foreign_key].to_sym => self.send(association[:primary_key]))
+            through_query.select(association[:through][:primary_key])
+
+            puts through_query.url
+
+            instance_id = through_query.first.send(association[:through][:primary_key])
+            query.where(association[:foreign_key].to_sym => instance_id)
           else
             instance_id = self.send(association[:primary_key])
+            query.where(association[:foreign_key].to_sym => instance_id)
           end
 
-          query.where(association[:foreign_key].to_sym => instance_id)
           query.and(association[:query])
 
           puts query.url
+
           query.first
         end
       end
@@ -41,8 +46,13 @@ module Bodhi
           query = Bodhi::Query.new(association[:class_name]).from(self.bodhi_context)
 
           if association[:through]
-            associated_objects = self.send(association[:through])
-            instance_ids = associated_objects.map{ |obj| obj.send(association[:primary_key]) }
+            through_query = Bodhi::Query.new(association[:through][:class_name]).from(self.bodhi_context)
+            through_query.where(association[:through][:foreign_key].to_sym => self.send(association[:primary_key]))
+            through_query.select(association[:through][:primary_key])
+
+            puts through_query.url
+
+            instance_ids = through_query.all.map{ |item| item.send(association[:through][:primary_key]) }
             query.where(association[:foreign_key].to_sym => { "$in" => instance_ids })
           else
             instance_id = self.send(association[:primary_key])
@@ -88,8 +98,23 @@ module Bodhi
           options[:class_name] = Bodhi::Support.camelize(name.to_s)
         end
 
-        if options[:through] && options[:through_class].nil?
-          options[:through_class] = Bodhi::Support.camelize(options[:through].to_s)
+        if options[:through].is_a?(String)
+          case options[:association_type]
+          when :has_one
+            options[:through] = {
+              class_name: Bodhi::Support.camelize(options[:through]),
+              foreign_key: Bodhi::Support.underscore(self.name)+"_id",
+              primary_key: "sys_id"
+            }
+            options[:foreign_key] = Bodhi::Support.underscore(options[:through][:class_name])+"_id"
+          when :has_many
+            options[:through] = {
+              class_name: Bodhi::Support.camelize(options[:through]),
+              foreign_key: Bodhi::Support.underscore(self.name)+"_id",
+              primary_key: Bodhi::Support.underscore(options[:class_name])+"_id"
+            }
+            options[:foreign_key] = "sys_id"
+          end
         end
 
         case type
@@ -103,11 +128,7 @@ module Bodhi
           end
         else
           if options[:foreign_key].nil?
-            if options[:through] && options[:through_class]
-              options[:foreign_key] = Bodhi::Support.underscore(options[:through_class])+"_id"
-            else
-              options[:foreign_key] = Bodhi::Support.underscore(self.name)+"_id"
-            end
+            options[:foreign_key] = Bodhi::Support.underscore(self.name)+"_id"
           end
 
           if options[:primary_key].nil?

@@ -2,14 +2,14 @@ require 'spec_helper'
 
 describe Bodhi::Associations do
   before(:each) do
-    @gym = Object.const_set("Gym", Class.new{ include Bodhi::Associations })
+    @pokeball = Object.const_set("Pokeball", Class.new{ include Bodhi::Associations })
     @trainer = Object.const_set("Trainer", Class.new{ include Bodhi::Associations })
     @pokedex = Object.const_set("Pokedex", Class.new{ include Bodhi::Associations })
     @pokemon = Object.const_set("Pokemon", Class.new{ include Bodhi::Associations })
   end
 
   after(:each) do
-    Object.send(:remove_const, :Gym)
+    Object.send(:remove_const, :Pokeball)
     Object.send(:remove_const, :Trainer)
     Object.send(:remove_const, :Pokedex)
     Object.send(:remove_const, :Pokemon)
@@ -64,10 +64,48 @@ describe Bodhi::Associations do
       expect(@trainer.associations[:pokemon][:class_name]).to eq "Pokemon"
     end
 
-    it "accepts a :through option" do
-      @trainer.has_one(:pokemon, through: "SomeOtherAssociation")
-      expect(@trainer.associations[:pokemon]).to have_key :through
-      expect(@trainer.associations[:pokemon][:through]).to eq "SomeOtherAssociation"
+    describe ":through" do
+      context "as a Symbol" do
+        it "sets the :through option in the assocaition to a symbol"
+      end
+
+      context "as a String" do
+        it "sets the :through option in the association to the string (has_one)" do
+          @trainer.has_one(:pokemon, through: "Pokedex")
+          expect(@trainer.associations[:pokemon]).to have_key :through
+          expect(@trainer.associations[:pokemon][:through][:class_name]).to eq "Pokedex"
+          expect(@trainer.associations[:pokemon][:through][:primary_key]).to eq "sys_id"
+          expect(@trainer.associations[:pokemon][:through][:foreign_key]).to eq "trainer_id"
+        end
+
+        it "sets the :through option in the association to the string (has_many)" do
+          @trainer.has_many(:pokemon, through: "Pokedex")
+          expect(@trainer.associations[:pokemon]).to have_key :through
+          expect(@trainer.associations[:pokemon][:through][:class_name]).to eq "Pokedex"
+          expect(@trainer.associations[:pokemon][:through][:primary_key]).to eq "pokemon_id"
+          expect(@trainer.associations[:pokemon][:through][:foreign_key]).to eq "trainer_id"
+        end
+      end
+
+      context "as a Hash" do
+        it "accepts :class_name" do
+          @trainer.has_one(:pokemon, through: { class_name: "Foo" })
+          expect(@trainer.associations[:pokemon]).to have_key :through
+          expect(@trainer.associations[:pokemon][:through][:class_name]).to eq "Foo"
+        end
+
+        it "accepts :primary_key" do
+          @trainer.has_one(:pokemon, through: { primary_key: "trainer_name" })
+          expect(@trainer.associations[:pokemon]).to have_key :through
+          expect(@trainer.associations[:pokemon][:through][:primary_key]).to eq "trainer_name"
+        end
+
+        it "accepts :foreign_key" do
+          @trainer.has_one(:pokemon, through: { foreign_key: "pokemon_name" })
+          expect(@trainer.associations[:pokemon]).to have_key :through
+          expect(@trainer.associations[:pokemon][:through][:foreign_key]).to eq "pokemon_name"
+        end
+      end
     end
   end
 
@@ -142,6 +180,7 @@ describe Bodhi::Associations do
         @trainer.include(Bodhi::Resource)
         @trainer.property :name, type: "String"
         @trainer.has_one :pokemon
+        puts "@trainer.has_one :pokemon"
 
         trainer_type = @trainer.build_type
         trainer_type.bodhi_context = @context
@@ -176,6 +215,7 @@ describe Bodhi::Associations do
         @trainer.include(Bodhi::Resource)
         @trainer.property :name, type: "String"
         @trainer.has_one :starter_pokemon, class_name: "Pokemon", primary_key: "name", foreign_key: "trainer_name"
+        puts '@trainer.has_one :starter_pokemon, class_name: "Pokemon", primary_key: "name", foreign_key: "trainer_name"'
 
         trainer_type = @trainer.build_type
         trainer_type.bodhi_context = @context
@@ -209,8 +249,8 @@ describe Bodhi::Associations do
 
         @trainer.include(Bodhi::Resource)
         @trainer.property :name, type: "String"
-        @trainer.has_one :pokedex
-        @trainer.has_one :pokemon, through: :pokedex
+        @trainer.has_one :pokemon, through: "Pokedex"
+        puts '@trainer.has_one :pokemon, through: "Pokedex"'
 
         trainer_type = @trainer.build_type
         trainer_type.bodhi_context = @context
@@ -270,6 +310,8 @@ describe Bodhi::Associations do
         @trainer.property :name, type: "String"
         @trainer.property :pokemon_ids, type: "String", multi: true
         @trainer.has_many :pokemon, primary_key: "pokemon_ids", foreign_key: "sys_id"
+        puts '@trainer.property :pokemon_ids, type: "String", multi: true'
+        puts '@trainer.has_many :pokemon, primary_key: "pokemon_ids", foreign_key: "sys_id"'
 
         trainer_type = @trainer.build_type
         trainer_type.bodhi_context = @context
@@ -307,6 +349,7 @@ describe Bodhi::Associations do
         @trainer.include(Bodhi::Resource)
         @trainer.property :name, type: "String"
         @trainer.has_many :pokemon
+        puts '@trainer.has_many :pokemon'
 
         trainer_type = @trainer.build_type
         trainer_type.bodhi_context = @context
@@ -341,6 +384,7 @@ describe Bodhi::Associations do
         @trainer.include(Bodhi::Resource)
         @trainer.property :name, type: "String"
         @trainer.has_many :fire_pokemon, class_name: "Pokemon", primary_key: "name", foreign_key: "trainer_name", query: { type: "Fire" }
+        puts '@trainer.has_many :fire_pokemon, class_name: "Pokemon", primary_key: "name", foreign_key: "trainer_name", query: { type: "Fire" }'
 
         trainer_type = @trainer.build_type
         trainer_type.bodhi_context = @context
@@ -373,18 +417,10 @@ describe Bodhi::Associations do
       it "returns all assocaited objects :through the given association" do
         @context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] })
 
-        @gym.include(Bodhi::Resource)
-        @gym.property :name, type: "String"
-        @gym.has_many :trainers, class_name: "Trainer"
-        @gym.has_many :pokemon, through: :trainers, through_class: "Trainer"
-
-        gym_type = @gym.build_type
-        gym_type.bodhi_context = @context
-        gym_type.save!
-
         @trainer.include(Bodhi::Resource)
         @trainer.property :name, type: "String"
-        @trainer.property :gym_id, type: "String", is_not_blank: true
+        @trainer.has_many :pokemon, through: "Pokeball"
+        puts '@trainer.has_many :pokemon, through: "Pokeball"'
 
         trainer_type = @trainer.build_type
         trainer_type.bodhi_context = @context
@@ -392,32 +428,46 @@ describe Bodhi::Associations do
 
         @pokemon.include(Bodhi::Resource)
         @pokemon.property :name, type: "String"
-        @pokemon.property :trainer_id, type: "String", is_not_blank: true
+        @pokemon.has_many :trainers, class_name: "Trainer", through: "Pokeball"
+        puts '@pokemon.has_many :trainers, class_name: "Trainer", through: "Pokeball"'
 
         pokemon_type = @pokemon.build_type
         pokemon_type.bodhi_context = @context
         pokemon_type.save!
 
-        gym = @gym.factory.create(bodhi_context: @context, name: "Pewter Gym")
-        broc = @trainer.factory.create(bodhi_context: @context, name: "Broc", gym_id: gym.id)
-        jr_trainer = @trainer.factory.create(bodhi_context: @context, name: "Jr. Trainer", gym_id: gym.id)
-        onix = @pokemon.factory.create(bodhi_context: @context, name: "Onix", trainer_id: broc.id)
-        geodude = @pokemon.factory.create(bodhi_context: @context, name: "Geodude", trainer_id: broc.id)
-        diglett = @pokemon.factory.create(bodhi_context: @context, name: "Diglett", trainer_id: jr_trainer.id)
-        sandshrew = @pokemon.factory.create(bodhi_context: @context, name: "Sandshrew", trainer_id: jr_trainer.id)
-        pikachu = @pokemon.factory.create(bodhi_context: @context, name: "Pikachu", trainer_id: "12345")
+        @pokeball.include(Bodhi::Resource)
+        @pokeball.property :trainer_id, type: "String", is_not_blank: true
+        @pokeball.property :pokemon_id, type: "String", is_not_blank: true
+
+        pokeball_type = @pokeball.build_type
+        pokeball_type.bodhi_context = @context
+        pokeball_type.save!
+
+        ash = @trainer.factory.create(bodhi_context: @context, name: "Ash Ketchum")
+        broc = @trainer.factory.create(bodhi_context: @context, name: "Broc")
+
+        pikachu = @pokemon.factory.create(bodhi_context: @context, name: "Pikachu")
+        onix = @pokemon.factory.create(bodhi_context: @context, name: "Onix")
+
+        pokeball_1 = @pokeball.factory.create(bodhi_context: @context, trainer_id: ash.id, pokemon_id: pikachu.id)
+        pokeball_2 = @pokeball.factory.create(bodhi_context: @context, trainer_id: ash.id, pokemon_id: onix.id)
+        pokeball_3 = @pokeball.factory.create(bodhi_context: @context, trainer_id: broc.id, pokemon_id: onix.id)
 
         # Finally! The actual tests...
-        pokemon = gym.pokemon
+        pokemon = ash.pokemon
         puts pokemon.map(&:attributes).to_s
-        expect(pokemon).to be_a Array
-        expect(pokemon.size).to eq 4
-        pokemon.each{ |obj| expect(obj).to be_a Pokemon }
+        pokemon.each{ |item| expect(item).to be_a Pokemon }
+        expect(pokemon.size).to eq 2
+
+        trainers = onix.trainers
+        puts trainers.map(&:attributes).to_s
+        trainers.each{ |item| expect(item).to be_a Trainer }
+        expect(trainers.size).to eq 2
 
         # Clean up!
-        gym_type.delete!
         trainer_type.delete!
         pokemon_type.delete!
+        pokeball_type.delete!
       end
     end
   end
@@ -448,6 +498,7 @@ describe Bodhi::Associations do
       @pokemon.property :name, type: "String"
       @pokemon.property :trainer_id, type: "String", is_not_blank: true
       @pokemon.belongs_to :trainer
+      puts '@pokemon.belongs_to :trainer'
 
       pokemon_type = @pokemon.build_type
       pokemon_type.bodhi_context = @context
