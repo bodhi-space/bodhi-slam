@@ -270,6 +270,47 @@ describe Bodhi::Query do
       end
     end
 
+    describe "#count" do
+      it "validates the Bodhi::Context before invoking the query" do
+        bad_context = Bodhi::Context.new({ server: "test", namespace: nil, cookie: nil })
+
+        expect { @query.count }.to raise_error(ArgumentError, "a Bodhi::Context is required to query the API")
+        expect { @query.from(bad_context).count }.to raise_error(Bodhi::ContextErrors, '["server must be a valid URL", "namespace is required"]')
+      end
+
+      it "invokes the query and counts all matching records" do
+        TestResource.factory.create_list(5, bodhi_context: @context, foo: "test")
+        TestResource.factory.create_list(2, bodhi_context: @context, foo: "not_test")
+
+        result = @query.from(@context).where(foo: "test").count
+        puts "\033[33mFound\033[0m: \033[36m#{result}\033[0m"
+        expect(result).to eq 5
+      end
+    end
+
+    describe "#delete" do
+      it "validates the Bodhi::Context before invoking the query" do
+        bad_context = Bodhi::Context.new({ server: "test", namespace: nil, cookie: nil })
+
+        expect { @query.delete }.to raise_error(ArgumentError, "a Bodhi::Context is required to query the API")
+        expect { @query.from(bad_context).delete }.to raise_error(Bodhi::ContextErrors, '["server must be a valid URL", "namespace is required"]')
+      end
+
+      it "invokes the query and counts all matching records" do
+        TestResource.factory.create_list(5, bodhi_context: @context, foo: "test")
+        TestResource.factory.create_list(2, bodhi_context: @context, foo: "not_test")
+
+        result = @query.from(@context).where(foo: "test").delete
+        expect(result).to eq nil
+
+        result = @query.from(@context).where(foo: "test").all.size
+        expect(result).to eq 0
+
+        result = @query.from(@context).where(foo: "not_test").all.size
+        expect(result).to eq 2
+      end
+    end
+
     describe "#all" do
       it "validates the Bodhi::Context before invoking the query" do
         bad_context = Bodhi::Context.new({ server: "test", namespace: nil, cookie: nil })

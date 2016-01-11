@@ -71,6 +71,48 @@ module Bodhi
       #query.gsub(/\s+/, "")
     end
 
+    def count
+      if context.nil?
+        raise ArgumentError.new("a Bodhi::Context is required to query the API")
+      end
+
+      if context.invalid?
+        raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
+      end
+
+      result = context.connection.get do |request|
+        request.url self.url.gsub(klass.name, "#{klass}/count")
+        request.headers[context.credentials_header] = context.credentials
+      end
+
+      if result.status != 200
+        raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
+      end
+
+      result.body["count"]
+    end
+
+    def delete
+      if context.nil?
+        raise ArgumentError.new("a Bodhi::Context is required to query the API")
+      end
+
+      if context.invalid?
+        raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
+      end
+
+      result = context.connection.delete do |request|
+        request.url self.url
+        request.headers[context.credentials_header] = context.credentials
+      end
+
+      if result.status != 204
+        raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
+      end
+
+      result.body
+    end
+
     def all
       if context.nil?
         raise ArgumentError.new("a Bodhi::Context is required to query the API")
