@@ -179,25 +179,6 @@ module Bodhi
         query_obj.where(query)
         query_obj
       end
-
-      # Deletes all records from a resource in the given +context+
-      # 
-      #   context = Bodhi::Context.new
-      #   Resource.delete_all(context)
-      def delete_all(context)
-        if context.invalid?
-          raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
-        end
-
-        result = context.connection.delete do |request|
-          request.url "/#{context.namespace}/resources/#{name}"
-          request.headers[context.credentials_header] = context.credentials
-        end
-
-        if result.status != 204
-          raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
-        end
-      end
     end
 
     module InstanceMethods

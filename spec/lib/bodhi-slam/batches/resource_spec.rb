@@ -17,7 +17,7 @@ describe Bodhi::ResourceBatch do
   end
 
   after(:all) do
-    TestResource.delete_all(@context)
+    TestResource.delete!(@context)
 
     @type.delete!
     @embedded_type.delete!

@@ -29,7 +29,7 @@ describe Bodhi::Query do
   end
 
   after do
-    TestResource.delete_all(@context)
+    TestResource.delete!(@context)
   end
 
   describe "Object Attributes" do

@@ -32,7 +32,7 @@ describe Bodhi::Resource do
   end
 
   after do
-    TestResource.delete_all(@context)
+    TestResource.delete!(@context)
   end
 
   it "includes Bodhi::Validations" do
@@ -299,19 +299,34 @@ describe Bodhi::Resource do
     end
   end
 
-  describe ".delete_all(context)" do
+  describe ".delete!(context, query={})" do
     it "raises Bodhi::ContextErrors if context is invalid" do
       bad_context = Bodhi::Context.new({})
-      expect{ TestResource.delete_all(bad_context) }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
+      expect{ TestResource.delete!(bad_context) }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
     end
 
-    it "deletes all resources from the cloud in the given context" do
-      TestResource.factory.create_list(5, bodhi_context: @context)
-      expect(TestResource.find_all(@context).size).to eq 5
-
-      expect{ TestResource.delete_all(@context) }.to_not raise_error
-      expect(TestResource.find_all(@context).size).to eq 0
+    context "without a query" do
+      it "deletes all records" do
+        TestResource.factory.create_list(4, bodhi_context: @context)
+        expect{TestResource.delete!(@context)}.to_not raise_error
+        expect(TestResource.find_all(@context).size).to eq 0
+      end
     end
+
+    context "with a query" do
+      it "deletes all records that match the query" do
+        TestResource.factory.create_list(2, bodhi_context: @context, foo: "test")
+        TestResource.factory.create_list(2, bodhi_context: @context, foo: "not_test")
+        expect{TestResource.delete!(@context, foo: "test")}.to_not raise_error
+
+        results = TestResource.where(foo: "test").from(@context).all
+        expect(results.size).to eq 0
+
+        results = TestResource.where(foo: "not_test").from(@context).all
+        expect(results.size).to eq 2
+      end
+    end
+
   end
 
   describe ".count(context)" do
@@ -320,15 +335,22 @@ describe Bodhi::Resource do
       expect{ TestResource.count(bad_context) }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
     end
 
-    it "raises Bodhi::ApiErrors if not authorized" do
-      bad_context = Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: nil })
-      expect{ TestResource.count(bad_context) }.to raise_error(Bodhi::ApiErrors)
+    context "without a query" do
+      it "returns the count of all records for the type" do
+        TestResource.factory.create_list(4, bodhi_context: @context)
+        result = TestResource.count(@context)
+        expect(result).to eq 4
+      end
     end
 
-    it "returns a JSON object with the record count" do
-      TestResource.factory.create_list(5, bodhi_context: @context)
-      result = TestResource.count(@context)
-      expect(result).to eq 5
+    context "with a query" do
+      it "returns the count of all records that match the query" do
+        TestResource.factory.create_list(2, bodhi_context: @context, foo: "test")
+        TestResource.factory.create_list(2, bodhi_context: @context, foo: "not_test")
+
+        result = TestResource.count(@context, foo: "test")
+        expect(result).to eq 2
+      end
     end
   end
 end

@@ -12,7 +12,7 @@ describe Bodhi::Factory do
   end
 
   after(:all) do
-    TestResource.delete_all(@context)
+    TestResource.delete!(@context)
 
     @type.delete!
     Object.send(:remove_const, :TestResource)
