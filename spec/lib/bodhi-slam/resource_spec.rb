@@ -149,7 +149,7 @@ describe Bodhi::Resource do
     it "creates a new record if not already present" do
       record = TestResource2.new(bodhi_context: @context, foo: "test", bar: 10)
       expect{ record.upsert! }.to_not raise_error
-      expect(TestResource2.count(@context)).to eq "count" => 1
+      expect(TestResource2.count(@context)).to eq 1
     end
 
     it "updates the record if it already exists" do
@@ -157,7 +157,7 @@ describe Bodhi::Resource do
       expect{ record.upsert! }.to_not raise_error
 
       expect{ record.upsert!(foo: "12345", bar: 10) }.to_not raise_error
-      expect(TestResource2.count(@context)).to eq "count" => 1
+      expect(TestResource2.count(@context)).to eq 1
       expect(TestResource2.find_all(@context).first.foo).to eq "12345"
     end
   end
@@ -328,9 +328,7 @@ describe Bodhi::Resource do
     it "returns a JSON object with the record count" do
       TestResource.factory.create_list(5, bodhi_context: @context)
       result = TestResource.count(@context)
-
-      expect(result).to be_a Hash
-      expect(result["count"]).to eq 5
+      expect(result).to eq 5
     end
   end
 end

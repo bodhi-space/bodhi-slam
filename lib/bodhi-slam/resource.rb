@@ -43,26 +43,24 @@ module Bodhi
         batch
       end
 
-      # Counts all of the Resources records and returns the result
-      def count(context=nil)
-        if context.nil?
-          context = Bodhi::Context.global_context
-        end
+      # Counts all records that match the given query
+      #
+      #   context = Bodhi::Context.new
+      #   count = Resource.count(context, name: "Foo")
+      def count(context, query={})
+        query_obj = Bodhi::Query.new(name)
+        query_obj.where(query).from(context)
+        query_obj.count
+      end
 
-        if context.invalid?
-          raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
-        end
-
-        result = context.connection.get do |request|
-          request.url "/#{context.namespace}/resources/#{name}/count"
-          request.headers[context.credentials_header] = context.credentials
-        end
-
-        if result.status != 200
-          raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
-        end
-
-        result.body
+      # Deletes all records that match the given query
+      #
+      #   context = Bodhi::Context.new
+      #   count = Resource.delete(context, name: "Foo")
+      def delete!(context, query={})
+        query_obj = Bodhi::Query.new(name)
+        query_obj.where(query).from(context)
+        query_obj.delete
       end
 
       def create!(params, context=nil)
