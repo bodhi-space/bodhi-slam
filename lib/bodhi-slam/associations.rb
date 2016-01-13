@@ -50,30 +50,66 @@ module Bodhi
             through_query.where(association[:through][:foreign_key].to_sym => self.send(association[:primary_key]))
             through_query.select(association[:through][:primary_key])
 
-            puts through_query.url
+            count = through_query.count
+            pages = (count.to_f / 100.0).ceil
 
+            instance_ids = []
             method_chain = association[:through][:primary_key].split('.')
-            if method_chain.size == 1
-              instance_ids = through_query.all.map{ |item| item.send(association[:through][:primary_key]) }
-            else
-              instance_ids = through_query.all.map do |item|
-                method_chain.reduce(item){ |memo, method| memo.send(method) }
+
+            # loop through each page of the through query
+            if pages > 0
+              pages.times.collect do |n|
+                paged_query = through_query.clone
+                paged_query.page(n+1)
+
+                puts paged_query.url
+
+                records = paged_query.all
+                instance_ids << records.map{ |item| method_chain.reduce(item){ |memo, method| memo.send(method) } }
               end
+
+              instance_ids.flatten!.uniq!
             end
 
-            query.where(association[:foreign_key].to_sym => { "$in" => instance_ids })
-          else
+            # partition the target query if larger than 4K
+            test_query = query.clone
+            query_size = test_query.where(association[:foreign_key].to_sym => { "$in" => instance_ids }).and(association[:query]).url.bytesize
+
+            if query_size > 4000
+              records = []
+              instance_ids.each_slice(100) do |slice|
+                sliced_query = query.clone
+                sliced_query.where(association[:foreign_key].to_sym => { "$in" => slice })
+                sliced_query.and(association[:query])
+
+                puts sliced_query.url
+
+                records << sliced_query.all
+              end
+
+              records.flatten!
+              return records
+            else
+              query.where(association[:foreign_key].to_sym => { "$in" => instance_ids })
+              query.and(association[:query])
+
+              puts query.url
+              return query.all
+            end
+          else # default :has_many flow
             instance_id = self.send(association[:primary_key])
+
             if instance_id.is_a?(Array)
               query.where(association[:foreign_key].to_sym => { "$in" => instance_id })
             else
               query.where(association[:foreign_key].to_sym => instance_id)
             end
-          end
 
-          query.and(association[:query])
-          puts query.url
-          query.all
+            query.and(association[:query])
+
+            puts query.url
+            return query.all
+          end
         end
       end
 
