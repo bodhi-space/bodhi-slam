@@ -16,6 +16,8 @@ module Bodhi
 
     def initialize(params={})
       @connection = Faraday.new(url: params[:server]) do |faraday|
+        faraday.use :http_cache
+
         faraday.request :multipart
         faraday.request :url_encoded
 

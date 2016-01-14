@@ -3,6 +3,7 @@ require "time"
 require 'faraday'
 require 'SecureRandom'
 require 'faraday_middleware'
+require 'faraday-http-cache'
 require 'net/http/persistent'
 require 'regexp-examples'
 
