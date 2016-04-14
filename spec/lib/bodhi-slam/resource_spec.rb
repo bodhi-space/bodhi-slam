@@ -143,7 +143,7 @@ describe Bodhi::Resource do
   describe "#upsert!(params)" do
     it "raises Bodhi::ApiErrors if the resource does not have a unique index" do
       record = TestResource.new(bodhi_context: @context, foo: "test")
-      expect{ record.upsert! }.to raise_error(Bodhi::ApiErrors, '{"status":422,"body":[{"message":"Upsert can only be used with document hitting a unique index","code":"space.bodhi.unprocessable.json.entity","params":[{"foo":"test"},"TestResource"]}]}')
+      expect{ record.upsert! }.to raise_error(Bodhi::ApiErrors)
     end
 
     it "creates a new record if not already present" do

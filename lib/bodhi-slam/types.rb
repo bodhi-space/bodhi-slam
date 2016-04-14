@@ -154,7 +154,7 @@ module Bodhi
         attr_properties = Bodhi::Support.symbolize_keys(attr_properties)
 
         # remove Sanitizers
-        attr_properties.delete_if{ |key, value| [:trim, :unique, :default, :isCurrentUser, :toLower].include?(key) }
+        attr_properties.delete_if{ |key, value| [:trim, :unique, :default, :isCurrentUser, :toLower, :encrypt].include?(key) }
 
         # Do not add factories or validations for system properties
         unless attr_properties[:system] == true
