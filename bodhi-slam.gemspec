@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = 'bodhi-slam'
-  s.version     = '0.7.3'
-  s.date        = '2016-01-14'
+  s.version     = '0.7.4'
+  s.date        = '2016-04-14'
   s.summary     = "Ruby bindings for the Bodhi API & factories for random data generation"
   s.authors     = ["willdavis"]
   s.email       = 'will.davis@hotschedules.com'
@@ -11,6 +11,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'faraday_middleware', '~> 0.10'
   s.add_runtime_dependency 'faraday-http-cache', '~> 1.2'
   s.add_runtime_dependency 'net-http-persistent', '~> 2.9'
+  s.add_runtime_dependency 'activemodel', '~> 4.2'
   s.add_runtime_dependency 'json', '~> 1.7'
   s.add_runtime_dependency 'regexp-examples', '= 1.1.3'
   s.add_development_dependency "rspec"

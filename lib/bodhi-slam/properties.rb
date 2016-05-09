@@ -80,8 +80,13 @@ module Bodhi
       #   s.update_attributes(bar: 10)
       #   s.attributes # => { foo: "test", bar: 10 }
       def update_attributes(params)
-        params.each do |param_key, param_value|
-          send("#{param_key}=", param_value)
+        params.each do |property, value|
+          property_options = self.class.properties[property.to_sym]
+          if property_options.nil?
+            send("#{property}=", value)
+          else
+            send("#{property}=", Bodhi::Support.coerce(value, property_options))
+          end
         end
       end
 

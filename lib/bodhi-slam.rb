@@ -7,6 +7,8 @@ require 'faraday-http-cache'
 require 'net/http/persistent'
 require 'regexp-examples'
 
+require 'active_model'
+
 require 'bodhi-slam/support'
 require 'bodhi-slam/validations'
 require 'bodhi-slam/errors'

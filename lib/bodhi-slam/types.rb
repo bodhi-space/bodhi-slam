@@ -148,7 +148,7 @@ module Bodhi
         raise ArgumentError.new("Expected #{type.class} to be a Bodhi::Type")
       end
 
-      klass = Object.const_set(type.name, Class.new { include Bodhi::Resource })
+      klass = Object.const_set(type.name, Class.new { include Bodhi::Resource, ActiveModel::Model })
 
       type.properties.each_pair do |attr_name, attr_properties|
         attr_properties = Bodhi::Support.symbolize_keys(attr_properties)
