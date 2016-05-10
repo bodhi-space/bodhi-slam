@@ -7,7 +7,10 @@ require 'faraday-http-cache'
 require 'net/http/persistent'
 require 'regexp-examples'
 
+# Active Support
 require 'active_model'
+require 'active_support'
+require 'active_support/core_ext'
 
 require 'bodhi-slam/support'
 require 'bodhi-slam/validations'
@@ -26,6 +29,9 @@ require 'bodhi-slam/types'
 require 'bodhi-slam/users'
 require 'bodhi-slam/profiles'
 require 'bodhi-slam/queries'
+
+# Discrete Event Simulator
+require 'bodhi-slam/simulator'
 
 class BodhiSlam
   # Defines a context to interact with the Bodhi API
