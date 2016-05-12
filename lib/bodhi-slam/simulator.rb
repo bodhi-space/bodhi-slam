@@ -90,3 +90,5 @@ module Bodhi
     end
   end
 end
+
+Dir[File.dirname(__FILE__) + "/simulation/*.rb"].each { |file| require file }
