@@ -7,6 +7,11 @@ describe Bodhi::Simulation::NormalDistribution do
         distribution = Bodhi::Simulation::NormalDistribution.new(curves: [{ mean: 0, std_dev: 1, scale: 1.0 }])
         expect(distribution.calculate(0).round(3)).to eq 0.399
       end
+
+      it "raises ArgumentError if +x+ is not a Integer or Float" do
+        distribution = Bodhi::Simulation::NormalDistribution.new(curves: [{ mean: 0, std_dev: 1, scale: 1.0 }])
+        expect{ expect(distribution.calculate("test")) }.to raise_error(ArgumentError, "Expected Integer or Float but recieved: String")
+      end
     end
   end
 
@@ -22,8 +27,17 @@ describe Bodhi::Simulation::NormalDistribution do
         expect{ Bodhi::Simulation::NormalDistribution.randomize({ mean_range: [1,2], std_dev_range: [1, 2], scale: 1.0 }) }.to raise_error(ArgumentError, "+curves+ must be an Array")
       end
 
-      it "raises ArgumentError if a +curve+ in +curves+ is not valid" do
-        expect{ Bodhi::Simulation::NormalDistribution.randomize([1,2,3]) }.to raise_error(ArgumentError, "The value: 1 is not a valid Bodhi::Simulation::NormalDistributionCurve.  Error: undefined method `reduce' for 1:Fixnum")
+      it "raises ArgumentError if a +curve+ does not have a :mean_range OR :std_dev_range properties" do
+        expect{ Bodhi::Simulation::NormalDistribution.randomize([{ mean_range: [1,2], scale: 1.0 }]) }.to raise_error(ArgumentError, "Unable to randomize the curve: {\"mean_range\":[1,2],\"scale\":1.0}. Reason: missing mandatory +mean_range+ OR +std_dev_range+ properties.")
+        expect{ Bodhi::Simulation::NormalDistribution.randomize([{ std_dev_range: [1,2], scale: 1.0 }]) }.to raise_error(ArgumentError, "Unable to randomize the curve: {\"std_dev_range\":[1,2],\"scale\":1.0}. Reason: missing mandatory +mean_range+ OR +std_dev_range+ properties.")
+      end
+
+      it "raises ArgumentError if a +curve+ has invalid properties" do
+        expect{ Bodhi::Simulation::NormalDistribution.randomize([{ mean_range: [1,2], std_dev_range: [0, 0], scale: 1.0 }]) }.to raise_error(ArgumentError, "Invalid Bodhi::Simulation::NormalDistributionCurve.  Reasons: [\"std_dev must be greater than or equal to 0.0001\"]")
+      end
+
+      it "raises ArgumentError if a +curve+ cannot be coerced into a Bodhi::Simulation::NormalDistributionCurve" do
+        expect{ Bodhi::Simulation::NormalDistribution.randomize([1,2,3]) }.to raise_error(ArgumentError, "The value: 1 is not a valid Bodhi::Simulation::NormalDistributionCurve object.  Error: undefined method `reduce' for 1:Fixnum")
       end
     end
   end

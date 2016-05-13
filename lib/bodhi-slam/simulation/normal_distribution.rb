@@ -14,7 +14,7 @@ module Bodhi
       property :title, type: String
 
       validates :mean, required: true
-      validates :std_dev, required: true
+      validates :std_dev, required: true, min: 0.0001
       validates :scale, required: true, min: 0.0, max: 1.0
     end
 
@@ -47,23 +47,40 @@ module Bodhi
         end
 
         randomized_curves = curves.collect do |curve|
+          # Coerce the given +curve+ into a Bodhi::Simulation::NormalDistributionCurve
           unless curve.is_a?(Bodhi::Simulation::NormalDistributionCurve)
             begin
               curve = Bodhi::Simulation::NormalDistributionCurve.new(curve)
             rescue Exception => e
-              raise ArgumentError.new("The value: #{curve} is not a valid Bodhi::Simulation::NormalDistributionCurve.  Error: #{e}")
+              raise ArgumentError.new("The value: #{curve} is not a valid Bodhi::Simulation::NormalDistributionCurve object.  Error: #{e}")
             end
           end
 
+          # Check if the user supplied a range for mean and std_dev values
+          # These are optional properies, but a required for randomizing a curve
+          if curve.mean_range.nil? || curve.std_dev_range.nil?
+            raise ArgumentError.new("Unable to randomize the curve: #{curve.to_json}. Reason: missing mandatory +mean_range+ OR +std_dev_range+ properties.")
+          end
+
+          # Calculate a random mean and standard deviation
           random_mean = rand(curve.mean_range[0]..curve.mean_range[1])
           random_std_dev = rand(curve.std_dev_range[0]..curve.std_dev_range[1])
 
+          # Create a new randomized curve object
           randomized_curve = curve.clone
           randomized_curve.mean = random_mean
           randomized_curve.std_dev = random_std_dev
+
+          # Check if the randomized curve is valid
+          if randomized_curve.invalid?
+            raise ArgumentError.new("Invalid Bodhi::Simulation::NormalDistributionCurve.  Reasons: #{randomized_curve.errors.to_a}")
+          end
+
+          # return the randomized curve
           randomized_curve
         end
 
+        # Return a new NormalDistribution with the randomized curves
         Bodhi::Simulation::NormalDistribution.new(curves: randomized_curves)
       end
 
@@ -72,9 +89,13 @@ module Bodhi
       # ================
 
       # Evaluates the value of +y+ at position +x+
-      # Returns the value of +y+
+      # Raises ArgumentError if +x+ is not a Float or Integer
       def calculate(x)
-        y = curves.collect{ |curve| GAUSSIAN_FUNCTION.call(x, curve.mean, curve.std_dev, curve.scale) }.reduce(:+)
+        unless x.is_a?(Integer) || x.is_a?(Float)
+          raise ArgumentError.new("Expected Integer or Float but recieved: #{x.class}")
+        end
+
+        curves.collect{ |curve| GAUSSIAN_FUNCTION.call(x, curve.mean, curve.std_dev, curve.scale) }.reduce(:+)
       end
 
     end
