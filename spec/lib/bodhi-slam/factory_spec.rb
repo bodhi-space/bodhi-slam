@@ -158,6 +158,31 @@ describe Bodhi::Factory do
   end
 
   describe "#build_default_generator(options) (private method)" do
+    context "with Link" do
+      context "and multi=true" do
+        it "returns 0..5 random Link objects in an Array" do
+          @factory.add_generator("foo", type: "Link", multi: true)
+          obj = @factory.build
+
+          expect(obj.foo).to be_a Array
+          expect(obj.foo.size).to be_between(0,5)
+          obj.foo.each { |i| expect(i).to have_key :href }
+          puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
+        end
+      end
+
+      context "and multi=false" do
+        it "returns a random Link object" do
+          @factory.add_generator("foo", type: "Link")
+
+          obj = @factory.build
+          expect(obj.foo).to be_a Hash
+          expect(obj.foo).to have_key :href
+          puts "\033[33mGenerated\033[0m: \033[36m#{obj.attributes}\033[0m"
+        end
+      end
+    end
+
     context "with GeoJSON" do
       context "and multi=true" do
         it "returns 0..5 random GeoJSON objects in an Array" do

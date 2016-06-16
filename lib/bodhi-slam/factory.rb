@@ -186,9 +186,33 @@ module Bodhi
 
       when "Link"
         if options[:multi]
-          generator = lambda { [*0..5].sample.times.collect{ Hash.new } }
+          generator = lambda do
+            [*0..5].sample.times.collect do
+              result = Hash.new
+              result[:href] = Regexp.new(/^https?:\/\/([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/).random_example
+              result[:name] = Regexp.new(/^.{10,20}$/).random_example if [true, false].sample == true
+              result[:title] = Regexp.new(/^.{10,20}$/).random_example if [true, false].sample == true
+              result[:templated] = [true, false].sample if [true, false].sample == true
+              result[:type] = ["application/json", "text/css", "application/exe", "zip"].sample if [true, false].sample == true
+              result[:deprecation] = Regexp.new(/^https?:\/\/([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/).random_example if [true, false].sample == true
+              result[:profile] = Regexp.new(/^https?:\/\/([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/).random_example if [true, false].sample == true
+              result[:hreflang] = ["en-us", "fr", "de"].sample if [true, false].sample == true
+              result
+            end
+          end
         else
-          generator = lambda { Hash.new }
+          generator = lambda do
+            result = Hash.new
+            result[:href] = Regexp.new(/^https?:\/\/([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/).random_example
+            result[:name] = Regexp.new(/^.{10,20}$/).random_example if [true, false].sample == true
+            result[:title] = Regexp.new(/^.{10,20}$/).random_example if [true, false].sample == true
+            result[:templated] = [true, false].sample if [true, false].sample == true
+            result[:type] = ["application/json", "text/css", "application/exe", "zip"].sample if [true, false].sample == true
+            result[:deprecation] = Regexp.new(/^https?:\/\/([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/).random_example if [true, false].sample == true
+            result[:profile] = Regexp.new(/^https?:\/\/([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/).random_example if [true, false].sample == true
+            result[:hreflang] = ["en-us", "fr", "de"].sample if [true, false].sample == true
+            result
+          end
         end
 
       when "Enumerated"
