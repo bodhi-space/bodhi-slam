@@ -36,7 +36,7 @@ describe Bodhi::Validator do
     end
 
     it "raises NameError if validator name cannot be found" do
-      expect{ Bodhi::Validator.constantize("test") }.to raise_error(NameError, "uninitialized constant Bodhi::TestValidator")
+      expect{ Bodhi::Validator.constantize("test") }.to raise_error(NameError)
     end
   end
 end

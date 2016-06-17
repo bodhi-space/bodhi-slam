@@ -171,10 +171,77 @@ module Bodhi
         end
 
       when "GeoJSON"
+        # define the GeoJSON coordinate types
+        geojson_types = ["Point", "MultiPoint", "LineString", "MultiLineString", "Polygon", "MultiPolygon"]
+
+        # define max/min longitude
+        min_long = -180.0
+        max_long = 180.0
+
+        # define max/min lattitude
+        min_lat = -90.0
+        max_lat = 90.0
+        
         if options[:multi]
-          generator = lambda { [*0..5].sample.times.collect{ {type: "Point", coordinates: [10,20]} } }
+          generator = lambda do
+            [*0..5].sample.times.collect do
+              type = geojson_types.sample
+
+              case type
+              when "Point"
+                coordinates = [rand(min_long..max_long), rand(min_lat..max_lat)]
+              when "MultiPoint"
+                coordinates = [*2..10].sample.times.collect{ [rand(min_long..max_long), rand(min_lat..max_lat)] }
+              when "LineString"
+                coordinates = [*2..10].sample.times.collect{ [rand(min_long..max_long), rand(min_lat..max_lat)] }
+              when "MultiLineString"
+                coordinates = [*2..10].sample.times.collect do
+                  [*2..10].sample.times.collect{ [rand(min_long..max_long), rand(min_lat..max_lat)] }
+                end
+              when "Polygon"
+                coordinates = [*2..10].sample.times.collect do
+                  [*2..10].sample.times.collect{ [rand(min_long..max_long), rand(min_lat..max_lat)] }
+                end
+              when "MultiPolygon"
+                coordinates = [*2..10].sample.times.collect do
+                  [*2..10].sample.times.collect do
+                    [*2..10].sample.times.collect{ [rand(min_long..max_long), rand(min_lat..max_lat)] }
+                  end
+                end
+              end
+
+              { type: type, coordinates: coordinates }
+            end
+          end
         else
-          generator = lambda { {type: "Point", coordinates: [10,20]} }
+          generator = lambda do
+            type = geojson_types.sample
+
+            case type
+            when "Point"
+              coordinates = [rand(min_long..max_long), rand(min_lat..max_lat)]
+            when "MultiPoint"
+              coordinates = [*2..10].sample.times.collect{ [rand(min_long..max_long), rand(min_lat..max_lat)] }
+            when "LineString"
+              coordinates = [*2..10].sample.times.collect{ [rand(min_long..max_long), rand(min_lat..max_lat)] }
+            when "MultiLineString"
+              coordinates = [*2..10].sample.times.collect do
+                [*2..10].sample.times.collect{ [rand(min_long..max_long), rand(min_lat..max_lat)] }
+              end
+            when "Polygon"
+              coordinates = [*2..10].sample.times.collect do
+                [*2..10].sample.times.collect{ [rand(min_long..max_long), rand(min_lat..max_lat)] }
+              end
+            when "MultiPolygon"
+              coordinates = [*2..10].sample.times.collect do
+                [*2..10].sample.times.collect do
+                  [*2..10].sample.times.collect{ [rand(min_long..max_long), rand(min_lat..max_lat)] }
+                end
+              end
+            end
+
+            { type: type, coordinates: coordinates }
+          end
         end
 
       when "Object"

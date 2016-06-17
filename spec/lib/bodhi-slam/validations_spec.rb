@@ -119,7 +119,7 @@ describe Bodhi::Validations do
       
       it "should raise ArgumentError if an option does not exist" do
         expect{ klass.validates(:foo, { required: true }) }.to_not raise_error
-        expect{ klass.validates(:foo, { bar: true }) }.to raise_error(NameError, "uninitialized constant Bodhi::BarValidator")
+        expect{ klass.validates(:foo, { bar: true }) }.to raise_error(NameError)
       end
     end
     
