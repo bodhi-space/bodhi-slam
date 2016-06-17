@@ -23,7 +23,7 @@ describe Bodhi::Properties do
   end
 
   describe ".properties" do
-    it "returns an Array of all properties for the class" do
+    it "returns an Hash of all properties for the class" do
       expect(klass.properties).to be_a Hash
     end
   end
@@ -42,6 +42,13 @@ describe Bodhi::Properties do
 
       expect(object.name).to eq "test"
       expect(object.address).to eq nil
+    end
+
+    it "sets the default value for a property if no value is given" do
+      klass.property :name, type: String, default: "foo"
+
+      object = klass.new
+      expect(object.name).to eq "foo"
     end
 
     context "from a Hash" do

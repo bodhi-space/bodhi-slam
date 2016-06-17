@@ -38,6 +38,7 @@ module Bodhi
           options = JSON.parse(options)
         end
 
+        # Set properties defined by the +options+ parameter
         options = Bodhi::Support.symbolize_keys(options)
         options.each do |property, value|
           property_options = self.class.properties[property]
@@ -46,6 +47,11 @@ module Bodhi
           else
             send("#{property}=", Bodhi::Support.coerce(value, property_options))
           end
+        end
+
+        # Set any default values
+        self.class.properties.select{ |k,v| !v[:default].nil? }.each do |property, property_options|
+          send("#{property}=", property_options[:default]) if send("#{property}").nil?
         end
       end
 
