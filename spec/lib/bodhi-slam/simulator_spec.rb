@@ -56,11 +56,11 @@ describe Bodhi::Simulator do
       end
 
       it "yields the :current_frame object to the &block" do
-        expect { |block| Bodhi::Simulator.execute(starts_at: "2016-05-10", iterations: 1, time_units: "days", time_scale: 1, &block) }.to yield_successive_args(Bodhi::SimulationFrame)
+        expect { |block| Bodhi::Simulator.execute(starts_at: "2016-05-10", iterations: 1, time_units: "days", &block) }.to yield_successive_args(Bodhi::SimulationFrame)
       end
 
       it "yields the :current_frame object for each iteration" do
-        expect { |block| Bodhi::Simulator.execute(starts_at: "2016-05-10", iterations: 100, time_units: "days", time_scale: 1, &block) }.to yield_control.exactly(100).times
+        expect { |block| Bodhi::Simulator.execute(starts_at: "2016-05-10", iterations: 100, time_units: "days", &block) }.to yield_control.exactly(100).times
       end
     end
   end

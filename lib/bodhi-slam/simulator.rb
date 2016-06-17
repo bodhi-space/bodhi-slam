@@ -55,7 +55,7 @@ module Bodhi
       end
 
       if simulation.current_frame.nil?
-        simulation.current_frame = Bodhi::SimulationFrame.new(iteration: 0, time: simulation.starts_at)
+        simulation.current_frame = Bodhi::SimulationFrame.new(time: simulation.starts_at)
       else
         simulation.current_frame.iteration = 0
         simulation.current_frame.time = simulation.starts_at
