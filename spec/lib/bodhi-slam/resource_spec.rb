@@ -274,6 +274,13 @@ describe Bodhi::Resource do
 
       expect(result.first.bodhi_context).to be_a Bodhi::Context
     end
+
+    it "returns more than 100 records" do
+      records = TestResource.factory.create_list(125, bodhi_context: @context)
+      results = TestResource.find_all(@context)
+
+      expect(results.size).to be 125
+    end
   end
 
   describe ".where(query)" do

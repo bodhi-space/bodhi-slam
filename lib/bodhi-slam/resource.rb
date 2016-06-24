@@ -138,7 +138,7 @@ module Bodhi
 
           page += 1
           records << result.body
-        end while records.size == 100
+        end until result.body.size != 100
 
         records.flatten.collect{ |record| Object.const_get(name).new(record.merge(bodhi_context: context)) }
       end
