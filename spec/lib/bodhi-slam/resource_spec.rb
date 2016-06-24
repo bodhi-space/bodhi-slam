@@ -252,6 +252,30 @@ describe Bodhi::Resource do
     end
   end
 
+  describe ".find_all(context=nil)" do
+    it "should raise Bodhi::Error if context is not valid" do
+      bad_context = Bodhi::Context.new({})
+      expect{ TestResource.find_all(bad_context) }.to raise_error(Bodhi::ContextErrors, '["server is required", "namespace is required"]')
+    end
+
+    it "should return an array of resources" do
+      record = TestResource.factory.create(bodhi_context: @context)
+      result = TestResource.find_all(@context)
+      expect(result).to be_a Array
+      expect(result.first).to be_a TestResource
+
+      puts "\033[33mFound Resource\033[0m: \033[36m#{result.to_json}\033[0m"
+      expect(result.first.to_json).to eq record.to_json
+    end
+
+    it "should add a bodhi_context to the returned objects" do
+      record = TestResource.factory.create(bodhi_context: @context)
+      result = TestResource.find_all(@context)
+
+      expect(result.first.bodhi_context).to be_a Bodhi::Context
+    end
+  end
+
   describe ".where(query)" do
     it "returns a Bodhi::Query object for querying Test resources" do
       query = TestResource.where(test: "foo")

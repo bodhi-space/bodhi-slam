@@ -140,7 +140,7 @@ module Bodhi
           records << result.body
         end while records.size == 100
 
-        records.flatten.collect{ |record| Object.const_get(name).new(record) }
+        records.flatten.collect{ |record| Object.const_get(name).new(record.merge(bodhi_context: context)) }
       end
       alias :all :find_all
 
