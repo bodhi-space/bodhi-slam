@@ -31,23 +31,6 @@ module Bodhi
     def self.coerce(value, options)
       options = symbolize_keys(options)
       case options[:type].to_s
-      when "Object"
-        if options[:multi] == true
-          if value.is_a?(String)
-            values = JSON.parse(value)
-            values.map{|item| Bodhi::Support.symbolize_keys(item) }
-          elsif value.is_a?(Array) && value.first.is_a?(Hash)
-            value.map{|item| Bodhi::Support.symbolize_keys(item) }
-          else
-            raise RuntimeError.new("Unable to coerce: #{value} to a JSON Object")
-          end
-        else
-          if value.is_a?(Hash)
-            Bodhi::Support.symbolize_keys(value)
-          else
-            Bodhi::Support.symbolize_keys(JSON.parse(value))
-          end
-        end
       when "String"
         if options[:multi] == true
           value.map(&:to_s)

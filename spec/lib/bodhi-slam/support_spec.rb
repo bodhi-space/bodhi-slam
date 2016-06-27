@@ -134,25 +134,6 @@ describe Bodhi::Support do
       expect(value2).to eq [10.99, 5.0]
     end
 
-    it "converts to Json Object (Object)" do
-      value = Bodhi::Support.coerce({"name" => "MuttChops", "test" => { "foo" => "12345" }}, type: "Object")
-      value2 = Bodhi::Support.coerce('{"name":"Rad-x"}', type: "Object")
-      value3 = Bodhi::Support.coerce('[{"name":"Rad-x"}, {"name":"Radaway"}]', type: "Object", multi: true)
-      value4 = Bodhi::Support.coerce([{"name" => "Buffout" }, {name: "Psychojet"}], type: "Object", multi: true)
-
-      expect(value).to be_a Hash
-      expect(value).to eq name: "MuttChops", test: { foo: "12345" }
-
-      expect(value2).to be_a Hash
-      expect(value2).to eq name: "Rad-x"
-
-      expect(value3).to be_a Array
-      expect(value3).to eq [{name: "Rad-x"}, {name: "Radaway"}]
-
-      expect(value4).to be_a Array
-      expect(value4).to eq [{name: "Buffout"},  {name: "Psychojet"}]
-    end
-
     it "converts Hash to an object of the properties type" do
       klass = Object.const_set("AwesomeType", Class.new{ include Bodhi::Properties })
       klass.property :name, type: "String"
