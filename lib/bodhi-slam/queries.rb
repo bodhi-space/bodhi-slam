@@ -106,7 +106,7 @@ module Bodhi
         request.headers[context.credentials_header] = context.credentials
       end
 
-      if result.status != 204
+      if result.status != 200
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
 

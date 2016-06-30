@@ -301,7 +301,7 @@ describe Bodhi::Query do
         TestResource.factory.create_list(2, bodhi_context: @context, foo: "not_test")
 
         result = @query.from(@context).where(foo: "test").delete
-        expect(result).to eq nil
+        expect(result["deleted"]).to eq 5
 
         result = @query.from(@context).where(foo: "test").all.size
         expect(result).to eq 0
