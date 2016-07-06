@@ -68,6 +68,41 @@ module Bodhi
       end
     end
 
+    def patch!(params)
+      result = bodhi_context.connection.patch do |request|
+        request.url "/#{bodhi_context.namespace}/types/#{name}"
+        request.headers['Content-Type'] = 'application/json'
+        request.headers[bodhi_context.credentials_header] = bodhi_context.credentials
+        request.body = params.to_json
+      end
+
+      if result.status != 204
+        raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
+      end
+    end
+
+    def update!(params)
+      update_attributes(params)
+
+      if invalid?
+        return false
+      end
+
+      result = bodhi_context.connection.put do |request|
+        request.url "/#{bodhi_context.namespace}/types/#{name}"
+        request.headers['Content-Type'] = 'application/json'
+        request.headers[bodhi_context.credentials_header] = bodhi_context.credentials
+        request.body = attributes.to_json
+      end
+
+      if result.status != 204
+        raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
+      end
+
+      true
+    end
+    alias :update :update!
+
     # Queries the Bodhi API for the given +type_name+ and
     # returns a Bodhi::Type
     # 

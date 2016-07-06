@@ -82,7 +82,12 @@ describe Bodhi::Type do
   describe "#save!" do
     let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
 
-    it "saves the type to the cloud" do
+    it "should raise Bodhi::ApiErrors if the object could not be saved" do
+      type = Bodhi::Type.new(bodhi_context: context)
+      expect{ type.save! }.to raise_error(Bodhi::ApiErrors)
+    end
+
+    it "should POST the object to the cloud" do
       type = Bodhi::Type.new(
         bodhi_context: context,
         name: "AutoTest_Type1",
@@ -93,6 +98,28 @@ describe Bodhi::Type do
       expect{type.save!}.to_not raise_error
       expect(type.persisted?).to be true
       type.delete!
+    end
+  end
+
+  describe "#delete!" do
+    let(:context){ Bodhi::Context.new({ server: ENV['QA_TEST_SERVER'], namespace: ENV['QA_TEST_NAMESPACE'], cookie: ENV['QA_TEST_COOKIE'] }) }
+
+    it "raises Bodhi::ApiErrors if the object could not be deleted" do
+      type = Bodhi::Type.new(bodhi_context: context, name: "test")
+      expect{ type.delete! }.to raise_error(Bodhi::ApiErrors)
+    end
+
+    it "should DELETE the object from the cloud" do
+      type = Bodhi::Type.new(
+        bodhi_context: context,
+        name: "AutoTest_Type1",
+        properties: { foo: { type: "String", required: true }, bar: { type: "String", required: true }},
+        indexes: [{ keys: ["foo"], options: { unique: true } }, { keys: ["bar", "foo"], options: { unique: true } }]
+      )
+      type.save!
+
+      expect{ type.delete! }.to_not raise_error
+      expect{ Bodhi::Type.find(context, "AutoTest_Type1") }.to raise_error(Bodhi::ApiErrors)
     end
   end
 
