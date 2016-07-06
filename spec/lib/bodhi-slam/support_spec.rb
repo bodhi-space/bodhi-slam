@@ -73,6 +73,11 @@ describe Bodhi::Support do
   end
 
   describe ".symbolize_keys(hash)" do
+    it "is ok with nulls" do
+      hash = { "name" => nil }
+      expect(Bodhi::Support.symbolize_keys(hash)).to eq name: nil
+    end
+
     it "updates all of the keys to symbols" do
       hash = { "name" => "test" }
       expect(Bodhi::Support.symbolize_keys(hash)).to eq name: "test"
@@ -90,6 +95,11 @@ describe Bodhi::Support do
   end
 
   describe ".coerce(value, options)" do
+    it "does not try to coerce nil values" do
+      value = Bodhi::Support.coerce(nil, type: DateTime, multi: true)
+      expect(value).to eq nil
+    end
+
     it "converts to String" do
       value = Bodhi::Support.coerce(10, type: "String")
       value2 = Bodhi::Support.coerce([10, 5.5, true], type: "String", multi: true)

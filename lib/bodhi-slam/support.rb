@@ -29,6 +29,9 @@ module Bodhi
     end
 
     def self.coerce(value, options)
+      # nothing to coerce if the value is nil
+      return value if value.nil?
+
       options = symbolize_keys(options)
       case options[:type].to_s
       when "String"
