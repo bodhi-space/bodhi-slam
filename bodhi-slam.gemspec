@@ -18,4 +18,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency "dotenv"
   s.add_development_dependency "simplecov"
   s.add_development_dependency "bump"
+  s.add_development_dependency "yard"
 end

@@ -1,9 +1,13 @@
 module Bodhi
+  # Interface for interacting with the BodhiType resource.
   class Type
     include Bodhi::Factories
     include Bodhi::Properties
     include Bodhi::Validations
 
+    # The API context that binds this {Bodhi::Type} instance to the HotSchedules IoT Platform
+    # @note This is required for the all instance methods to work correctly
+    # @return [Bodhi::Context] the API context linked to this object
     attr_accessor :bodhi_context
 
     property :properties,     type: "Object"
@@ -35,12 +39,27 @@ module Bodhi
     generates :embedded, type: "Boolean"
     generates :version, type: "String"
 
-    # Saves the resource to the Bodhi Cloud.  Raises ArgumentError if record could not be saved.
-    # 
-    #   obj = Resouce.new
-    #   obj.save!
-    #   obj.persisted? # => true
+    # POST a new {Bodhi::Type} to the HotSchedules IoT Platform
+    #
+    # Equivalent CURL command:
+    #   curl -u username:password -X POST -H "Content-Type: application/json" \
+    #     https://{server}/{namespace}/types \
+    #     -d '{type properties}'
+    #
+    # @raise [RuntimeError] if the {#bodhi_context} attribute is nil
+    # @raise [Bodhi::ContextErrors] if the {#bodhi_context} attribute is not valid
+    # @raise [Bodhi::ApiErrors] if the response status is NOT +201+
+    # @return [nil]
+    # @example
+    #   type = Bodhi::Type.new(bodhi_context: context, name: "MyType", properties: { name: { type: "String" }, age: { type: "Integer" } })
+    #   type.save!
     def save!
+      if bodhi_context.nil?
+        raise RuntimeError.new("Missing attribute #bodhi_context.  Unable to send HTTP request")
+      elsif bodhi_context.invalid?
+        raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
+      end
+
       result = bodhi_context.connection.post do |request|
         request.url "/#{bodhi_context.namespace}/types"
         request.headers['Content-Type'] = 'application/json'
@@ -55,9 +74,38 @@ module Bodhi
       if result.headers['location']
         @sys_id = result.headers['location'].match(/types\/(?<name>[a-zA-Z0-9]+)/)[:name]
       end
+
+      return nil
     end
 
+    # DELETE an instance of a +Bodhi::Type+ from the HotSchedules IoT Platform.
+    #
+    # Equivalent CURL command:
+    #   curl -u username:password -X DELETE https://{server}/{namespace}/types/{type.name}
+    #
+    # @raise [RuntimeError] if the {#bodhi_context} attribute is nil
+    # @raise [Bodhi::ContextErrors] if the {#bodhi_context} attribute is not valid
+    # @raise [Bodhi::ApiErrors] if the HTTP response status is NOT 204
+    # @return [nil]
+    # @example
+    #   type = Bodhi::Type.new(
+    #     bodhi_context: context,
+    #     name: "MyType",
+    #     properties: {
+    #       name: { type: "String" },
+    #       age: { type: "Integer" }
+    #     }
+    #   )
+    #
+    #   type.save!
+    #   type.delete!
     def delete!
+      if bodhi_context.nil?
+        raise RuntimeError.new("Missing attribute #bodhi_context.  Unable to send HTTP request")
+      elsif bodhi_context.invalid?
+        raise Bodhi::ContextErrors.new(context.errors.messages), context.errors.to_a.to_s
+      end
+
       result = bodhi_context.connection.delete do |request|
         request.url "/#{bodhi_context.namespace}/types/#{name}"
         request.headers[bodhi_context.credentials_header] = bodhi_context.credentials
@@ -66,8 +114,28 @@ module Bodhi
       if result.status != 204
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
+
+      return nil
     end
 
+    # PATCH the type with an Array of patch operations
+    #
+    # Equivalent CURL command:
+    #   curl -u username:password -X PATCH -H "Content-Type: application/json" \
+    #     https://{server}/{namespace}/types/{type.name} \
+    #     -d '[{operation1}, {operation2}, ...]'
+    #
+    # @note This method does not update the calling object!  Only the record on the API will be changed
+    # @todo After patch is successful, update the object with the changes.
+    # @param params [Array<Hash>] An array of hashes with the keys: +op+, +path+, & +value+
+    # @raise [Bodhi::ApiErrors] if the response status is NOT +204+
+    # @return [nil]
+    # @example
+    #   type.patch!([
+    #     {op: "add", path: "/properties/birthday", value: { type: "DateTime" }},
+    #     {op: "add", path: "/indexes/-", value: { keys: ["birthday"] }},
+    #     {op: "remove", path: "/properties/age"}
+    #   ])
     def patch!(params)
       result = bodhi_context.connection.patch do |request|
         request.url "/#{bodhi_context.namespace}/types/#{name}"
@@ -79,8 +147,20 @@ module Bodhi
       if result.status != 204
         raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
       end
+
+      return nil
     end
 
+    # PUT the type using all the properties from the given +params+
+    #
+    # @todo Break this method apart into #update! (raise error) and #update (return Boolean) methods
+    # @param params [Bodhi::Type, Hash, JSON String] the properties & values to update the type with
+    # @raise [Bodhi::ApiErrors] if the HTTP response status is NOT 204
+    # @return [Boolean]
+    # @example
+    #   type = Bodhi::Type.new(bodhi_context: context, name: "MyType", properties: { name: { type: "String" }, age: { type: "Integer" } })
+    #   type.save!
+    #   type.update!(name: "MyType", properties: { name: { type: "String" }, age: { type: "Integer" } }, indexes: [{ keys: ["age"] }])
     def update!(params)
       update_attributes(params)
 
@@ -103,9 +183,14 @@ module Bodhi
     end
     alias :update :update!
 
-    # Queries the Bodhi API for the given +type_name+ and
-    # returns a Bodhi::Type
-    # 
+    # Queries the Bodhi API for the given +type_name+ and returns a single Bodhi::Type or raises an error.
+    #
+    # @param context [Bodhi::Context] the API context for this request
+    # @param type_name [String] the name of the type you're looking for
+    # @raise [Bodhi::ContextErrors] if the provided Bodhi::Context is invalid
+    # @raise [Bodhi::ApiErrors] if the HTTP response status is NOT 200
+    # @return [Bodhi::Type]
+    # @example
     #   context = BodhiContext.new(valid_params)
     #   type = Bodhi::Type.find(context, "MyTypeName")
     #   type # => #<Bodhi::Type:0x007fbff403e808 @name="MyTypeName">
@@ -130,7 +215,13 @@ module Bodhi
 
     # Queries the Bodhi API for all types within the given +context+ and
     # returns an array of Bodhi::Type objects
-    # 
+    #
+    # @note This method will query ALL type records within the context and is not limited to the default 100 record limit for queries.  YE BE WARNED!
+    # @param context [Bodhi::Context] the API context for this request
+    # @return [Array<Bodhi::Type>] all Bodhi::Type records within the given context
+    # @raise [Bodhi::ContextErrors] if the provided Bodhi::Context is invalid
+    # @raise [Bodhi::ApiErrors] if the HTTP response status is NOT 200
+    # @example
     #   context = BodhiContext.new(valid_params)
     #   types = Bodhi::Type.find_all(context)
     #   types # => [#<Bodhi::Type:0x007fbff403e808 @name="MyType">, #<Bodhi::Type:0x007fbff403e808 @name="MyType2">, ...]
@@ -164,6 +255,18 @@ module Bodhi
       end
     end
 
+    # Search for Bodhi::Types using MongoDB query operators.
+    #
+    # @note This method will NOT return more than 100 records at a time!
+    # @param query [Hash, JSON String] The MongoDB query to use for the search
+    # @return [Bodhi::Query<Bodhi::Type>] A query object for Bodhi::Types using the given +query+
+    # @example
+    #   query_obj = Bodhi::Type.where(name: "MyType")
+    #   query_obj.from(context).all #=> [#<Bodhi::Type:0x007fbff403e808 @name="MyType">]
+    #
+    #   json = '{"name":{ "$in": ["MyType", "MyType2"] }}'
+    #   query_obj = Bodhi::Type.where(json)
+    #   query_obj.from(context).all #=> [#<Bodhi::Type:0x007fbff403e808 @name="MyType">, #<Bodhi::Type:0x007fbff403e808 @name="MyType2">]
     def self.where(query)
       query_obj = Bodhi::Query.new(Bodhi::Type, "types")
       query_obj.where(query)
@@ -172,7 +275,7 @@ module Bodhi
 
     # Dynamically defines a new Ruby class for the given +type+
     # Class validations, factory, and helper methods will also be added
-    # 
+    #
     #   type = Bodhi::Type.new({name: "TestType", properties: { foo:{ type:"String" }}})
     #   klass = Bodhi::Type.create_class_with(type)
     #   klass # => #<Class:0x007fbff403e808 @name="TestType">
