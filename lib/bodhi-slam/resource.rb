@@ -184,12 +184,6 @@ module Bodhi
       #
       # All records returned by this method will have their
       # {#bodhi_context} attribute set to +context+
-      #
-      # Pseudo-code & CURL command:
-      #   do
-      #     curl -u {username}:{password} https://{server}/{namespace}/resources/{resource}?paging=page:{page}
-      #     page ++
-      #   while {response.body.count} == 100
       # @note This method will return ALL records!!  Don't use on large collections!  YE BE WARNED!!
       # @param context [Bodhi::Context]
       # @return [Array<Bodhi::Resource>]
@@ -277,8 +271,15 @@ module Bodhi
     end
 
     module InstanceMethods
-      # Saves the resource to the Bodhi Cloud.  Returns true if record was saved
+      # POST the record to the IoT Platform.  Returns +true+ if record was saved correctly.
       #
+      # Equivalent CURL command:
+      #   curl -u {username}:{password} -X POST -H "Content-Type: application/json" \
+      #   https://{server}/{namespace}/resources/{resource} \
+      #   -d '{properties}'
+      # @return [Boolean]
+      # @raise [Bodhi::ContextErrors] if the given +Bodhi::Context+ is invalid
+      # @example
       #   obj = Resource.new
       #   obj.save # => true
       #   obj.persisted? # => true
@@ -302,10 +303,6 @@ module Bodhi
           request.body = attributes.to_json
         end
 
-        if result.status != 201
-          raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
-        end
-
         if result.headers['location']
           @sys_id = result.headers['location'].match(/(?<id>[a-zA-Z0-9]{24})/)[:id]
         end
@@ -313,10 +310,18 @@ module Bodhi
         true
       end
 
-      # Saves the resource to the Bodhi Cloud.  Raises ArgumentError if record could not be saved.
+      # POST the record to the IoT Platform.  Raises error if record could not be saved
       #
-      #   obj = Resouce.new
-      #   obj.save!
+      # Equivalent CURL command:
+      #   curl -u {username}:{password} -X POST -H "Content-Type: application/json" \
+      #   https://{server}/{namespace}/resources/{resource} \
+      #   -d '{properties}'
+      # @return [nil]
+      # @raise [Bodhi::ContextErrors] if the given +Bodhi::Context+ is invalid
+      # @raise [Bodhi::ApiErrors] if the response status is NOT +201+
+      # @example
+      #   obj = Resource.new
+      #   obj.save # => true
       #   obj.persisted? # => true
       def save!
         if bodhi_context.invalid?
@@ -337,8 +342,20 @@ module Bodhi
         if result.headers['location']
           @sys_id = result.headers['location'].match(/(?<id>[a-zA-Z0-9]{24})/)[:id]
         end
+
+        return nil
       end
 
+      # DELETE the record from the IoT Platform.  Raises error if record could not be deleted
+      #
+      # Equivalent CURL command:
+      #   curl -u {username}:{password} -X DELETE https://{server}/{namespace}/resources/{resource}/{sys_id}
+      # @return [nil]
+      # @raise [Bodhi::ContextErrors] if the given +Bodhi::Context+ is invalid
+      # @raise [Bodhi::ApiErrors] if the response status is NOT +204+
+      # @example
+      #   #given:  obj.persisted? # => true
+      #   obj.delete! # => nil
       def delete!
         result = bodhi_context.connection.delete do |request|
           request.url "/#{bodhi_context.namespace}/resources/#{self.class}/#{sys_id}"
@@ -348,11 +365,26 @@ module Bodhi
         if result.status != 204
           raise Bodhi::ApiErrors.new(body: result.body, status: result.status), "status: #{result.status}, body: #{result.body}"
         end
+
+        return nil
       end
       alias :destroy :delete!
 
-      def update!(params)
-        update_attributes(params)
+      # PUT an updated version of the record to the IoT Platform.  Raises error if record could not be updated
+      #
+      # Equivalent CURL command:
+      #   curl -u {username}:{password} -X PUT -H "Content-Type: application/json" \
+      #   https://{server}/{namespace}/resources/{resource}/{sys_id} \
+      #   -d '{updated properties}'
+      # @param properties [Hash] Key/Value pairs of the properties to update
+      # @return [nil]
+      # @raise [Bodhi::ContextErrors] if the given +Bodhi::Context+ is invalid
+      # @raise [Bodhi::ApiErrors] if the response status is NOT +204+
+      # @example
+      #   #given:  obj.persisted? # => true
+      #   obj.update!(foo: "test", bar: 12345) # => nil
+      def update!(properties)
+        update_attributes(properties)
 
         if invalid?
           return false
@@ -373,8 +405,22 @@ module Bodhi
       end
       alias :update :update!
 
-      def upsert!(params={})
-        update_attributes(params)
+
+      # Create or Update an existing record on the IoT Platform.  Raises error if record could not be updated
+      #
+      # Equivalent CURL command:
+      #   curl -u {username}:{password} -X PUT -H "Content-Type: application/json" \
+      #   https://{server}/{namespace}/resources/{resource}/{sys_id} \
+      #   -d '{updated properties}'
+      # @param properties [Hash] Key/Value pairs of the properties to update
+      # @return [nil]
+      # @raise [Bodhi::ContextErrors] if the given +Bodhi::Context+ is invalid
+      # @raise [Bodhi::ApiErrors] if the response status is NOT +204+ OR +201+
+      # @example
+      #   #given:  obj.persisted? # => true
+      #   obj.upsert!(foo: "test", bar: 12345) # => nil
+      def upsert!(properties={})
+        update_attributes(properties)
 
         if invalid?
           return false
@@ -397,12 +443,28 @@ module Bodhi
       end
       alias :upsert :upsert!
 
-      def patch!(params)
+
+      # PATCH an existing record on the IoT Platform.  Raises error if record could not be updated
+      #
+      # Equivalent CURL command:
+      #   curl -u {username}:{password} -X PATCH -H "Content-Type: application/json" \
+      #   https://{server}/{namespace}/resources/{resource}/{sys_id} \
+      #   -d '[{operation1}, {operation2}, ...]'
+      #
+      # @note This method will not update the object after patching.  Only the record on the IoT Platform will be updated.
+      # @param operations [Array<Hash>] Array of PATCH operations
+      # @return [nil]
+      # @raise [Bodhi::ContextErrors] if the given +Bodhi::Context+ is invalid
+      # @raise [Bodhi::ApiErrors] if the response status is NOT +204+ OR +201+
+      # @example
+      #   #given:  obj.persisted? # => true
+      #   obj.upsert!(foo: "test", bar: 12345) # => nil
+      def patch!(operations)
         result = bodhi_context.connection.patch do |request|
           request.url "/#{bodhi_context.namespace}/resources/#{self.class}/#{sys_id}"
           request.headers['Content-Type'] = 'application/json'
           request.headers[bodhi_context.credentials_header] = bodhi_context.credentials
-          request.body = params.to_json
+          request.body = operations.to_json
         end
 
         if result.status != 204
