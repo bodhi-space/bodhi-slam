@@ -52,7 +52,8 @@ module Bodhi
     # Hash of property names with lambda's to generate random values
     attr_accessor :generators
 
-    # Initialize with base class
+    # Initialize a new Factory using the given base class
+    # @param base [Class] the class you want to generate random instances for
     def initialize(base)
       @klass = base
       @generators = Hash.new
