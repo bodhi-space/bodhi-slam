@@ -1,9 +1,18 @@
 module Bodhi
   module Factories
     module ClassMethods
+      # Returns the Classes +Bodhi::Factory+ object
+      # @return [Bodhi::Factory]
       def factory; @factory; end
+
+      # Define a factory generator with the given +name+ and +options+
+      # and append to the Classes Bodhi::Factory
+      # @param name [String] the name of the property
+      # @param options [Hash] the Bodhi::Properties
+      # @return [nil]
       def generates(name, options)
         @factory.add_generator(name.to_sym, options)
+        return nil
       end
     end
 
@@ -14,17 +23,24 @@ module Bodhi
   end
 
   class Factory
+    # The class that will be used to generate random instances
     attr_reader :klass
+
+    # Hash of property names with lambda's to generate random values
     attr_accessor :generators
 
+    # Initialize with base class
     def initialize(base)
       @klass = base
       @generators = Hash.new
     end
 
-    # Returns a new randomly generated resource.
-    # Accepts an options hash to override specified values.
-    # 
+    # Builds a new randomly generated resource
+    # and accepts a options hash to override specified properties.
+    #
+    # @param options [Hash] the properties and values that should +NOT+ be randomized
+    # @return [Bodhi::Resource] the randomly generated resource
+    # @example
     #   Resource.factory.build # => #<Resource:0x007fbff403e808 @name="2-3lmwp^oef@245">
     #   Resource.factory.build(name: "test") # => #<Resource:0x007fbff403e808 @name="test">
     def build(options={})
@@ -40,18 +56,25 @@ module Bodhi
       object
     end
 
-    # Returns an array of randomly generated resources
-    # 
+    # Builds an array of randomly generated resources
+    # and accepts a options hash to override specified properties.
+    #
+    # @param size [Integer] the amount of resources to generate
+    # @param options [Hash] the properties and values that should +NOT+ be randomized
+    # @return [Array<Bodhi::Resource>] An Array of randomly generated resources
+    # @example
     #   Resource.factory.build_list(10) # => [#<Resource:0x007fbff403e808 @name="2-3lmwp^oef@245">, #<Resource:0x007fbff403e808 @name="p7:n#$903<u1">, ...]
     #   Resource.factory.build_list(10, name: "test") # => [#<Resource:0x007fbff403e808 @name="test">, #<Resource:0x007fbff403e808 @name="test">, ...]
     def build_list(size, options={})
       size.times.collect{ build(options) }
     end
 
-    # Builds and saves a new resource to the given +context+
-    # Accepts an options hash to override specified values.
-    # 
-    #   context = Bodhi::Context.new
+    # Generates a random resource and saves it to the IoT Platform
+    # and accepts a options hash to override specified properties.
+    #
+    # @param options [Hash] the properties and values that should +NOT+ be randomized
+    # @return [Bodhi::Resource] the randomly generated resource
+    # @example
     #   Resource.factory.create(context) # => #<Resource:0x007fbff403e808 @name="2-3lmwp^oef@245">
     #   Resource.factory.create(context, name: "test") # => #<Resource:0x007fbff403e808 @name="test">
     def create(options={})
@@ -60,9 +83,14 @@ module Bodhi
       object
     end
 
-    # Builds and saves a list of resources to the given +context+
-    # Accepts an options hash to override specified values.
-    # 
+    # Generates an array of random resources and saves them to the IoT Platform
+    # and accepts a options hash to override specified properties.
+    #
+    # @param size [Integer] the amount of resources to generate
+    # @param options [Hash] the properties and values that should +NOT+ be randomized
+    # @return [Array<Bodhi::Resource>] An Array of randomly generated resources
+    # @raise [Bodhi::ApiErrors] if any resource failed to be saved
+    # @example
     #   Resource.factory.create_list(10, context) # => [#<Resource:0x007fbff403e808 @name="2-3lmwp^oef@245">, #<Resource:0x007fbff403e808 @name="p7:n#$903<u1">, ...]
     #   Resource.factory.create_list(10, context, name: "test") # => [#<Resource:0x007fbff403e808 @name="test">, #<Resource:0x007fbff403e808 @name="test">, ...]
     def create_list(size, options={})
@@ -72,7 +100,11 @@ module Bodhi
     end
 
     # Adds a new generator to the class with the specified +name+ and +options+
-    # 
+    #
+    # @param name [String, Symbol] the name of the property
+    # @param options [Hash] the Bodhi::Properties options to generate
+    # @return [nil]
+    # @example
     #   Resource.factory.add_generator("name", type: "String")
     #   Resource.factory.add_generator("test", type: "Integer", multi: true, required: true)
     def add_generator(name, options)
@@ -81,11 +113,15 @@ module Bodhi
       else
         @generators[name.to_sym] = build_default_generator(options)
       end
+
+      return nil
     end
 
     private
+
+    # @todo clean up this nasty abomination of a method!
     def build_default_generator(options)
-      options = options.reduce({}) do |memo, (k, v)| 
+      options = options.reduce({}) do |memo, (k, v)|
         memo.merge({ Bodhi::Support.underscore(k.to_s).to_sym => v})
       end
 
@@ -181,7 +217,7 @@ module Bodhi
         # define max/min lattitude
         min_lat = -90.0
         max_lat = 90.0
-        
+
         if options[:multi]
           generator = lambda do
             [*0..5].sample.times.collect do
