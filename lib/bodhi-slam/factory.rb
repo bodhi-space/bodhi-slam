@@ -22,6 +22,23 @@ module Bodhi
     end
   end
 
+  # Randomize and save records to the cloud.
+  #
+  # Use the built in {Bodhi::Validator} classes to define constraints for
+  # randomizing records.  You can also create your own lambda expressions for further
+  # fine grain control.
+  # @example Define factories
+  #   factory = Bodhi::Factory.new(Drone)
+  # @example Default generators using {Bodhi::Type.properties} options
+  #   factory.add_generator(:motor_count, type: Integer, min: 1, max: 8 )
+  # @example Create custom generators using lambda syntax
+  #   factory.add_generator(:color, lambda { ["Red", "Green", "Blue", "Black"].sample } )
+  # @example Build a new record with randomly generated attributes
+  #   quad_copter = factory.build(motor_count: 4)
+  #   quad_copter # => #<Drone:0x007fbff403e808 @motor_count=4 @color="Red" >
+  # @example Build an array of random records
+  #   quad_copters = factory.build_list(10, motor_count: 4)
+  #   quad_copters # => [#<Drone:0x007fbff403e808 @motor_count=4 @color="Blue" >, ...]
   class Factory
     # The class that will be used to generate random instances
     attr_reader :klass
