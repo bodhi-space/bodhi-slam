@@ -37,7 +37,7 @@ describe Bodhi::Simulation::NormalDistribution do
       end
 
       it "raises ArgumentError if a +curve+ cannot be coerced into a Bodhi::Simulation::NormalDistributionCurve" do
-        expect{ Bodhi::Simulation::NormalDistribution.randomize([1,2,3]) }.to raise_error(ArgumentError, "The value: 1 is not a valid Bodhi::Simulation::NormalDistributionCurve object.  Error: undefined method `reduce' for 1:Fixnum")
+        expect{ Bodhi::Simulation::NormalDistribution.randomize([1,2,3]) }.to raise_error(ArgumentError, "The value: 1 is not a valid Bodhi::Simulation::NormalDistributionCurve object.  Error: undefined method `each' for 1:Fixnum")
       end
     end
   end

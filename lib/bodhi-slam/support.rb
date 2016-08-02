@@ -62,9 +62,19 @@ module Bodhi
         if Object.const_defined?(options[:type].to_s) && Object.const_get(options[:type].to_s).ancestors.include?(Bodhi::Properties)
           klass = Object.const_get(options[:type].to_s)
           if options[:multi] == true
-            value.map{|item| klass.new(item) }
+            value.map do |item|
+              if item.respond_to?(:attributes)
+                klass.new(item.attributes)
+              else
+                klass.new(item)
+              end
+            end
           else
-            klass.new(value)
+            if value.respond_to?(:attributes)
+              klass.new(value.attributes)
+            else
+              klass.new(value)
+            end
           end
         else
           value

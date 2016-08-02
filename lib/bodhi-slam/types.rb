@@ -5,11 +5,6 @@ module Bodhi
     include Bodhi::Properties
     include Bodhi::Validations
 
-    # use these to include the modules class methods
-    # @!parse extend Bodhi::Validations::ClassMethods
-    # @!parse extend Bodhi::Properties::ClassMethods
-    # @!parse extend Bodhi::Factories::ClassMethods
-
     # The API context that binds this {Bodhi::Type} instance to the HotSchedules IoT Platform
     # @note This is required for the all instance methods to work correctly
     # @return [Bodhi::Context] the API context linked to this object

@@ -39,6 +39,12 @@ module Bodhi
   # @example Build an array of random records
   #   quad_copters = factory.build_list(10, motor_count: 4)
   #   quad_copters # => [#<Drone:0x007fbff403e808 @motor_count=4 @color="Blue" >, ...]
+  # @example Build and save a randomly generated record
+  #   quad_copter = factory.create(bodhi_context: context, motor_count: 4)
+  #   quad_copter # => #<Drone:0x007fbff403e808 @motor_count=4 @color="Green" >
+  # @example Build and save an array of random records
+  #   quad_copters = factory.create_list(10, bodhi_context: context, motor_count: 4)
+  #   quad_copters # => [#<Drone:0x007fbff403e808 @motor_count=4 @color="Blue" >, ...]
   class Factory
     # The class that will be used to generate random instances
     attr_reader :klass
@@ -92,8 +98,8 @@ module Bodhi
     # @param options [Hash] the properties and values that should +NOT+ be randomized
     # @return [Bodhi::Resource] the randomly generated resource
     # @example
-    #   Resource.factory.create(context) # => #<Resource:0x007fbff403e808 @name="2-3lmwp^oef@245">
-    #   Resource.factory.create(context, name: "test") # => #<Resource:0x007fbff403e808 @name="test">
+    #   Resource.factory.create(bodhi_context: context) # => #<Resource:0x007fbff403e808 @name="2-3lmwp^oef@245">
+    #   Resource.factory.create(bodhi_context: context, name: "test") # => #<Resource:0x007fbff403e808 @name="test">
     def create(options={})
       object = build(options)
       object.save!
@@ -108,8 +114,8 @@ module Bodhi
     # @return [Array<Bodhi::Resource>] An Array of randomly generated resources
     # @raise [Bodhi::ApiErrors] if any resource failed to be saved
     # @example
-    #   Resource.factory.create_list(10, context) # => [#<Resource:0x007fbff403e808 @name="2-3lmwp^oef@245">, #<Resource:0x007fbff403e808 @name="p7:n#$903<u1">, ...]
-    #   Resource.factory.create_list(10, context, name: "test") # => [#<Resource:0x007fbff403e808 @name="test">, #<Resource:0x007fbff403e808 @name="test">, ...]
+    #   Resource.factory.create_list(10, bodhi_context: context) # => [#<Resource:0x007fbff403e808 @name="2-3lmwp^oef@245">, #<Resource:0x007fbff403e808 @name="p7:n#$903<u1">, ...]
+    #   Resource.factory.create_list(10, bodhi_context: context, name: "test") # => [#<Resource:0x007fbff403e808 @name="test">, #<Resource:0x007fbff403e808 @name="test">, ...]
     def create_list(size, options={})
       resources = build_list(size, options)
       resources.each{ |resource| resource.save! }

@@ -12,7 +12,7 @@ module Bodhi
 
       # Sets the resources embedded status to either true/false.
       #
-      # @param bool [Boolean]
+      # @param status [Boolean]
       # @return [Boolean]
       def embedded(status); @embedded = status; end
 
