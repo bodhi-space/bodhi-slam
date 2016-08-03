@@ -11,14 +11,10 @@ module Bodhi
     include Bodhi::Properties
     include Bodhi::Validations
 
-    # Initial conditions
     property :starts_at, type: DateTime
     property :iterations, type: Integer
     property :time_units, type: String
     property :time_scale, type: Integer, default: 1
-
-    # Dynamic attributes
-    # Updated every iteration
     property :current_frame, type: SimulationFrame
 
     # Model validations

@@ -11,8 +11,13 @@ class PropertiesHandler < YARD::Handlers::Ruby::Base
     params = statement.parameters(false).dup
 
     name = statement.parameters.first.jump(:tstring_content, :ident).source
-    options = statement.parameters[1].jump(:hash).source
+    options = statement.parameters[1].jump(:tstring_content, :ident).source
     return_type = options.gsub(/type:\s+"?([a-zA-Z0-9_:]+)"?.*/, '\1')
+
+    # Check the options for the +multi+ param
+    unless options.index(/multi:\s+true/).nil?
+      return_type = "Array<#{return_type}>"
+    end
 
     namespace.attributes[scope][name] ||= SymbolHash[:read => nil, :write => nil]
 
@@ -24,12 +29,11 @@ class PropertiesHandler < YARD::Handlers::Ruby::Base
           o.parameters = [['value', nil]]
           src = "def #{meth}(value)"
           full_src = "#{src}\n  @#{name} = value\nend"
-          doc = "Sets the attribute #{name}\n@param value the value to set the attribute #{name} to."
         else
           src = "def #{meth}"
           full_src = "#{src}\n  @#{name}\nend"
-          doc = "Returns the value of attribute #{name}"
         end
+        o.add_tag YARD::Tags::Library.new.return_tag("[#{return_type}]")
         o.source ||= full_src
         o.signature ||= src
         register(o)

@@ -25,7 +25,6 @@ module Bodhi
     property :embedded,       type: "Boolean"
     property :metadata,       type: "Boolean"
     property :encapsulated,   type: "Boolean"
-
     property :documentation,  type: "Link"
 
     validates :name, required: true, is_not_blank: true
