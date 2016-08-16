@@ -1,5 +1,17 @@
 module Bodhi
-  # The Bodhi::Properties module is intended to help
+  # This module helps turn a Ruby Object into a Form Object.
+  # It manages the objects properties as well as serialization to JSON
+  # @example
+  #   class MyNewClass
+  #     include Bodhi::properties
+  #
+  #     property :attribute_1, type: String
+  #     property :attribute_2, type: DateTime
+  #     ...
+  #   end
+  #
+  #   object = MyNewClass.new(attribute_1: "Foo", attribute_2: Time.now)
+  #   object.to_json #=> {"attribute_1":"Foo", "attribute_2": "2016-08-16T13:15:19-07:00"}
   module Properties
 
     # Default properties for ALL records on the IoT Platform
@@ -49,7 +61,7 @@ module Bodhi
 
     # Initializes a new instance of the class.  Accepts a parameter Hash for mass assignment.
     #
-    # @param options [Hash]
+    # @param options [Hash, JSON String]
     # @example
     #   klass = Class.new do
     #     include Bodhi::Properties
