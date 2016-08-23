@@ -1,7 +1,7 @@
 require "json"
 require "time"
 require 'faraday'
-require 'SecureRandom'
+require 'securerandom'
 require 'faraday_middleware'
 require 'faraday-http-cache'
 require 'net/http/persistent'
@@ -76,7 +76,7 @@ class BodhiSlam
   end
 
   # Dynamically creates Ruby Classes for each type in the given +context+
-  # 
+  #
   #   context = Bodhi::Context.new(valid_params)
   #   BodhiSlam.analyze(context) # => [#<Class:0x007fbff403e808 @name="TestType">, #<Class:0x007fbff403e808 @name="TestType2">, ...]
   def self.analyze(context)
